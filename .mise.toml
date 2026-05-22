@@ -1,0 +1,3 @@
+[tools]
+java = "temurin-23.0.2+7"
+task = "latest"

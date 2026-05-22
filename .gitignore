@@ -1,0 +1,69 @@
+# ================================
+# kmp-targets .gitignore
+# ================================
+
+# ================================
+# Build Directories
+# ================================
+**/build/
+.gradle/
+.kotlin/
+
+# ================================
+# IDE Files
+# ================================
+**/.idea/*
+.iml
+.project
+.classpath
+*.iml
+out/
+
+# ================================
+# macOS
+# ================================
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# ================================
+# Local Configuration
+# ================================
+local.properties
+gradle.properties.local
+secrets.properties
+
+# ================================
+# Build Artifacts
+# ================================
+**/build/classes/**
+**/build/libs/**
+**/build/tmp/**
+**/build/kotlin/**
+**/build/generated/**
+*.class
+
+# Keep gradle wrapper
+!gradle/wrapper/*.jar
+!gradle/wrapper/*.properties
+
+# ================================
+# Temporary Files
+# ================================
+**/*.tmp
+.gradle/**/classloaderscopes*.tmp
+*.swp
+*.swo
+*~
+*.log
+
+# ================================
+# Claude Code working files
+# ================================
+.claude/scheduled_tasks.lock
+handoff-prompt-*.txt
+research-prompts-*.txt
+
+# JVM heap dumps from OOM crashes during local test runs
+**/*.hprof

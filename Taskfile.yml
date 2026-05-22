@@ -1,0 +1,60 @@
+version: '3'
+
+vars:
+  GRADLE: ./gradlew
+
+tasks:
+  default:
+    desc: List available tasks
+    cmds:
+      - task --list
+
+  build:
+    desc: Build the plugin module
+    cmds:
+      - "{{.GRADLE}} :gradle-plugin:build"
+
+  test:
+    desc: Run all tests (TestKit functional tests included)
+    cmds:
+      - "{{.GRADLE}} :gradle-plugin:test"
+
+  check:
+    desc: Run all checks (test + future lint/format/api)
+    cmds:
+      - "{{.GRADLE}} :gradle-plugin:check"
+
+  publish-local:
+    desc: Publish plugin to Maven Local for sample iteration
+    cmds:
+      - "{{.GRADLE}} :gradle-plugin:publishPluginMavenPublicationToMavenLocal :gradle-plugin:publishKmpTargetsPluginMarkerMavenPublicationToMavenLocal"
+
+  sample:
+    desc: Run the hello-world sample (depends on publish-local)
+    deps: [publish-local]
+    cmds:
+      - "{{.GRADLE}} -p samples/hello-world kmpTargetsHello"
+
+  sample:build:
+    desc: Build the hello-world sample (depends on publish-local)
+    deps: [publish-local]
+    cmds:
+      - "{{.GRADLE}} -p samples/hello-world build"
+
+  ci:
+    desc: Full local CI dry-run (check + publish-local + sample)
+    cmds:
+      - task: check
+      - task: sample
+      - task: sample:build
+
+  clean:
+    desc: Clean root build + sample build artifacts
+    cmds:
+      - "{{.GRADLE}} clean"
+      - rm -rf samples/hello-world/build samples/hello-world/.gradle
+
+  fmt:
+    desc: Format code (placeholder — spotless wired in next PR)
+    cmds:
+      - 'echo "fmt: not yet wired — coming next PR"'

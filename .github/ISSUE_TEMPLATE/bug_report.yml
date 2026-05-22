@@ -1,0 +1,67 @@
+name: Bug report
+description: Something isn't working as documented
+labels: [bug, triage]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file a bug. Please fill in what you can — the more context, the faster the fix.
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear and concise description of the bug.
+      placeholder: When I set KMP_TARGETS=... I expected ... but got ...
+    validations:
+      required: true
+
+  - type: input
+    id: kmp-targets-value
+    attributes:
+      label: KMP_TARGETS value
+      description: The value you passed (in local.properties, -P, or env var). Leave blank if unset.
+      placeholder: android,iosArm64
+
+  - type: input
+    id: plugin-version
+    attributes:
+      label: kmp-targets plugin version
+      placeholder: 0.1.0-SNAPSHOT
+    validations:
+      required: true
+
+  - type: input
+    id: gradle-version
+    attributes:
+      label: Gradle version
+      placeholder: 9.5.1
+    validations:
+      required: true
+
+  - type: input
+    id: kotlin-version
+    attributes:
+      label: Kotlin version
+      placeholder: 2.3.21
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating system
+      placeholder: macOS 15.7 / Ubuntu 24.04 / Windows 11
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Steps or a minimal repo link.
+      placeholder: |
+        1. ./gradlew ...
+        2. ...
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / stacktrace
+      render: shell

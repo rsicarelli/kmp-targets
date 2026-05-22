@@ -1,0 +1,14 @@
+{
+  "description": "Claude Code settings for kmp-targets",
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew **)",
+      "Bash(task **)",
+      "Bash(mise **)",
+      "Bash(gh **)",
+      "Bash(git **)",
+      "Bash(rm -rf **/build)",
+      "Bash(rm -rf **/.gradle)"
+    ]
+  }
+}
