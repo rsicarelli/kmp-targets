@@ -10,24 +10,24 @@ tasks:
       - task --list
 
   build:
-    desc: Build the plugin module
+    desc: Build all plugin modules (core + convention plugins)
     cmds:
-      - "{{.GRADLE}} :gradle-plugin:build"
+      - "{{.GRADLE}} build"
 
   test:
-    desc: Run all tests (TestKit functional tests included)
+    desc: Run all tests across modules (TestKit functional tests included)
     cmds:
-      - "{{.GRADLE}} :gradle-plugin:test"
+      - "{{.GRADLE}} test"
 
   check:
-    desc: Run all checks (test + future lint/format/api)
+    desc: Run all checks across modules (test + ktfmt)
     cmds:
-      - "{{.GRADLE}} :gradle-plugin:check"
+      - "{{.GRADLE}} check"
 
   publish-local:
-    desc: Publish plugin to Maven Local for sample iteration
+    desc: Publish core + convention plugins (and their markers) to Maven Local for sample iteration
     cmds:
-      - "{{.GRADLE}} :gradle-plugin:publishPluginMavenPublicationToMavenLocal :gradle-plugin:publishKmpTargetsPluginMarkerMavenPublicationToMavenLocal"
+      - "{{.GRADLE}} publishToMavenLocal"
 
   sample:
     desc: Quick smoke — plugin applies and registers KMP targets (depends on publish-local)
@@ -76,9 +76,9 @@ tasks:
   fmt:
     desc: Format Kotlin sources with ktfmt (kotlinlang style)
     cmds:
-      - "{{.GRADLE}} :gradle-plugin:ktfmtFormat"
+      - "{{.GRADLE}} ktfmtFormat"
 
   fmt:check:
     desc: Verify Kotlin sources are ktfmt-formatted (run by `task check`)
     cmds:
-      - "{{.GRADLE}} :gradle-plugin:ktfmtCheck"
+      - "{{.GRADLE}} ktfmtCheck"

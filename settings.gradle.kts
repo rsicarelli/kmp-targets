@@ -18,3 +18,4 @@ dependencyResolutionManagement {
 rootProject.name = "kmp-targets"
 
 include(":gradle-plugin")
+include(":convention-plugins")

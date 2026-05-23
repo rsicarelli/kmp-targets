@@ -131,4 +131,42 @@ class KmpTargetSetTest {
         assertEquals(a, b)
         assertEquals(a.hashCode(), b.hashCode())
     }
+
+    @Test
+    fun `given two overlapping sets when intersect then result contains only their common members`() {
+        val a = KmpTargetSet.of(KmpTarget.Jvm.Desktop, KmpTarget.Native.Apple.Ios.Arm64)
+        val b = KmpTargetSet.apple
+        val result = a intersect b
+        assertEquals(setOf<KmpTarget>(KmpTarget.Native.Apple.Ios.Arm64), result.members)
+    }
+
+    @Test
+    fun `given disjoint sets when intersect then result is empty`() {
+        val result = KmpTargetSet.web intersect KmpTargetSet.appleMobile
+        assertTrue(result.isEmpty())
+    }
+
+    @Test
+    fun `given a set when intersected with all then result equals the original set`() {
+        val set = KmpTargetSet.of(KmpTarget.Web.Js, KmpTarget.Jvm.Desktop)
+        assertEquals(set.members, (set intersect KmpTargetSet.all).members)
+    }
+
+    @Test
+    fun `given intersect when applied then it is commutative on members`() {
+        val a = KmpTargetSet.apple
+        val b = KmpTargetSet.appleMobile
+        assertEquals((a intersect b).members, (b intersect a).members)
+    }
+
+    @Test
+    fun `given mobile preset when accessed then contains Android and the two iOS leaves`() {
+        val expected =
+            setOf<KmpTarget>(
+                KmpTarget.Jvm.Android,
+                KmpTarget.Native.Apple.Ios.Arm64,
+                KmpTarget.Native.Apple.Ios.SimulatorArm64,
+            )
+        assertEquals(expected, KmpTargetSet.mobile.members)
+    }
 }

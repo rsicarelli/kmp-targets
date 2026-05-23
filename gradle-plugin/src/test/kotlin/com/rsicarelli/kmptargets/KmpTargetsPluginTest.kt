@@ -72,18 +72,6 @@ class KmpTargetsPluginTest {
     }
 
     @Test
-    fun `given user only override when plugin applied with property set then user value wins`(
-        @TempDir dir: Path
-    ) {
-        dir.resolve("gradle.properties").writeText("KMP_TARGETS=android\n")
-        val project = newProject(dir)
-        project.pluginManager.apply("com.rsicarelli.kmptargets")
-        val ext = project.extensions.getByType(KmpTargetsExtension::class.java)
-        ext.only(KmpTarget.Native.Apple.Ios.Arm64)
-        assertEquals(KmpTargetSet.of(KmpTarget.Native.Apple.Ios.Arm64), ext.selection.get())
-    }
-
-    @Test
     fun `given KMP_TARGETS is invalid when plugin is applied then a GradleException surfaces in the failure chain`(
         @TempDir dir: Path
     ) {

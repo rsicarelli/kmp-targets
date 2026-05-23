@@ -31,10 +31,10 @@ jobs:
         uses: gradle/actions/setup-gradle@v6
 
       - name: Check (compile + test)
-        run: ./gradlew :gradle-plugin:check
+        run: ./gradlew check
 
-      - name: Publish plugin to Maven Local
-        run: ./gradlew :gradle-plugin:publishPluginMavenPublicationToMavenLocal :gradle-plugin:publishKmpTargetsPluginMarkerMavenPublicationToMavenLocal
+      - name: Publish plugins to Maven Local
+        run: ./gradlew publishToMavenLocal
 
       - name: Build sample (hello-world)
         run: ./gradlew -p samples/hello-world build

@@ -35,6 +35,15 @@ public value class KmpTargetSet private constructor(public val members: Set<KmpT
     public operator fun minus(other: KmpTargetSet): KmpTargetSet =
         KmpTargetSet(members - other.members)
 
+    /**
+     * Returns the intersection of this set with [other] — the targets present in both. Defined as a
+     * member (not an extension) so it shadows the stdlib `Iterable.intersect`, which would
+     * otherwise win and return a plain `Set` because [KmpTargetSet] is [Iterable]. This is the
+     * operation the plugin uses to compute `selection ∩ supported`.
+     */
+    public infix fun intersect(other: KmpTargetSet): KmpTargetSet =
+        KmpTargetSet(members intersect other.members)
+
     override fun toString(): String =
         members.joinToString(prefix = "KmpTargetSet(", postfix = ")") { it.id }
 
@@ -61,6 +70,20 @@ public value class KmpTargetSet private constructor(public val members: Set<KmpT
 
         public val jvmFamily: KmpTargetSet =
             KmpTargetSet(setOf(KmpTarget.Jvm.Android, KmpTarget.Jvm.Desktop))
+
+        /**
+         * The canonical "mobile app" shape: Android plus the two iOS leaves. Backs the
+         * `com.rsicarelli.kmptargets.mobile` convention plugin. Android only registers if the
+         * user's selection actually includes it, so this preset does not force AGP onto consumers.
+         */
+        public val mobile: KmpTargetSet =
+            KmpTargetSet(
+                setOf(
+                    KmpTarget.Jvm.Android,
+                    KmpTarget.Native.Apple.Ios.Arm64,
+                    KmpTarget.Native.Apple.Ios.SimulatorArm64,
+                )
+            )
 
         public fun of(vararg targets: KmpTarget): KmpTargetSet = KmpTargetSet(targets.toSet())
     }

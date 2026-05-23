@@ -2,7 +2,7 @@
 
 > Dynamically select which Kotlin Multiplatform targets to build.
 
-**Status:** alpha (pre-1.0). The core selector is implemented and exercised by the sample; per-module configuration and helper APIs (`applyHierarchyTemplate`, XCFramework) are roadmap items.
+**Status:** alpha (pre-1.0). The core selector and per-module convention plugins are implemented and exercised by the multi-module sample; helper APIs (`applyHierarchyTemplate`, XCFramework) are roadmap items.
 
 `kmp-targets` is a Gradle plugin for Kotlin Multiplatform projects that lets each developer (and each CI runner) choose which KMP targets to build, via a single Gradle property:
 
@@ -15,6 +15,61 @@ Targets you don't select are never registered with KGP, so their compile/link/KS
 
 ## Usage
 
+A real multi-module project is heterogeneous: a shared module builds every platform, a mobile
+feature builds only Android + iOS, a tooling module builds only the JVM. `kmp-targets` separates two
+facts:
+
+- **What a module *can* build** — its *supported* set, declared per-module.
+- **What you *want* to build now** — the global `KMP_TARGETS` *selection*.
+
+The plugin registers `selection ∩ supported` for each module. A module never builds a target outside
+its supported set, and the global selection narrows that further.
+
+### Convention plugins (recommended)
+
+Each module declares its supported shape by the convention plugin id it applies — one line, and it
+applies the Kotlin Multiplatform plugin for you (don't add `kotlin("multiplatform")` yourself):
+
+```kotlin
+// shared-core/build.gradle.kts   — supports all targets
+plugins { id("com.rsicarelli.kmptargets.library") version "<version>" }
+
+// feature-mobile/build.gradle.kts — supports Android + iOS
+plugins { id("com.rsicarelli.kmptargets.mobile") version "<version>" }
+
+// jvm-tools/build.gradle.kts      — supports JVM only
+plugins { id("com.rsicarelli.kmptargets.jvm") version "<version>" }
+```
+
+| Plugin id | Supports |
+|---|---|
+| `com.rsicarelli.kmptargets.library` | all shipped targets |
+| `com.rsicarelli.kmptargets.mobile` | `androidTarget`, `iosArm64`, `iosSimulatorArm64` |
+| `com.rsicarelli.kmptargets.apple` | `iosArm64`, `iosSimulatorArm64`, `macosArm64`, `macosX64` |
+| `com.rsicarelli.kmptargets.jvm` | `jvm` |
+| `com.rsicarelli.kmptargets.web` | `js`, `wasmJs`, `wasmWasi` |
+
+With `KMP_TARGETS=jvm,iosSimulatorArm64`: `library` registers both, `mobile` registers only
+`iosSimulatorArm64`, `jvm` registers only `jvm`.
+
+**Composition** — apply more than one id and their supported sets *union*:
+
+```kotlin
+plugins {
+    id("com.rsicarelli.kmptargets.apple") version "<version>"
+    id("com.rsicarelli.kmptargets.jvm") version "<version>"
+}
+// supports iOS/macOS ∪ JVM
+```
+
+If a module's supported set and the selection don't overlap at all, the plugin registers no targets
+for it, logs a warning naming the module/supported/selection, and lets the build proceed.
+
+### Escape hatch (manual wiring)
+
+For a one-off module that fits no preset, apply the base id yourself alongside KGP and declare its
+supported set with the `kmptargets.supported` property (same grammar as `KMP_TARGETS`):
+
 ```kotlin
 // build.gradle.kts
 plugins {
@@ -22,6 +77,16 @@ plugins {
     id("com.rsicarelli.kmptargets") version "<version>"
 }
 ```
+
+```properties
+# this module's gradle.properties
+kmptargets.supported=jvm,linuxX64
+```
+
+Applying the base id with no `kmptargets.supported` keeps the original behaviour: supported defaults
+to all, so the global `KMP_TARGETS` alone decides what registers.
+
+### Selecting targets
 
 Set the selection via any of these sources (priority order, highest first):
 
@@ -61,8 +126,8 @@ This release ships leaves for the most-used target families. Other branches (`wa
 The plugin is not yet published to the Gradle Plugin Portal or Maven Central. Track progress in the issues / releases. Locally:
 
 ```bash
-task publish-local           # publishes :gradle-plugin to mavenLocal
-task sample                  # smoke test against samples/hello-world
+task publish-local           # publishes the core + convention plugins to mavenLocal
+task sample                  # smoke test against the multi-module samples/hello-world
 ```
 
 ## Development
