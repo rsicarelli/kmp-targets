@@ -1,6 +1,7 @@
 package com.rsicarelli.kmptargets.conventions
 
 import com.rsicarelli.kmptargets.KmpTargetsExtension
+import com.rsicarelli.kmptargets.model.KmpTarget
 import com.rsicarelli.kmptargets.model.KmpTargetSet
 import java.nio.file.Path
 import kotlin.io.path.writeText
@@ -43,16 +44,35 @@ class KmpConventionPluginsTest {
     }
 
     @Test
+    fun `given apple convention applied when supported is read then it spans iOS macOS watchOS and tvOS`(
+        @TempDir dir: Path
+    ) {
+        val project = projectWith(dir, kmpTargets = "iosArm64")
+        project.pluginManager.apply(KmpAppleConventionPlugin::class.java)
+        val ext = project.extensions.getByType(KmpTargetsExtension::class.java)
+        assertEquals(KmpTargetSet.apple, ext.supported.get())
+        assertTrue(KmpTarget.Native.Apple.Watchos.Arm64 in ext.supported.get())
+        assertTrue(KmpTarget.Native.Apple.Tvos.Arm64 in ext.supported.get())
+    }
+
+    @Test
+    fun `given library convention applied when supported is read then it equals every shipped target`(
+        @TempDir dir: Path
+    ) {
+        val project = projectWith(dir, kmpTargets = "iosArm64")
+        project.pluginManager.apply(KmpLibraryConventionPlugin::class.java)
+        val ext = project.extensions.getByType(KmpTargetsExtension::class.java)
+        assertEquals(KmpTargetSet.all, ext.supported.get())
+    }
+
+    @Test
     fun `given jvm convention applied when supported is read then it equals jvm desktop only`(
         @TempDir dir: Path
     ) {
         val project = projectWith(dir, kmpTargets = "jvm")
         project.pluginManager.apply(KmpJvmConventionPlugin::class.java)
         val ext = project.extensions.getByType(KmpTargetsExtension::class.java)
-        assertEquals(
-            KmpTargetSet.of(com.rsicarelli.kmptargets.model.KmpTarget.Jvm.Desktop),
-            ext.supported.get(),
-        )
+        assertEquals(KmpTargetSet.of(KmpTarget.Jvm.Desktop), ext.supported.get())
         assertRegisteredTargets(project, "jvm")
     }
 

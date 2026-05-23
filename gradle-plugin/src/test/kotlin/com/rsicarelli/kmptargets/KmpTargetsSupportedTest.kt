@@ -93,7 +93,58 @@ class KmpTargetsSupportedTest {
         // Property-declared support must be visible before registration, so core-first / KGP-last.
         project.pluginManager.apply("com.rsicarelli.kmptargets")
         project.pluginManager.apply("org.jetbrains.kotlin.multiplatform")
-        assertRegisteredTargets(project, "iosArm64", "iosSimulatorArm64", "macosArm64", "macosX64")
+        // supported=apple now spans iOS+macOS+watchOS+tvOS; KMP_TARGETS=all ∩ apple = apple.
+        val kotlin = project.extensions.getByType(KotlinMultiplatformExtension::class.java)
+        val actual = kotlin.targets.names.filter { it != "metadata" }.toSet()
+        assertEquals(KmpTargetSet.apple.members.map { it.id }.toSet(), actual)
+    }
+
+    @Test
+    fun `given a selection spanning every new native family when applied then each leaf registers with real KGP`(
+        @TempDir dir: Path
+    ) {
+        // One representative leaf from each newly-shipped family (iosX64, Linux, watchOS incl.
+        // device, tvOS, MinGW, Android Native). Proves each registerTarget branch wires to a real
+        // KGP target function and not, say, the wrong one.
+        val project =
+            coreThenKgp(
+                dir,
+                kmpTargets =
+                    "iosX64,linuxX64,linuxArm64,watchosArm64,watchosDeviceArm64,tvosArm64,mingwX64,androidNativeArm64",
+                supported = null,
+            )
+        assertRegisteredTargets(
+            project,
+            "iosX64",
+            "linuxX64",
+            "linuxArm64",
+            "watchosArm64",
+            "watchosDeviceArm64",
+            "tvosArm64",
+            "mingwX64",
+            "androidNativeArm64",
+        )
+    }
+
+    @Test
+    fun `given KMP_TARGETS apple when applied then every Apple platform registers including watchOS and tvOS`(
+        @TempDir dir: Path
+    ) {
+        val project = coreThenKgp(dir, kmpTargets = "apple", supported = null)
+        val kotlin = project.extensions.getByType(KotlinMultiplatformExtension::class.java)
+        val actual = kotlin.targets.names.filter { it != "metadata" }.toSet()
+        assertEquals(KmpTargetSet.apple.members.map { it.id }.toSet(), actual)
+    }
+
+    @Test
+    fun `given KMP_TARGETS native when applied then it registers every native leaf and no jvm or web`(
+        @TempDir dir: Path
+    ) {
+        val project = coreThenKgp(dir, kmpTargets = "native", supported = null)
+        val kotlin = project.extensions.getByType(KotlinMultiplatformExtension::class.java)
+        val actual = kotlin.targets.names.filter { it != "metadata" }.toSet()
+        assertEquals(KmpTargetSet.native.members.map { it.id }.toSet(), actual)
+        assertTrue("jvm" !in actual && "js" !in actual)
     }
 
     @Test

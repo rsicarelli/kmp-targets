@@ -19,13 +19,88 @@ class KmpTargetSetTest {
     }
 
     @Test
-    fun `given appleMobile preset when accessed then contains exactly the iOS leaves`() {
+    fun `given appleMobile preset when accessed then contains every iOS leaf including iosX64`() {
         val expected =
             setOf<KmpTarget>(
                 KmpTarget.Native.Apple.Ios.Arm64,
                 KmpTarget.Native.Apple.Ios.SimulatorArm64,
+                KmpTarget.Native.Apple.Ios.X64,
             )
         assertEquals(expected, KmpTargetSet.appleMobile.members)
+    }
+
+    @Test
+    fun `given appleWatch preset when accessed then contains every watchOS leaf`() {
+        val expected =
+            setOf<KmpTarget>(
+                KmpTarget.Native.Apple.Watchos.Arm64,
+                KmpTarget.Native.Apple.Watchos.Arm32,
+                KmpTarget.Native.Apple.Watchos.X64,
+                KmpTarget.Native.Apple.Watchos.SimulatorArm64,
+                KmpTarget.Native.Apple.Watchos.DeviceArm64,
+            )
+        assertEquals(expected, KmpTargetSet.appleWatch.members)
+    }
+
+    @Test
+    fun `given appleTv preset when accessed then contains every tvOS leaf`() {
+        val expected =
+            setOf<KmpTarget>(
+                KmpTarget.Native.Apple.Tvos.Arm64,
+                KmpTarget.Native.Apple.Tvos.X64,
+                KmpTarget.Native.Apple.Tvos.SimulatorArm64,
+            )
+        assertEquals(expected, KmpTargetSet.appleTv.members)
+    }
+
+    @Test
+    fun `given apple preset when accessed then spans iOS macOS watchOS and tvOS`() {
+        val expected =
+            KmpTargetSet.appleMobile.members +
+                KmpTargetSet.appleDesktop.members +
+                KmpTargetSet.appleWatch.members +
+                KmpTargetSet.appleTv.members
+        assertEquals(expected, KmpTargetSet.apple.members)
+    }
+
+    @Test
+    fun `given linux preset when accessed then contains linuxX64 and linuxArm64`() {
+        val expected = setOf<KmpTarget>(KmpTarget.Native.Linux.X64, KmpTarget.Native.Linux.Arm64)
+        assertEquals(expected, KmpTargetSet.linux.members)
+    }
+
+    @Test
+    fun `given mingw preset when accessed then contains mingwX64`() {
+        assertEquals(setOf<KmpTarget>(KmpTarget.Native.Mingw.X64), KmpTargetSet.mingw.members)
+    }
+
+    @Test
+    fun `given androidNative preset when accessed then contains all four androidNative leaves`() {
+        val expected =
+            setOf<KmpTarget>(
+                KmpTarget.Native.AndroidNative.Arm32,
+                KmpTarget.Native.AndroidNative.Arm64,
+                KmpTarget.Native.AndroidNative.X86,
+                KmpTarget.Native.AndroidNative.X64,
+            )
+        assertEquals(expected, KmpTargetSet.androidNative.members)
+    }
+
+    @Test
+    fun `given native preset when accessed then equals apple plus linux mingw androidNative`() {
+        val expected =
+            KmpTargetSet.apple.members +
+                KmpTargetSet.linux.members +
+                KmpTargetSet.mingw.members +
+                KmpTargetSet.androidNative.members
+        assertEquals(expected, KmpTargetSet.native.members)
+    }
+
+    @Test
+    fun `given native preset when accessed then excludes jvm android and web`() {
+        assertFalse(KmpTarget.Jvm.Desktop in KmpTargetSet.native)
+        assertFalse(KmpTarget.Jvm.Android in KmpTargetSet.native)
+        assertFalse(KmpTarget.Web.Js in KmpTargetSet.native)
     }
 
     @Test
@@ -33,12 +108,6 @@ class KmpTargetSetTest {
         val expected =
             setOf<KmpTarget>(KmpTarget.Native.Apple.Macos.Arm64, KmpTarget.Native.Apple.Macos.X64)
         assertEquals(expected, KmpTargetSet.appleDesktop.members)
-    }
-
-    @Test
-    fun `given apple preset when accessed then equals appleMobile plus appleDesktop`() {
-        val expected = KmpTargetSet.appleMobile.members + KmpTargetSet.appleDesktop.members
-        assertEquals(expected, KmpTargetSet.apple.members)
     }
 
     @Test
@@ -94,7 +163,7 @@ class KmpTargetSetTest {
 
     @Test
     fun `given a set when removing another set then result is the difference`() {
-        val base = KmpTargetSet.apple
+        val base = KmpTargetSet.appleMobile + KmpTargetSet.appleDesktop
         val result = base - KmpTargetSet.appleDesktop
         assertEquals(KmpTargetSet.appleMobile.members, result.members)
     }
@@ -120,7 +189,12 @@ class KmpTargetSetTest {
         val result =
             KmpTargetSet.appleMobile + KmpTarget.Jvm.Android -
                 KmpTarget.Native.Apple.Ios.SimulatorArm64
-        val expected = setOf<KmpTarget>(KmpTarget.Native.Apple.Ios.Arm64, KmpTarget.Jvm.Android)
+        val expected =
+            setOf<KmpTarget>(
+                KmpTarget.Native.Apple.Ios.Arm64,
+                KmpTarget.Native.Apple.Ios.X64,
+                KmpTarget.Jvm.Android,
+            )
         assertEquals(expected, result.members)
     }
 
@@ -160,13 +234,9 @@ class KmpTargetSetTest {
     }
 
     @Test
-    fun `given mobile preset when accessed then contains Android and the two iOS leaves`() {
-        val expected =
-            setOf<KmpTarget>(
-                KmpTarget.Jvm.Android,
-                KmpTarget.Native.Apple.Ios.Arm64,
-                KmpTarget.Native.Apple.Ios.SimulatorArm64,
-            )
+    fun `given mobile preset when accessed then contains Android and every iOS leaf`() {
+        val expected = setOf<KmpTarget>(KmpTarget.Jvm.Android) + KmpTargetSet.appleMobile.members
         assertEquals(expected, KmpTargetSet.mobile.members)
+        assertTrue(KmpTarget.Native.Apple.Ios.X64 in KmpTargetSet.mobile)
     }
 }

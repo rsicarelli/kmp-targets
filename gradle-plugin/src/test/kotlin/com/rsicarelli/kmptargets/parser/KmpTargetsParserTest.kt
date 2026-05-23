@@ -89,7 +89,10 @@ class KmpTargetsParserTest {
     fun `given a token with minus prefix when parsed then it is removed from the running set`() {
         val result = parseKmpTargets("appleMobile,-iosSimulatorArm64")
         assertTrue(result is ParseResult.Ok)
-        assertEquals(KmpTargetSet.of(KmpTarget.Native.Apple.Ios.Arm64), result.set)
+        assertEquals(
+            KmpTargetSet.of(KmpTarget.Native.Apple.Ios.Arm64, KmpTarget.Native.Apple.Ios.X64),
+            result.set,
+        )
     }
 
     @Test
@@ -152,7 +155,7 @@ class KmpTargetsParserTest {
 
     @Test
     fun `given subtraction that empties a preset when parsed then result is Ok empty`() {
-        val result = parseKmpTargets("appleMobile,-iosArm64,-iosSimulatorArm64")
+        val result = parseKmpTargets("appleMobile,-iosArm64,-iosSimulatorArm64,-iosX64")
         assertTrue(result is ParseResult.Ok)
         assertEquals(KmpTargetSet.empty, result.set)
     }
@@ -162,7 +165,11 @@ class KmpTargetsParserTest {
         val result = parseKmpTargets("appleMobile,+android,-iosSimulatorArm64")
         assertTrue(result is ParseResult.Ok)
         assertEquals(
-            KmpTargetSet.of(KmpTarget.Native.Apple.Ios.Arm64, KmpTarget.Jvm.Android),
+            KmpTargetSet.of(
+                KmpTarget.Native.Apple.Ios.Arm64,
+                KmpTarget.Native.Apple.Ios.X64,
+                KmpTarget.Jvm.Android,
+            ),
             result.set,
         )
     }
@@ -203,6 +210,77 @@ class KmpTargetsParserTest {
         assertTrue(result is ParseResult.Ok)
         assertEquals(KmpTargetSet.empty, result.set)
         assertTrue(result.warnings.isNotEmpty())
+    }
+
+    @Test
+    fun `given the native preset when parsed then result equals KmpTargetSet native`() {
+        val result = parseKmpTargets("native")
+        assertTrue(result is ParseResult.Ok, "got $result")
+        assertEquals(KmpTargetSet.native, result.set)
+    }
+
+    @Test
+    fun `given the appleWatch and appleTv presets when parsed then they resolve to their sets`() {
+        assertEquals(KmpTargetSet.appleWatch, (parseKmpTargets("appleWatch") as ParseResult.Ok).set)
+        assertEquals(KmpTargetSet.appleTv, (parseKmpTargets("appleTv") as ParseResult.Ok).set)
+    }
+
+    @Test
+    fun `given the linux preset when parsed then it resolves and is not treated as an unknown family`() {
+        val result = parseKmpTargets("linux")
+        assertTrue(result is ParseResult.Ok, "expected linux to resolve as a preset, got $result")
+        assertEquals(KmpTargetSet.linux, result.set)
+    }
+
+    @Test
+    fun `given the mingw preset and its windows alias when parsed then both resolve to mingw`() {
+        assertEquals(KmpTargetSet.mingw, (parseKmpTargets("mingw") as ParseResult.Ok).set)
+        assertEquals(KmpTargetSet.mingw, (parseKmpTargets("windows") as ParseResult.Ok).set)
+    }
+
+    @Test
+    fun `given the androidNative preset when parsed then result equals KmpTargetSet androidNative`() {
+        val result = parseKmpTargets("androidNative")
+        assertTrue(result is ParseResult.Ok)
+        assertEquals(KmpTargetSet.androidNative, result.set)
+    }
+
+    @Test
+    fun `given new leaf ids when parsed then they resolve to their leaves`() {
+        assertEquals(
+            KmpTargetSet.of(KmpTarget.Native.Apple.Ios.X64),
+            (parseKmpTargets("iosX64") as ParseResult.Ok).set,
+        )
+        assertEquals(
+            KmpTargetSet.of(KmpTarget.Native.Apple.Watchos.DeviceArm64),
+            (parseKmpTargets("watchosDeviceArm64") as ParseResult.Ok).set,
+        )
+        assertEquals(
+            KmpTargetSet.of(KmpTarget.Native.AndroidNative.Arm64),
+            (parseKmpTargets("androidNativeArm64") as ParseResult.Ok).set,
+        )
+    }
+
+    @Test
+    fun `given a hyphenated alias for a new leaf when parsed then it resolves`() {
+        assertEquals(
+            KmpTargetSet.of(KmpTarget.Native.Linux.X64),
+            (parseKmpTargets("linux-x64") as ParseResult.Ok).set,
+        )
+        assertEquals(
+            KmpTargetSet.of(KmpTarget.Native.AndroidNative.Arm64),
+            (parseKmpTargets("android-native-arm64") as ParseResult.Ok).set,
+        )
+    }
+
+    @Test
+    fun `given bare watchos family when parsed then Err hints at appleWatch`() {
+        val result = parseKmpTargets("watchos")
+        assertTrue(result is ParseResult.Err, "expected Err for bare family, got $result")
+        assertTrue(
+            result.message.contains("appleWatch") || result.message.contains("watchosArm64"),
+            "expected appleWatch hint, got: ${result.message}",
+        )
     }
 
     @Test
