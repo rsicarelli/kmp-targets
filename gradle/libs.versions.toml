@@ -1,6 +1,6 @@
 [versions]
 kotlin = "2.3.21"
-junit = "5.14.3"
+junit = "6.1.0"
 ktfmt = "0.26.0"
 
 [libraries]
