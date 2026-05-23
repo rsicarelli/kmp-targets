@@ -2,7 +2,7 @@
 
 > Dynamically select which Kotlin Multiplatform targets to build.
 
-**Status:** alpha (pre-1.0). The core selector and per-module convention plugins are implemented and exercised by the multi-module sample; helper APIs (`applyHierarchyTemplate`, XCFramework) are roadmap items.
+**Status:** alpha (pre-1.0). The core selector, per-module convention plugins, and the automatic minimal hierarchy template are implemented and exercised by the multi-module sample; further helper APIs (user-defined hierarchy groups, XCFramework) are roadmap items.
 
 `kmp-targets` is a Gradle plugin for Kotlin Multiplatform projects that lets each developer (and each CI runner) choose which KMP targets to build, via a single Gradle property:
 
@@ -141,6 +141,40 @@ Every target Kotlin Multiplatform (KGP 2.3.21) supports, except the deprecated `
 | Web | `js`, `wasmJs`, `wasmWasi` |
 
 Every leaf also accepts a kebab-case alias (e.g. `watchos-sim-arm64`, `linux-x64`, `android-native-arm64`).
+
+### Minimal hierarchy template
+
+KGP's auto-applied `applyDefaultHierarchyTemplate()` builds the *full* source-set hierarchy for all
+possible targets, so an iOS-only module still gets `nativeMain` **and** `appleMain` intermediate
+source sets that are redundant with `iosMain`. Each redundant intermediate spawns ~8 wasteful Gradle
+tasks; across dozens of modules this dominates sync time (see
+[the cost of default hierarchy templates](https://dev.to/rsicarelli/the-hidden-cost-of-default-hierarchy-templates-in-kotlin-multiplatform-256a)).
+
+Because `kmp-targets` already knows each module's active target set, it applies a **minimal** custom
+hierarchy instead — collapsing every redundant single-child group:
+
+| Active targets | Intermediate source sets |
+|---|---|
+| one iOS leaf | none (target attaches to `commonMain`) |
+| iOS (≥2 leaves) | `iosMain` only — no `appleMain`, no `nativeMain` |
+| iOS + macOS | `appleMain` over `iosMain` + `macosMain` — no `nativeMain` |
+| iOS + Linux | `nativeMain` over `iosMain` + `linuxMain` — no `appleMain` |
+
+It's **on by default** and applied automatically — no configuration needed. To opt out (and let KGP
+apply its own default), set the Gradle property globally or override per project (project wins):
+
+```properties
+# root gradle.properties — global default
+kmptargets.hierarchyTemplate=false
+```
+
+```kotlin
+// any module's build.gradle.kts — per-project override
+kmpTargets { hierarchyTemplate.set(false) }
+```
+
+Precedence is **project DSL > global property > built-in default (`true`)**. Opt out when a module
+supplies its own `applyHierarchyTemplate { … }`, so the plugin stays out of the way.
 
 ## Installation
 

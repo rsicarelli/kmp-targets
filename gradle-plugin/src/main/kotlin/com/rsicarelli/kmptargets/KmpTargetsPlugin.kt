@@ -1,5 +1,8 @@
 package com.rsicarelli.kmptargets
 
+import com.rsicarelli.kmptargets.hierarchy.computeHierarchySpec
+import com.rsicarelli.kmptargets.hierarchy.resolveHierarchyTemplateEnabled
+import com.rsicarelli.kmptargets.hierarchy.toTemplate
 import com.rsicarelli.kmptargets.model.KmpTarget
 import com.rsicarelli.kmptargets.model.KmpTargetSet
 import com.rsicarelli.kmptargets.parser.ParseResult
@@ -44,27 +47,33 @@ public class KmpTargetsPlugin : Plugin<Project> {
         // fires. Idempotent, so it composes with the per-declaration passes in declareSupported.
         target.pluginManager.withPlugin(KGP_ID) { KmpTargets.registerResolved(target, ext) }
 
-        // Advisory only: warn when a module ends up with zero targets because its supported set and
-        // the global selection don't overlap. Deferred to afterEvaluate because there is no public
-        // apply-time "all plugins applied" hook, and under composition (.mobile + .web) an earlier
-        // pass is transiently empty before later contributions land — emitting during a pass would
-        // be
-        // spurious. Registration itself stays eager and afterEvaluate-free; only this log line
-        // waits.
+        // Global default for the hierarchy template, read at apply time and pulled out as a
+        // primitive so the afterEvaluate closure below never captures `Project` (config-cache
+        // safe).
+        val globalHierarchyEnabled: Boolean? = hierarchyTemplateEnabledGlobally(target)
+
+        // Two things deferred to afterEvaluate, for the same reason: the final active set is only
+        // known after every convention plugin has declared its supported slice (under composition
+        // .mobile + .web an earlier pass is transiently incomplete), and there is no public
+        // apply-time "all plugins applied" hook. Target *registration* stays eager; only these —
+        // the
+        // advisory warning and the hierarchy template, both functions of the final active set —
+        // wait.
+        // The closure captures only `ext` (immutable sets + booleans) and the primitive flag, so it
+        // stays configuration-cache safe.
         target.afterEvaluate { p ->
-            if (
-                p.plugins.hasPlugin(KGP_ID) &&
-                    ext.registered.isEmpty() &&
-                    ext.selection.get().isNotEmpty()
-            ) {
+            if (!p.plugins.hasPlugin(KGP_ID)) return@afterEvaluate
+            val selection = ext.selection.get()
+            val active = selection intersect ext.effectiveSupported()
+
+            // Advisory only: the supported set and the global selection don't overlap.
+            if (ext.registered.isEmpty() && selection.isNotEmpty()) {
                 p.logger.warn(
-                    KmpTargets.emptyOverlapWarning(
-                        p.path,
-                        ext.selection.get(),
-                        ext.effectiveSupported(),
-                    )
+                    KmpTargets.emptyOverlapWarning(p.path, selection, ext.effectiveSupported())
                 )
             }
+
+            KmpTargets.maybeApplyHierarchyTemplate(p, ext, active, globalHierarchyEnabled)
         }
     }
 
@@ -80,6 +89,21 @@ public class KmpTargetsPlugin : Plugin<Project> {
             GradlePropertySource(target.providers, SUPPORTED_PROPERTY),
             localPropertiesSource(target, SUPPORTED_PROPERTY),
         )
+
+    /**
+     * Reads the global `kmptargets.hierarchyTemplate` flag (Gradle property or `local.properties`).
+     * `null` means "not set — use the built-in default"; anything other than `true`/`false`
+     * (case-insensitive) is treated as unset.
+     */
+    private fun hierarchyTemplateEnabledGlobally(target: Project): Boolean? =
+        composeSelectionSources(
+                GradlePropertySource(target.providers, HIERARCHY_TEMPLATE_PROPERTY),
+                localPropertiesSource(target, HIERARCHY_TEMPLATE_PROPERTY),
+            )
+            .read()
+            ?.trim()
+            ?.lowercase()
+            ?.toBooleanStrictOrNull()
 
     private fun localPropertiesSource(target: Project, propertyName: String): SelectionSource {
         val provider =
@@ -99,6 +123,7 @@ public class KmpTargetsPlugin : Plugin<Project> {
     internal companion object {
         const val KMP_TARGETS: String = "KMP_TARGETS"
         const val SUPPORTED_PROPERTY: String = "kmptargets.supported"
+        const val HIERARCHY_TEMPLATE_PROPERTY: String = "kmptargets.hierarchyTemplate"
         const val KGP_ID: String = "org.jetbrains.kotlin.multiplatform"
     }
 }
@@ -149,6 +174,25 @@ public object KmpTargets {
             registerTarget(kotlin, leaf)
             ext.registered.add(leaf)
         }
+    }
+
+    /**
+     * Applies the minimal hierarchy template for [active], at most once per module. Calling
+     * `applyHierarchyTemplate` is itself what suppresses KGP's costly default: KGP only
+     * auto-applies its default when no template has been applied yet. When disabled (or the active
+     * set is empty), we apply nothing and let KGP fall back to its default.
+     */
+    internal fun maybeApplyHierarchyTemplate(
+        project: Project,
+        ext: KmpTargetsExtension,
+        active: KmpTargetSet,
+        globalEnabled: Boolean?,
+    ) {
+        if (ext.hierarchyTemplateApplied || active.isEmpty()) return
+        if (!resolveHierarchyTemplateEnabled(ext.hierarchyTemplate.orNull, globalEnabled)) return
+        val kotlin = project.extensions.getByType(KotlinMultiplatformExtension::class.java)
+        kotlin.applyHierarchyTemplate(computeHierarchySpec(active).toTemplate())
+        ext.hierarchyTemplateApplied = true
     }
 
     internal fun emptyOverlapWarning(

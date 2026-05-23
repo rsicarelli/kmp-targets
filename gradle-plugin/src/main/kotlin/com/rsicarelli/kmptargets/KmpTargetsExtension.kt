@@ -35,8 +35,23 @@ public abstract class KmpTargetsExtension {
      */
     public abstract val supported: Property<KmpTargetSet>
 
+    /**
+     * Per-project opt-out of the minimal custom hierarchy template. Unset defers to the global
+     * `kmptargets.hierarchyTemplate` Gradle property, which itself defaults to `true`. When
+     * `false`, the plugin applies no template and KGP falls back to its own
+     * `applyDefaultHierarchyTemplate()` — also the escape hatch for a module that supplies its own
+     * `applyHierarchyTemplate { … }`.
+     *
+     * Unlike [supported], this *is* readable from the build-script body: the template is applied in
+     * a deferred pass (after evaluation), by which point the DSL value has been set.
+     */
+    public abstract val hierarchyTemplate: Property<Boolean>
+
     /** Leaves already registered with KGP, so repeated registration passes are idempotent. */
     internal val registered: MutableSet<KmpTarget> = mutableSetOf()
+
+    /** True once the minimal hierarchy template has been applied, so it is applied at most once. */
+    internal var hierarchyTemplateApplied: Boolean = false
 
     /**
      * True once a kmp-targets convention plugin has applied KGP, distinguishing it from a
