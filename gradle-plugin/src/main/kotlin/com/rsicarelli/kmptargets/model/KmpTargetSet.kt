@@ -55,7 +55,11 @@ public value class KmpTargetSet private constructor(public val members: Set<KmpT
 
         public val appleMobile: KmpTargetSet =
             KmpTargetSet(
-                setOf(KmpTarget.Native.Apple.Ios.Arm64, KmpTarget.Native.Apple.Ios.SimulatorArm64)
+                setOf(
+                    KmpTarget.Native.Apple.Ios.Arm64,
+                    KmpTarget.Native.Apple.Ios.SimulatorArm64,
+                    KmpTarget.Native.Apple.Ios.X64,
+                )
             )
 
         public val appleDesktop: KmpTargetSet =
@@ -63,7 +67,54 @@ public value class KmpTargetSet private constructor(public val members: Set<KmpT
                 setOf(KmpTarget.Native.Apple.Macos.Arm64, KmpTarget.Native.Apple.Macos.X64)
             )
 
-        public val apple: KmpTargetSet = KmpTargetSet(appleMobile.members + appleDesktop.members)
+        public val appleWatch: KmpTargetSet =
+            KmpTargetSet(
+                setOf(
+                    KmpTarget.Native.Apple.Watchos.Arm64,
+                    KmpTarget.Native.Apple.Watchos.Arm32,
+                    KmpTarget.Native.Apple.Watchos.X64,
+                    KmpTarget.Native.Apple.Watchos.SimulatorArm64,
+                    KmpTarget.Native.Apple.Watchos.DeviceArm64,
+                )
+            )
+
+        public val appleTv: KmpTargetSet =
+            KmpTargetSet(
+                setOf(
+                    KmpTarget.Native.Apple.Tvos.Arm64,
+                    KmpTarget.Native.Apple.Tvos.X64,
+                    KmpTarget.Native.Apple.Tvos.SimulatorArm64,
+                )
+            )
+
+        /**
+         * Every Apple platform: iOS, macOS, watchOS, tvOS. Backs the `.apple` convention plugin.
+         */
+        public val apple: KmpTargetSet =
+            KmpTargetSet(
+                appleMobile.members + appleDesktop.members + appleWatch.members + appleTv.members
+            )
+
+        public val linux: KmpTargetSet =
+            KmpTargetSet(setOf(KmpTarget.Native.Linux.X64, KmpTarget.Native.Linux.Arm64))
+
+        public val mingw: KmpTargetSet = KmpTargetSet(setOf(KmpTarget.Native.Mingw.X64))
+
+        public val androidNative: KmpTargetSet =
+            KmpTargetSet(
+                setOf(
+                    KmpTarget.Native.AndroidNative.Arm32,
+                    KmpTarget.Native.AndroidNative.Arm64,
+                    KmpTarget.Native.AndroidNative.X86,
+                    KmpTarget.Native.AndroidNative.X64,
+                )
+            )
+
+        /**
+         * Every Kotlin/Native target: Apple, Linux, MinGW, Android Native. Excludes JVM and web.
+         */
+        public val native: KmpTargetSet =
+            KmpTargetSet(apple.members + linux.members + mingw.members + androidNative.members)
 
         public val web: KmpTargetSet =
             KmpTargetSet(setOf(KmpTarget.Web.Js, KmpTarget.Web.WasmJs, KmpTarget.Web.WasmWasi))
@@ -77,13 +128,7 @@ public value class KmpTargetSet private constructor(public val members: Set<KmpT
          * user's selection actually includes it, so this preset does not force AGP onto consumers.
          */
         public val mobile: KmpTargetSet =
-            KmpTargetSet(
-                setOf(
-                    KmpTarget.Jvm.Android,
-                    KmpTarget.Native.Apple.Ios.Arm64,
-                    KmpTarget.Native.Apple.Ios.SimulatorArm64,
-                )
-            )
+            KmpTargetSet(setOf<KmpTarget>(KmpTarget.Jvm.Android) + appleMobile.members)
 
         public fun of(vararg targets: KmpTarget): KmpTargetSet = KmpTargetSet(targets.toSet())
     }

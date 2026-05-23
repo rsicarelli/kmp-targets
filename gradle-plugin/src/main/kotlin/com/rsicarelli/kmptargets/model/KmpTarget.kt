@@ -48,6 +48,11 @@ public sealed interface KmpTarget {
                     override val aliases: Set<String> =
                         setOf("ios-sim-arm64", "ios-simulator-arm64")
                 }
+
+                public data object X64 : Ios {
+                    override val id: String = "iosX64"
+                    override val aliases: Set<String> = setOf("ios-x64")
+                }
             }
 
             public sealed interface Macos : Apple {
@@ -63,16 +68,98 @@ public sealed interface KmpTarget {
                 }
             }
 
-            public sealed interface Watchos : Apple
+            public sealed interface Watchos : Apple {
 
-            public sealed interface Tvos : Apple
+                public data object Arm64 : Watchos {
+                    override val id: String = "watchosArm64"
+                    override val aliases: Set<String> = setOf("watchos-arm64")
+                }
+
+                public data object Arm32 : Watchos {
+                    override val id: String = "watchosArm32"
+                    override val aliases: Set<String> = setOf("watchos-arm32")
+                }
+
+                public data object X64 : Watchos {
+                    override val id: String = "watchosX64"
+                    override val aliases: Set<String> = setOf("watchos-x64")
+                }
+
+                public data object SimulatorArm64 : Watchos {
+                    override val id: String = "watchosSimulatorArm64"
+                    override val aliases: Set<String> =
+                        setOf("watchos-sim-arm64", "watchos-simulator-arm64")
+                }
+
+                public data object DeviceArm64 : Watchos {
+                    override val id: String = "watchosDeviceArm64"
+                    override val aliases: Set<String> = setOf("watchos-device-arm64")
+                }
+            }
+
+            public sealed interface Tvos : Apple {
+
+                public data object Arm64 : Tvos {
+                    override val id: String = "tvosArm64"
+                    override val aliases: Set<String> = setOf("tvos-arm64")
+                }
+
+                public data object X64 : Tvos {
+                    override val id: String = "tvosX64"
+                    override val aliases: Set<String> = setOf("tvos-x64")
+                }
+
+                public data object SimulatorArm64 : Tvos {
+                    override val id: String = "tvosSimulatorArm64"
+                    override val aliases: Set<String> =
+                        setOf("tvos-sim-arm64", "tvos-simulator-arm64")
+                }
+            }
         }
 
-        public sealed interface Linux : Native
+        public sealed interface Linux : Native {
 
-        public sealed interface Mingw : Native
+            public data object X64 : Linux {
+                override val id: String = "linuxX64"
+                override val aliases: Set<String> = setOf("linux-x64")
+            }
 
-        public sealed interface AndroidNative : Native
+            public data object Arm64 : Linux {
+                override val id: String = "linuxArm64"
+                override val aliases: Set<String> = setOf("linux-arm64")
+            }
+        }
+
+        public sealed interface Mingw : Native {
+
+            public data object X64 : Mingw {
+                override val id: String = "mingwX64"
+                override val aliases: Set<String> = setOf("mingw-x64", "windows-x64")
+            }
+        }
+
+        public sealed interface AndroidNative : Native {
+
+            public data object Arm32 : AndroidNative {
+                override val id: String = "androidNativeArm32"
+                override val aliases: Set<String> = setOf("android-native-arm32")
+            }
+
+            public data object Arm64 : AndroidNative {
+                override val id: String = "androidNativeArm64"
+                override val aliases: Set<String> = setOf("android-native-arm64")
+            }
+
+            public data object X86 : AndroidNative {
+                override val id: String = "androidNativeX86"
+                override val aliases: Set<String> = setOf("android-native-x86")
+            }
+
+            public data object X64 : AndroidNative {
+                override val id: String = "androidNativeX64"
+                override val aliases: Set<String> = setOf("android-native-x64")
+            }
+        }
     }
 
     public sealed interface Web : KmpTarget {
@@ -101,8 +188,24 @@ public sealed interface KmpTarget {
                 Jvm.Desktop,
                 Native.Apple.Ios.Arm64,
                 Native.Apple.Ios.SimulatorArm64,
+                Native.Apple.Ios.X64,
                 Native.Apple.Macos.Arm64,
                 Native.Apple.Macos.X64,
+                Native.Apple.Watchos.Arm64,
+                Native.Apple.Watchos.Arm32,
+                Native.Apple.Watchos.X64,
+                Native.Apple.Watchos.SimulatorArm64,
+                Native.Apple.Watchos.DeviceArm64,
+                Native.Apple.Tvos.Arm64,
+                Native.Apple.Tvos.X64,
+                Native.Apple.Tvos.SimulatorArm64,
+                Native.Linux.X64,
+                Native.Linux.Arm64,
+                Native.Mingw.X64,
+                Native.AndroidNative.Arm32,
+                Native.AndroidNative.Arm64,
+                Native.AndroidNative.X86,
+                Native.AndroidNative.X64,
                 Web.Js,
                 Web.WasmJs,
                 Web.WasmWasi,

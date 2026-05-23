@@ -44,8 +44,8 @@ plugins { id("com.rsicarelli.kmptargets.jvm") version "<version>" }
 | Plugin id | Supports |
 |---|---|
 | `com.rsicarelli.kmptargets.library` | all shipped targets |
-| `com.rsicarelli.kmptargets.mobile` | `androidTarget`, `iosArm64`, `iosSimulatorArm64` |
-| `com.rsicarelli.kmptargets.apple` | `iosArm64`, `iosSimulatorArm64`, `macosArm64`, `macosX64` |
+| `com.rsicarelli.kmptargets.mobile` | `androidTarget` + all iOS |
+| `com.rsicarelli.kmptargets.apple` | all Apple platforms (iOS + macOS + watchOS + tvOS) |
 | `com.rsicarelli.kmptargets.jvm` | `jvm` |
 | `com.rsicarelli.kmptargets.web` | `js`, `wasmJs`, `wasmWasi` |
 
@@ -106,20 +106,41 @@ KMP_TARGETS=apple,+android          # preset plus an addition
 KMP_TARGETS=ANDROID, ios-arm64      # aliases + case-insensitive
 ```
 
-Available presets: `all`, `apple`, `appleMobile`, `appleDesktop`, `web`, `jvmFamily`.
+Available presets:
 
-Unknown tokens fail the build at configuration time with a "did you mean ...?" suggestion — silently dropping a misspelled target in CI is the worst failure mode, so the parser is strict.
+| Preset | Expands to |
+|---|---|
+| `all` | every shipped target |
+| `native` | every Kotlin/Native target (Apple + Linux + MinGW + Android Native) |
+| `apple` | all Apple platforms: iOS + macOS + watchOS + tvOS |
+| `appleMobile` / `appleDesktop` | all iOS / all macOS |
+| `appleWatch` / `appleTv` | all watchOS / all tvOS |
+| `linux` | `linuxX64`, `linuxArm64` |
+| `mingw` (alias `windows`) | `mingwX64` |
+| `androidNative` | the four `androidNative*` targets |
+| `web` | `js`, `wasmJs`, `wasmWasi` |
+| `jvmFamily` | `androidTarget`, `jvm` |
+| `mobile` | `androidTarget` + all iOS |
+
+Unknown tokens fail the build at configuration time with a "did you mean ...?" suggestion — silently dropping a misspelled target in CI is the worst failure mode, so the parser is strict. Bare Apple sub-family names (`ios`, `macos`, `watchos`, `tvos`) are rejected with a hint pointing at the relevant leaf or `appleX` preset.
 
 ### Supported targets
 
-This release ships leaves for the most-used target families. Other branches (`watchOS`, `tvOS`, `linux`, `mingw`, `androidNative`) exist as sealed scaffolding and land their leaves in follow-up releases.
+Every target Kotlin Multiplatform (KGP 2.3.21) supports, except the deprecated `linuxArm32Hfp`:
 
 | Family | Targets |
 |---|---|
 | JVM | `androidTarget` (alias `android`), `jvm` (alias `desktop`) |
-| iOS | `iosArm64`, `iosSimulatorArm64` |
+| iOS | `iosArm64`, `iosSimulatorArm64`, `iosX64` |
 | macOS | `macosArm64`, `macosX64` |
+| watchOS | `watchosArm64`, `watchosArm32`, `watchosX64`, `watchosSimulatorArm64`, `watchosDeviceArm64` |
+| tvOS | `tvosArm64`, `tvosX64`, `tvosSimulatorArm64` |
+| Linux | `linuxX64`, `linuxArm64` |
+| MinGW | `mingwX64` |
+| Android Native | `androidNativeArm32`, `androidNativeArm64`, `androidNativeX86`, `androidNativeX64` |
 | Web | `js`, `wasmJs`, `wasmWasi` |
+
+Every leaf also accepts a kebab-case alias (e.g. `watchos-sim-arm64`, `linux-x64`, `android-native-arm64`).
 
 ## Installation
 

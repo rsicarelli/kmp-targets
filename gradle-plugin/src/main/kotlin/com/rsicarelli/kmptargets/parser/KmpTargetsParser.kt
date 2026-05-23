@@ -11,7 +11,9 @@ import com.rsicarelli.kmptargets.model.KmpTargetSet
  * expr   := atom (',' atom)*
  * atom   := ('+' | '-')? token
  * token  := <leaf-id> | <leaf-alias> | <preset-name>
- * preset := "all" | "appleMobile" | "appleDesktop" | "apple" | "web" | "jvmFamily"
+ * preset := "all" | "native" | "apple" | "appleMobile" | "appleDesktop" | "appleWatch"
+ *         | "appleTv" | "linux" | "mingw" | "windows" | "androidNative" | "web" | "jvmFamily"
+ *         | "mobile"
  * ```
  *
  * Resolution is a left-to-right fold. The first token may omit a sign (defaults to additive).
@@ -75,11 +77,19 @@ public fun parseKmpTargets(raw: String, registry: Set<KmpTarget> = KmpTarget.all
 private val PRESETS: Map<String, KmpTargetSet> =
     mapOf(
         "all" to KmpTargetSet.all,
+        "native" to KmpTargetSet.native,
         "applemobile" to KmpTargetSet.appleMobile,
         "appledesktop" to KmpTargetSet.appleDesktop,
+        "applewatch" to KmpTargetSet.appleWatch,
+        "appletv" to KmpTargetSet.appleTv,
         "apple" to KmpTargetSet.apple,
+        "linux" to KmpTargetSet.linux,
+        "mingw" to KmpTargetSet.mingw,
+        "windows" to KmpTargetSet.mingw,
+        "androidnative" to KmpTargetSet.androidNative,
         "web" to KmpTargetSet.web,
         "jvmfamily" to KmpTargetSet.jvmFamily,
+        "mobile" to KmpTargetSet.mobile,
     )
 
 /**
@@ -93,14 +103,10 @@ private val FAMILY_HINTS: Map<String, String> =
             "use a specific leaf like 'iosArm64' or 'iosSimulatorArm64', or the 'appleMobile' preset",
         "macos" to
             "use a specific leaf like 'macosArm64' or 'macosX64', or the 'appleDesktop' preset",
-        "watchos" to "no watchOS leaves are shipped yet — track the roadmap for support",
-        "tvos" to "no tvOS leaves are shipped yet — track the roadmap for support",
-        "linux" to "no Linux leaves are shipped yet — track the roadmap for support",
-        "mingw" to "no MinGW leaves are shipped yet — track the roadmap for support",
-        "androidnative" to
-            "no Android Native leaves are shipped yet — track the roadmap for support",
-        "native" to
-            "'native' covers many platforms — use a specific leaf or a family preset like 'apple'",
+        "watchos" to
+            "use a specific leaf like 'watchosArm64' or 'watchosSimulatorArm64', or the 'appleWatch' preset",
+        "tvos" to
+            "use a specific leaf like 'tvosArm64' or 'tvosSimulatorArm64', or the 'appleTv' preset",
     )
 
 private fun splitSign(token: String): Pair<Char, String> =

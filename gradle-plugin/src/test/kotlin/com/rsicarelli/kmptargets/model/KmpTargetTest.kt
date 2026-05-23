@@ -53,13 +53,63 @@ class KmpTargetTest {
                 KmpTarget.Jvm.Desktop,
                 KmpTarget.Native.Apple.Ios.Arm64,
                 KmpTarget.Native.Apple.Ios.SimulatorArm64,
+                KmpTarget.Native.Apple.Ios.X64,
                 KmpTarget.Native.Apple.Macos.Arm64,
                 KmpTarget.Native.Apple.Macos.X64,
+                KmpTarget.Native.Apple.Watchos.Arm64,
+                KmpTarget.Native.Apple.Watchos.Arm32,
+                KmpTarget.Native.Apple.Watchos.X64,
+                KmpTarget.Native.Apple.Watchos.SimulatorArm64,
+                KmpTarget.Native.Apple.Watchos.DeviceArm64,
+                KmpTarget.Native.Apple.Tvos.Arm64,
+                KmpTarget.Native.Apple.Tvos.X64,
+                KmpTarget.Native.Apple.Tvos.SimulatorArm64,
+                KmpTarget.Native.Linux.X64,
+                KmpTarget.Native.Linux.Arm64,
+                KmpTarget.Native.Mingw.X64,
+                KmpTarget.Native.AndroidNative.Arm32,
+                KmpTarget.Native.AndroidNative.Arm64,
+                KmpTarget.Native.AndroidNative.X86,
+                KmpTarget.Native.AndroidNative.X64,
                 KmpTarget.Web.Js,
                 KmpTarget.Web.WasmJs,
                 KmpTarget.Web.WasmWasi,
             )
         assertEquals(expected, KmpTarget.all)
+    }
+
+    @Test
+    fun `given new native leaves when accessing id then returns canonical KGP name`() {
+        assertEquals("iosX64", KmpTarget.Native.Apple.Ios.X64.id)
+        assertEquals("watchosArm64", KmpTarget.Native.Apple.Watchos.Arm64.id)
+        assertEquals("watchosDeviceArm64", KmpTarget.Native.Apple.Watchos.DeviceArm64.id)
+        assertEquals("tvosSimulatorArm64", KmpTarget.Native.Apple.Tvos.SimulatorArm64.id)
+        assertEquals("linuxArm64", KmpTarget.Native.Linux.Arm64.id)
+        assertEquals("mingwX64", KmpTarget.Native.Mingw.X64.id)
+        assertEquals("androidNativeArm64", KmpTarget.Native.AndroidNative.Arm64.id)
+    }
+
+    @Test
+    fun `given watchOS and tvOS leaves when checked then they belong to Apple and Native branches`() {
+        val watch: KmpTarget = KmpTarget.Native.Apple.Watchos.Arm64
+        assertTrue(watch is KmpTarget.Native.Apple)
+        assertTrue(watch is KmpTarget.Native.Apple.Watchos)
+        val tv: KmpTarget = KmpTarget.Native.Apple.Tvos.Arm64
+        assertTrue(tv is KmpTarget.Native.Apple.Tvos)
+    }
+
+    @Test
+    fun `given Linux Mingw AndroidNative leaves when checked then they belong to Native but not Apple`() {
+        val nonApple =
+            listOf<KmpTarget>(
+                KmpTarget.Native.Linux.X64,
+                KmpTarget.Native.Mingw.X64,
+                KmpTarget.Native.AndroidNative.Arm64,
+            )
+        nonApple.forEach { leaf ->
+            assertTrue(leaf is KmpTarget.Native, "$leaf should be Native")
+            assertTrue(leaf !is KmpTarget.Native.Apple, "$leaf should not be Apple")
+        }
     }
 
     @Test
