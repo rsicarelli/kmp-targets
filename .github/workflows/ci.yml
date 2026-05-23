@@ -37,4 +37,4 @@ jobs:
         run: ./gradlew :gradle-plugin:publishPluginMavenPublicationToMavenLocal :gradle-plugin:publishKmpTargetsPluginMarkerMavenPublicationToMavenLocal
 
       - name: Build sample (hello-world)
-        run: ./gradlew -p samples/hello-world build kmpTargetsHello
+        run: ./gradlew -p samples/hello-world build
