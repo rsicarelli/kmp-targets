@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# kmp-targets — pre-commit hook
+#
+# Runs the same DOD gate as `task dod` but treats `fmt` as a check (read-only)
+# rather than a rewrite, so an unformatted commit is rejected with a clear hint
+# instead of silently modifying the working tree mid-commit.
+#
+# Enable: task hooks:install     (sets core.hooksPath to .githooks)
+# Skip once: git commit --no-verify
+
+set -euo pipefail
+
+if ! command -v task >/dev/null 2>&1; then
+    echo "pre-commit: 'task' is not installed (see .mise.toml). Skipping DOD checks." >&2
+    exit 0
+fi
+
+echo "→ ktfmt check"
+if ! task fmt:check >/dev/null 2>&1; then
+    echo ""
+    echo "✗ Kotlin sources are not formatted." >&2
+    echo "  Run: task fmt && git add -u" >&2
+    exit 1
+fi
+
+echo "→ build"
+task build >/dev/null
+
+echo "→ test"
+task test >/dev/null
+
+echo "✓ DOD checks passed"
