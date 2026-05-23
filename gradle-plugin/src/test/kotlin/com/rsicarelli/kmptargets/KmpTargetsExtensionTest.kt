@@ -1,6 +1,5 @@
 package com.rsicarelli.kmptargets
 
-import com.rsicarelli.kmptargets.model.KmpTarget
 import com.rsicarelli.kmptargets.model.KmpTargetSet
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -23,51 +22,38 @@ class KmpTargetsExtensionTest {
     }
 
     @Test
-    fun `given only when called then selection contains exactly those targets`() {
+    fun `given extension created when supported accessed then property is unset`() {
         val ext = newExtension()
-        ext.only(KmpTarget.Jvm.Android, KmpTarget.Native.Apple.Ios.Arm64)
-        assertEquals(
-            KmpTargetSet.of(KmpTarget.Jvm.Android, KmpTarget.Native.Apple.Ios.Arm64),
-            ext.selection.get(),
-        )
+        assertFalse(ext.supported.isPresent)
     }
 
     @Test
-    fun `given only called with no targets when invoked then selection is empty`() {
+    fun `given supported unset when effectiveSupported then defaults to all`() {
         val ext = newExtension()
-        ext.only()
-        assertEquals(KmpTargetSet.empty, ext.selection.get())
+        assertEquals(KmpTargetSet.all, ext.effectiveSupported())
     }
 
     @Test
-    fun `given convention set when exclude is called then selection is convention minus excluded`() {
+    fun `given accumulateSupported called once when effectiveSupported then equals that set`() {
         val ext = newExtension()
-        ext.selection.convention(KmpTargetSet.appleMobile)
-        ext.exclude(KmpTarget.Native.Apple.Ios.SimulatorArm64)
-        assertEquals(KmpTargetSet.of(KmpTarget.Native.Apple.Ios.Arm64), ext.selection.get())
+        ext.accumulateSupported(KmpTargetSet.apple)
+        assertEquals(KmpTargetSet.apple, ext.effectiveSupported())
     }
 
     @Test
-    fun `given fallback set and no selection when exclude is called then exclude resolves against fallback`() {
+    fun `given accumulateSupported called twice when effectiveSupported then equals the union`() {
         val ext = newExtension()
-        ext.fallback.set(KmpTargetSet.appleMobile)
-        ext.exclude(KmpTarget.Native.Apple.Ios.SimulatorArm64)
-        assertEquals(KmpTargetSet.of(KmpTarget.Native.Apple.Ios.Arm64), ext.selection.get())
+        ext.accumulateSupported(KmpTargetSet.mobile)
+        ext.accumulateSupported(KmpTargetSet.web)
+        assertEquals(KmpTargetSet.mobile + KmpTargetSet.web, ext.effectiveSupported())
     }
 
     @Test
-    fun `given neither selection nor fallback when exclude is called then selection is empty`() {
+    fun `given accumulateSupported with overlapping sets when effectiveSupported then duplicates collapse`() {
         val ext = newExtension()
-        ext.exclude(KmpTarget.Jvm.Android)
-        assertEquals(KmpTargetSet.empty, ext.selection.get())
-    }
-
-    @Test
-    fun `given only then exclude when invoked then exclude applies to the only-set value`() {
-        val ext = newExtension()
-        ext.only(KmpTarget.Jvm.Android, KmpTarget.Native.Apple.Ios.Arm64)
-        ext.exclude(KmpTarget.Jvm.Android)
-        assertEquals(KmpTargetSet.of(KmpTarget.Native.Apple.Ios.Arm64), ext.selection.get())
+        ext.accumulateSupported(KmpTargetSet.apple)
+        ext.accumulateSupported(KmpTargetSet.appleMobile)
+        assertEquals(KmpTargetSet.apple, ext.effectiveSupported())
     }
 
     @Test

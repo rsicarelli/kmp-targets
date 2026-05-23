@@ -2,12 +2,13 @@
 
 ## Repo shape
 
-This is a **multi-module Gradle build**, intentionally so even though only one module exists today:
+This is a **multi-module Gradle build**:
 
-- `:gradle-plugin` — the Gradle plugin (`com.rsicarelli.kmptargets`). Source under `gradle-plugin/src/`.
+- `:gradle-plugin` — the core plugin (`com.rsicarelli.kmptargets`) + the `KmpTargets` entry point. Source under `gradle-plugin/src/`.
+- `:convention-plugins` — the per-module convention plugins (`com.rsicarelli.kmptargets.{library,mobile,apple,jvm,web}`), thin wrappers over `KmpTargets.applyConvention`. Depends on `:gradle-plugin` (api) + KGP (implementation, so it can apply KGP for consumers).
 - Future: `:cli` — companion CLI for driving target selection from outside Gradle. Reserved as a sibling subproject.
 
-Do **not** collapse into a single-module layout. The structure exists to make adding `:cli` (and other siblings) painless.
+Do **not** collapse into a single-module layout. The structure keeps the dependency-light core publishable on its own and makes adding siblings painless.
 
 ## Dev loop
 
@@ -21,7 +22,10 @@ task ci
 
 ## Gradle invocations
 
-Always prefix subproject task names: `:gradle-plugin:test`, not `:test`. Root-level `./gradlew test` does nothing useful right now.
+Now that more than one module exists, the Taskfile uses root-level aggregating invocations
+(`./gradlew test` / `build` / `check` / `ktfmtFormat` / `publishToMavenLocal`) which run across every
+module. Prefer `task build` / `task test` / `task dod`. Prefix a single module
+(`:gradle-plugin:test`) only when you deliberately want to scope to it.
 
 ## Tool chain
 
