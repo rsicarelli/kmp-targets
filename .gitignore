@@ -67,3 +67,6 @@ research-prompts-*.txt
 
 # JVM heap dumps from OOM crashes during local test runs
 **/*.hprof
+
+# Stray kotlin_module written to the repo root by KGP applied in-process during tests
+/META-INF/
