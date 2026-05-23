@@ -62,7 +62,6 @@ secrets.properties
 # Claude Code working files
 # ================================
 .claude/scheduled_tasks.lock
-.claude/handover-*.md
 handoff-prompt-*.txt
 research-prompts-*.txt
 
