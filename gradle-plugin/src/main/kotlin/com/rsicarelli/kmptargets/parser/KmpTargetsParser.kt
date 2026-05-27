@@ -44,14 +44,15 @@ public fun parseKmpTargets(raw: String, registry: Set<KmpTarget> = KmpTarget.all
     }
     val presets: Map<String, KmpTargetSet> = PRESETS
 
-    val knownNames: Set<String> = byCanonical.keys + byAlias.keys + presets.keys
+    val knownNames: Set<String> =
+        registry.flatMap { target -> listOf(target.id) + target.aliases }.toSet() + PRESET_NAMES
 
     var accumulator = KmpTargetSet.empty
     for (rawToken in tokens) {
         val (sign, name) = splitSign(rawToken)
         if (name.isEmpty()) {
             return ParseResult.Err(
-                message = "KMP_TARGETS token '$rawToken' has a sign but no target name",
+                message = "token '$rawToken' has a sign but no target name",
                 offendingToken = rawToken,
             )
         }
@@ -74,23 +75,27 @@ public fun parseKmpTargets(raw: String, registry: Set<KmpTarget> = KmpTarget.all
     return ParseResult.Ok(accumulator)
 }
 
-private val PRESETS: Map<String, KmpTargetSet> =
+private val PRESETS_BY_NAME: Map<String, KmpTargetSet> =
     mapOf(
         "all" to KmpTargetSet.all,
         "native" to KmpTargetSet.native,
-        "applemobile" to KmpTargetSet.appleMobile,
-        "appledesktop" to KmpTargetSet.appleDesktop,
-        "applewatch" to KmpTargetSet.appleWatch,
-        "appletv" to KmpTargetSet.appleTv,
+        "appleMobile" to KmpTargetSet.appleMobile,
+        "appleDesktop" to KmpTargetSet.appleDesktop,
+        "appleWatch" to KmpTargetSet.appleWatch,
+        "appleTv" to KmpTargetSet.appleTv,
         "apple" to KmpTargetSet.apple,
         "linux" to KmpTargetSet.linux,
         "mingw" to KmpTargetSet.mingw,
         "windows" to KmpTargetSet.mingw,
-        "androidnative" to KmpTargetSet.androidNative,
+        "androidNative" to KmpTargetSet.androidNative,
         "web" to KmpTargetSet.web,
-        "jvmfamily" to KmpTargetSet.jvmFamily,
+        "jvmFamily" to KmpTargetSet.jvmFamily,
         "mobile" to KmpTargetSet.mobile,
     )
+
+private val PRESETS: Map<String, KmpTargetSet> = PRESETS_BY_NAME.mapKeys { it.key.lowercase() }
+
+private val PRESET_NAMES: Set<String> = PRESETS_BY_NAME.keys
 
 /**
  * Lowercase family names users commonly try to use as selectors. None of them resolve to a leaf,
@@ -122,12 +127,12 @@ private fun unknownTokenMessage(
     knownNames: Set<String>,
 ): String {
     FAMILY_HINTS[lowered]?.let { hint ->
-        return "KMP_TARGETS: '$original' is a target family, not a selectable target — $hint"
+        return "'$original' is a target family, not a selectable target — $hint"
     }
     val suggestion = didYouMean(lowered, knownNames)
     return if (suggestion != null) {
-        "KMP_TARGETS: unknown target '$original' — did you mean '$suggestion'?"
+        "unknown target '$original' — did you mean '$suggestion'?"
     } else {
-        "KMP_TARGETS: unknown target '$original'"
+        "unknown target '$original'"
     }
 }

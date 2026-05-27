@@ -134,6 +134,16 @@ class KmpTargetsParserTest {
     }
 
     @Test
+    fun `given unknown mixed-case target close to a known one when parsed then suggestion preserves canonical id`() {
+        val result = parseKmpTargets("iosArm65")
+        assertTrue(result is ParseResult.Err, "expected Err, got $result")
+        assertTrue(
+            result.message.contains("did you mean 'iosArm64'?"),
+            "expected canonical suggestion, got: ${result.message}",
+        )
+    }
+
+    @Test
     fun `given unknown token with no close match when parsed then result is Err without suggestion`() {
         val result = parseKmpTargets("xboxOne")
         assertTrue(result is ParseResult.Err)

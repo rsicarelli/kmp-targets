@@ -75,7 +75,7 @@ class KmpTargetsPluginTest {
     fun `given KMP_TARGETS is invalid when plugin is applied then a GradleException surfaces in the failure chain`(
         @TempDir dir: Path
     ) {
-        dir.resolve("gradle.properties").writeText("KMP_TARGETS=invalidToken\n")
+        dir.resolve("gradle.properties").writeText("KMP_TARGETS=iosArm65\n")
         val project = newProject(dir)
         val ex =
             assertFailsWith<Exception> { project.pluginManager.apply("com.rsicarelli.kmptargets") }
@@ -86,8 +86,38 @@ class KmpTargetsPluginTest {
                 .firstOrNull { it.message?.contains("KMP_TARGETS") == true }
         assertNotNull(rootCause, "expected KMP_TARGETS-tagged cause in chain, root: ${ex.message}")
         assertTrue(
-            rootCause.message!!.contains("invalidToken"),
+            rootCause.message!!.contains("iosArm65"),
             "expected message to include offending token, got: ${rootCause.message}",
+        )
+        assertTrue(
+            !rootCause.message!!.contains("KMP_TARGETS: KMP_TARGETS"),
+            "expected a single property prefix, got: ${rootCause.message}",
+        )
+        assertTrue(
+            rootCause.message!!.contains("did you mean 'iosArm64'?"),
+            "expected canonical suggestion, got: ${rootCause.message}",
+        )
+    }
+
+    @Test
+    fun `given kmptargets supported property is invalid when plugin is applied then error names supported property once`(
+        @TempDir dir: Path
+    ) {
+        dir.resolve("gradle.properties").writeText("kmptargets.supported=jvm,bogus\n")
+        val project = newProject(dir)
+        val ex =
+            assertFailsWith<Exception> { project.pluginManager.apply("com.rsicarelli.kmptargets") }
+        val rootCause =
+            generateSequence(ex as Throwable?) { it.cause }
+                .firstOrNull { it.message?.contains("kmptargets.supported") == true }
+        assertNotNull(rootCause, "expected kmptargets.supported-tagged cause, root: ${ex.message}")
+        assertTrue(
+            rootCause.message!!.contains("kmptargets.supported: unknown target 'bogus'"),
+            "expected message to name supported property and offending token, got: ${rootCause.message}",
+        )
+        assertTrue(
+            !rootCause.message!!.contains("kmptargets.supported: KMP_TARGETS"),
+            "expected no nested KMP_TARGETS label, got: ${rootCause.message}",
         )
     }
 
