@@ -41,12 +41,19 @@ tasks:
     cmds:
       - "{{.GRADLE}} -p samples/hello-world build"
 
+  sample:isolated:
+    desc: Build the isolated-projects sample with Gradle Isolated Projects enabled (depends on publish-local)
+    deps: [publish-local]
+    cmds:
+      - "{{.GRADLE}} -p samples/isolated-projects build"
+
   ci:
-    desc: Full local CI dry-run (check + publish-local + sample)
+    desc: Full local CI dry-run (check + publish-local + samples)
     cmds:
       - task: check
       - task: sample
       - task: sample:build
+      - task: sample:isolated
 
   dod:
     desc: Definition of Done — fmt + build + test (run before committing)
@@ -72,6 +79,7 @@ tasks:
     cmds:
       - "{{.GRADLE}} clean"
       - rm -rf samples/hello-world/build samples/hello-world/.gradle
+      - rm -rf samples/isolated-projects/build samples/isolated-projects/.gradle samples/isolated-projects/*/build
 
   fmt:
     desc: Format Kotlin sources with ktfmt (kotlinlang style)
