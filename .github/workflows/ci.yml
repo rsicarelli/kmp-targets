@@ -38,3 +38,6 @@ jobs:
 
       - name: Build sample (hello-world)
         run: ./gradlew -p samples/hello-world build
+
+      - name: Build sample (isolated-projects, Isolated Projects enabled)
+        run: ./gradlew -p samples/isolated-projects build
