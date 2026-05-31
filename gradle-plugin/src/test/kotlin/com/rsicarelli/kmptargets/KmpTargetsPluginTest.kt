@@ -6,6 +6,7 @@ import java.nio.file.Path
 import kotlin.io.path.writeText
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import org.gradle.api.Project
@@ -176,6 +177,28 @@ class KmpTargetsPluginTest {
         project.pluginManager.apply("com.rsicarelli.kmptargets")
         // The bootstrap placeholder task has been replaced with the real selector wiring.
         assertEquals(null, project.tasks.findByName("kmpTargetsHello"))
+    }
+
+    @Test
+    fun `given selection overlaps supported when deciding empty-overlap warning then it does not warn`() {
+        // androidTarget is in the supported set, so the selection is NOT disjoint — warning here
+        // would be self-contradictory (issue #10).
+        assertFalse(
+            KmpTargets.shouldWarnEmptyOverlap(
+                selection = KmpTargetSet.of(KmpTarget.Jvm.Android),
+                supported = KmpTargetSet.all,
+            )
+        )
+    }
+
+    @Test
+    fun `given selection disjoint from supported when deciding empty-overlap warning then it warns`() {
+        assertTrue(
+            KmpTargets.shouldWarnEmptyOverlap(
+                selection = KmpTargetSet.of(KmpTarget.Web.WasmJs),
+                supported = KmpTargetSet.of(KmpTarget.Jvm.Desktop),
+            )
+        )
     }
 
     private fun newProject(dir: Path): Project =
