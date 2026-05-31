@@ -27,7 +27,10 @@ class KmpTargetsExtensionDslTest {
     fun `given supported block with subtraction when effectiveSupported then the leaf is removed`() {
         val ext = newExtension()
         ext.supported { appleMobile - iosX64 }
-        assertEquals(KmpTargetSet.appleMobile - KmpTarget.Native.Apple.Ios.X64, ext.effectiveSupported())
+        assertEquals(
+            KmpTargetSet.appleMobile - KmpTarget.Native.Apple.Ios.X64,
+            ext.effectiveSupported(),
+        )
         assertTrue(KmpTarget.Native.Apple.Ios.X64 !in ext.effectiveSupported())
     }
 
@@ -35,7 +38,10 @@ class KmpTargetsExtensionDslTest {
     fun `given supported value overload when effectiveSupported then equals that value`() {
         val ext = newExtension()
         ext.supported(KmpTargetSet.of(KmpTarget.Jvm.Desktop, KmpTarget.Native.Linux.X64))
-        assertEquals(KmpTargetSet.of(KmpTarget.Jvm.Desktop, KmpTarget.Native.Linux.X64), ext.effectiveSupported())
+        assertEquals(
+            KmpTargetSet.of(KmpTarget.Jvm.Desktop, KmpTarget.Native.Linux.X64),
+            ext.effectiveSupported(),
+        )
     }
 
     @Test

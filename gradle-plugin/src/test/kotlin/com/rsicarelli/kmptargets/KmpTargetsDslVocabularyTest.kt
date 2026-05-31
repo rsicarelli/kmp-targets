@@ -7,10 +7,10 @@ import kotlin.test.assertTrue
 import org.junit.jupiter.api.Test
 
 /**
- * Pure, Gradle-free coverage of the [KmpTargetsDsl] receiver vocabulary used inside
- * `kmpTargets { supported { … } }`. Every preset and every leaf must map to exactly the same
- * `KmpTargetSet` the string grammar and the public model produce — otherwise the type-safe DSL would
- * silently disagree with `KMP_TARGETS=…` and the docs.
+ * Pure, Gradle-free coverage of the [KmpTargetsDsl] receiver vocabulary used inside `kmpTargets {
+ * supported { … } }`. Every preset and every leaf must map to exactly the same `KmpTargetSet` the
+ * string grammar and the public model produce — otherwise the type-safe DSL would silently disagree
+ * with `KMP_TARGETS=…` and the docs.
  */
 class KmpTargetsDslVocabularyTest {
 
@@ -52,7 +52,10 @@ class KmpTargetsDslVocabularyTest {
     @Test
     fun `given the iOS leaves when read then each equals its single-target set`() {
         assertEquals(leaf(KmpTarget.Native.Apple.Ios.Arm64), KmpTargetsDsl.iosArm64)
-        assertEquals(leaf(KmpTarget.Native.Apple.Ios.SimulatorArm64), KmpTargetsDsl.iosSimulatorArm64)
+        assertEquals(
+            leaf(KmpTarget.Native.Apple.Ios.SimulatorArm64),
+            KmpTargetsDsl.iosSimulatorArm64,
+        )
         assertEquals(leaf(KmpTarget.Native.Apple.Ios.X64), KmpTargetsDsl.iosX64)
     }
 
@@ -81,7 +84,10 @@ class KmpTargetsDslVocabularyTest {
     fun `given the tvOS leaves when read then each equals its single-target set`() {
         assertEquals(leaf(KmpTarget.Native.Apple.Tvos.Arm64), KmpTargetsDsl.tvosArm64)
         assertEquals(leaf(KmpTarget.Native.Apple.Tvos.X64), KmpTargetsDsl.tvosX64)
-        assertEquals(leaf(KmpTarget.Native.Apple.Tvos.SimulatorArm64), KmpTargetsDsl.tvosSimulatorArm64)
+        assertEquals(
+            leaf(KmpTarget.Native.Apple.Tvos.SimulatorArm64),
+            KmpTargetsDsl.tvosSimulatorArm64,
+        )
     }
 
     @Test
@@ -142,14 +148,19 @@ class KmpTargetsDslVocabularyTest {
 
     @Test
     fun `given preset union via the DSL when composed then it equals the model union`() {
-        assertEquals(KmpTargetSet.mobile + KmpTargetSet.web, KmpTargetsDsl.mobile + KmpTargetsDsl.web)
+        assertEquals(
+            KmpTargetSet.mobile + KmpTargetSet.web,
+            KmpTargetsDsl.mobile + KmpTargetsDsl.web,
+        )
     }
 
     @Test
     fun `given a preset minus a leaf via the DSL when composed then the leaf is removed`() {
         val expected = KmpTargetSet.appleMobile - KmpTarget.Native.Apple.Ios.X64
         assertEquals(expected, KmpTargetsDsl.appleMobile - KmpTargetsDsl.iosX64)
-        assertTrue(KmpTarget.Native.Apple.Ios.X64 !in (KmpTargetsDsl.appleMobile - KmpTargetsDsl.iosX64))
+        assertTrue(
+            KmpTarget.Native.Apple.Ios.X64 !in (KmpTargetsDsl.appleMobile - KmpTargetsDsl.iosX64)
+        )
     }
 
     @Test

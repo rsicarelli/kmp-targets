@@ -7,6 +7,7 @@ import kotlin.io.path.writeText
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import org.gradle.api.Project
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.testfixtures.ProjectBuilder
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.junit.jupiter.api.Test
@@ -17,10 +18,11 @@ import org.junit.jupiter.api.io.TempDir
  * applied in-process. These are the load-bearing "does the approach actually register the right KGP
  * targets" tests — they assert on `kotlin.targets`, not on our own bookkeeping.
  *
- * Ordering note: scenarios that declare a `supported` set apply the core plugin first (queuing
- * registration), declare supported, then apply KGP last — mirroring exactly what a convention
- * plugin does. This is what lets a narrowed `supported` set be visible before any target is
- * registered, without `afterEvaluate`.
+ * Ordering note: scenarios that declare a `supported` set apply the core plugin first, declare
+ * supported, then apply KGP last — mirroring exactly what a convention plugin does, so the narrowed
+ * `supported` set is visible and targets register eagerly. Scenarios with no declared support rely
+ * on the deferred (after-evaluate) pass, so the shared helper evaluates the project to observe what
+ * a real build would.
  */
 class KmpTargetsSupportedTest {
 
@@ -166,6 +168,11 @@ class KmpTargetsSupportedTest {
         project.pluginManager.apply("com.rsicarelli.kmptargets")
         if (supported != null) KmpTargets.declareSupported(project, supported)
         project.pluginManager.apply("org.jetbrains.kotlin.multiplatform")
+        // When a supported set is declared (here or by a convention plugin), registration is eager.
+        // When none is — a bare core+KGP module relying on the default `all` — registration is
+        // deferred to the after-evaluate pass so a build-script `supported { … }` can still narrow
+        // it; trigger that pass so these scenarios observe the same result a real build would.
+        (project as ProjectInternal).evaluate()
         return project
     }
 
