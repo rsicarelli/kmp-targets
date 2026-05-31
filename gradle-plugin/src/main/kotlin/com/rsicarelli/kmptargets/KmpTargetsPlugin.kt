@@ -69,8 +69,10 @@ public class KmpTargetsPlugin : Plugin<Project> {
             val selection = ext.selection.get()
             val active = selection intersect ext.effectiveSupported()
 
-            // Advisory only: the supported set and the global selection don't overlap.
-            if (ext.registered.isEmpty() && selection.isNotEmpty()) {
+            // Advisory only: the selection is non-empty yet genuinely disjoint from the supported
+            // set, so nothing registers. Keyed off the actual overlap (not "nothing registered"),
+            // so the message can never name a token present in both lists (issue #10).
+            if (KmpTargets.shouldWarnEmptyOverlap(selection, ext.effectiveSupported())) {
                 p.logger.warn(
                     KmpTargets.emptyOverlapWarning(p.path, selection, ext.effectiveSupported())
                 )
@@ -197,6 +199,14 @@ public object KmpTargets {
         kotlin.applyHierarchyTemplate(computeHierarchySpec(active).toTemplate())
         ext.hierarchyTemplateApplied = true
     }
+
+    /**
+     * Whether to emit [emptyOverlapWarning]: only when the selection is non-empty yet genuinely
+     * disjoint from the supported set. Keyed off the actual overlap (not "nothing registered with
+     * KGP"), so the message can never name a token present in both lists (issue #10).
+     */
+    internal fun shouldWarnEmptyOverlap(selection: KmpTargetSet, supported: KmpTargetSet): Boolean =
+        selection.isNotEmpty() && (selection intersect supported).isEmpty()
 
     internal fun emptyOverlapWarning(
         path: String,
