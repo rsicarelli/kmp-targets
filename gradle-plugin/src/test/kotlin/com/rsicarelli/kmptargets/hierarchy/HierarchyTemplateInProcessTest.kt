@@ -119,6 +119,28 @@ class HierarchyTemplateInProcessTest {
     }
 
     @Test
+    fun `given jvm only when applied then jvmMain still depends on commonMain`(@TempDir dir: Path) {
+        // jvm is a standalone family with no intermediate, so it attaches directly to commonMain.
+        // The minimal template must keep that edge, or commonMain code is excluded (issue #16).
+        assertTrue(
+            "commonMain" in dependsOnOf(dir, "jvm", "jvmMain"),
+            "commonMain edge dropped (#16)",
+        )
+    }
+
+    @Test
+    fun `given single iosArm64 when applied then iosArm64Main still depends on commonMain`(
+        @TempDir dir: Path
+    ) {
+        // A single-leaf native family collapses all the way to a leaf attached directly to
+        // commonMain — same dropped-edge hazard as jvm (issue #16).
+        assertTrue(
+            "commonMain" in dependsOnOf(dir, "iosArm64", "iosArm64Main"),
+            "commonMain edge dropped (#16)",
+        )
+    }
+
+    @Test
     fun `given core and KGP applied when reading the active set then the spec matches the minimal tree`(
         @TempDir dir: Path
     ) {
@@ -152,6 +174,22 @@ class HierarchyTemplateInProcessTest {
             .getByType(KotlinMultiplatformExtension::class.java)
             .sourceSets
             .names
+            .toSet()
+    }
+
+    /** Direct `dependsOn` source-set names of [sourceSet] after the minimal template is applied. */
+    private fun dependsOnOf(dir: Path, kmpTargets: String, sourceSet: String): Set<String> {
+        dir.resolve("gradle.properties").writeText("KMP_TARGETS=$kmpTargets\n")
+        val project = ProjectBuilder.builder().withProjectDir(dir.toFile()).build()
+        project.pluginManager.apply("com.rsicarelli.kmptargets")
+        project.pluginManager.apply("org.jetbrains.kotlin.multiplatform")
+        (project as ProjectInternal).evaluate()
+        return project.extensions
+            .getByType(KotlinMultiplatformExtension::class.java)
+            .sourceSets
+            .getByName(sourceSet)
+            .dependsOn
+            .map { it.name }
             .toSet()
     }
 }
