@@ -23,11 +23,14 @@ public class KmpTargetsPlugin : Plugin<Project> {
         val ext = target.extensions.create("kmpTargets", KmpTargetsExtension::class.java)
         ext.fallback.convention(KmpTargetSet.all)
 
-        // Global selection: what the user wants to build now.
+        // Global selection: what the user wants to build now. A blank/absent property means "not
+        // overriding" → fallback. A non-blank property that resolves to an empty set via minus
+        // operators (e.g. `jvm,-jvm`) is an explicit "build nothing" and must be honored, not
+        // silently treated as the default-all fallback (issue #9). Keying off `isNotBlank` (rather
+        // than the parsed set's emptiness) is what distinguishes the two cases.
         val raw: String? = selectionSources(target).read()
-        val parsedFromProperty: KmpTargetSet? = raw?.let { parseOrThrow(it, KMP_TARGETS) }
-        if (parsedFromProperty != null && parsedFromProperty.isNotEmpty()) {
-            ext.selection.convention(parsedFromProperty)
+        if (raw != null && raw.isNotBlank()) {
+            ext.selection.convention(parseOrThrow(raw, KMP_TARGETS))
         } else {
             ext.selection.convention(ext.fallback)
         }
