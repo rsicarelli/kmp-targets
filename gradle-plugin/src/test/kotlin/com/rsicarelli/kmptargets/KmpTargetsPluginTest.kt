@@ -157,6 +157,18 @@ class KmpTargetsPluginTest {
     }
 
     @Test
+    fun `given KMP_TARGETS narrows to nothing via minus when selection is read then it is empty not fallback`(
+        @TempDir dir: Path
+    ) {
+        dir.resolve("gradle.properties").writeText("KMP_TARGETS=jvm,-jvm\n")
+        val project = newProject(dir)
+        project.pluginManager.apply("com.rsicarelli.kmptargets")
+        val ext = project.extensions.getByType(KmpTargetsExtension::class.java)
+        // An explicit selection narrowed to nothing means "build nothing", not "build everything".
+        assertEquals(KmpTargetSet.empty, ext.selection.get())
+    }
+
+    @Test
     fun `given the legacy placeholder task name when listed then it does not exist`(
         @TempDir dir: Path
     ) {
