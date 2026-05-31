@@ -123,7 +123,7 @@ public value class KmpTargetSet private constructor(public val members: Set<KmpT
             KmpTargetSet(setOf(KmpTarget.Jvm.Android, KmpTarget.Jvm.Desktop))
 
         /**
-         * The canonical "mobile app" shape: Android plus the two iOS leaves. Backs the
+         * The canonical "mobile app" shape: Android plus all three iOS leaves. Backs the
          * `com.rsicarelli.kmptargets.mobile` convention plugin. Android only registers if the
          * user's selection actually includes it, so this preset does not force AGP onto consumers.
          */

@@ -34,7 +34,7 @@ applies the Kotlin Multiplatform plugin for you (don't add `kotlin("multiplatfor
 // shared-core/build.gradle.kts   — supports all targets
 plugins { id("com.rsicarelli.kmptargets.library") version "<version>" }
 
-// feature-mobile/build.gradle.kts — supports Android + iOS
+// feature-mobile/build.gradle.kts — supports Android + all iOS
 plugins { id("com.rsicarelli.kmptargets.mobile") version "<version>" }
 
 // jvm-tools/build.gradle.kts      — supports JVM only
