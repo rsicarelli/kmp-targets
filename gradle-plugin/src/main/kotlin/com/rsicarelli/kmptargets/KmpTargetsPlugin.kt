@@ -22,17 +22,22 @@ public class KmpTargetsPlugin : Plugin<Project> {
     override fun apply(target: Project) {
         val ext = target.extensions.create("kmpTargets", KmpTargetsExtension::class.java)
         ext.fallback.convention(KmpTargetSet.all)
+        // The per-module `selection { … }` block (if any) defaults to the fallback. A global
+        // `KMP_TARGETS` is stored separately and wins over it via `resolvedSelection()`.
+        ext.selectionProperty.convention(ext.fallback)
 
         // Global selection: what the user wants to build now. A blank/absent property means "not
-        // overriding" → fallback. A non-blank property that resolves to an empty set via minus
-        // operators (e.g. `jvm,-jvm`) is an explicit "build nothing" and must be honored, not
-        // silently treated as the default-all fallback (issue #9). Keying off `isNotBlank` (rather
-        // than the parsed set's emptiness) is what distinguishes the two cases.
+        // overriding" → defer to the per-module selection/fallback. A non-blank property that
+        // resolves to an empty set via minus operators (e.g. `jvm,-jvm`) is an explicit "build
+        // nothing" and must be honored, not silently treated as the default-all fallback (issue
+        // #9).
+        // Keying off `isNotBlank` (rather than the parsed set's emptiness) is what distinguishes
+        // the
+        // two cases. Storing it as the override (rather than as `selection`'s convention) is what
+        // lets a global value win over a per-module `selection { … }` block.
         val raw: String? = selectionSources(target).read()
         if (raw != null && raw.isNotBlank()) {
-            ext.selection.convention(parseOrThrow(raw, KMP_TARGETS))
-        } else {
-            ext.selection.convention(ext.fallback)
+            ext.globalSelection = parseOrThrow(raw, KMP_TARGETS)
         }
 
         // Per-module supported set declared via the `kmptargets.supported` property (the manual
@@ -44,11 +49,15 @@ public class KmpTargetsPlugin : Plugin<Project> {
         }
 
         // Register selection ∩ supported once KGP is present. Queued here so that, in the
-        // convention
-        // flow (core applied before KGP), the accumulated supported set is already visible when
-        // this
-        // fires. Idempotent, so it composes with the per-declaration passes in declareSupported.
-        target.pluginManager.withPlugin(KGP_ID) { KmpTargets.registerResolved(target, ext) }
+        // convention flow (core applied before KGP), the accumulated supported set is already
+        // visible when this fires. Idempotent, so it composes with the per-declaration passes in
+        // declareSupported. Guarded on `supported` being declared: if it is still unset (a module
+        // that will declare it from its build-script body via `supported { … }`), eager
+        // registration would wrongly register `selection ∩ all` and over-register, so we defer to
+        // the after-evaluate pass below, by which point the DSL block has run.
+        target.pluginManager.withPlugin(KGP_ID) {
+            if (ext.isSupportedDeclared()) KmpTargets.registerResolved(target, ext)
+        }
 
         // Global default for the hierarchy template, read at apply time and pulled out as a
         // primitive so the afterEvaluate closure below never captures `Project` (config-cache
@@ -66,7 +75,12 @@ public class KmpTargetsPlugin : Plugin<Project> {
         // stays configuration-cache safe.
         target.afterEvaluate { p ->
             if (!p.plugins.hasPlugin(KGP_ID)) return@afterEvaluate
-            val selection = ext.selection.get()
+            // Deferred registration pass: picks up a `supported { … }` / `selection { … }` declared
+            // in the build-script body (which runs after apply, so the eager pass above may have
+            // skipped it). Idempotent, so for the convention flow — already registered eagerly —
+            // this is a no-op.
+            KmpTargets.registerResolved(p, ext)
+            val selection = ext.resolvedSelection()
             val active = selection intersect ext.effectiveSupported()
 
             // Advisory only: the selection is non-empty yet genuinely disjoint from the supported
@@ -174,7 +188,7 @@ public object KmpTargets {
     /** Registers `selection ∩ supported`, skipping leaves already registered (idempotent). */
     internal fun registerResolved(project: Project, ext: KmpTargetsExtension) {
         val kotlin = project.extensions.getByType(KotlinMultiplatformExtension::class.java)
-        val effective = ext.selection.get() intersect ext.effectiveSupported()
+        val effective = ext.resolvedSelection() intersect ext.effectiveSupported()
         (effective.members - ext.registered).forEach { leaf ->
             registerTarget(kotlin, leaf)
             ext.registered.add(leaf)

@@ -30,7 +30,7 @@ class KmpConventionPluginsTest {
         val project = projectWith(dir, kmpTargets = "iosArm64")
         project.pluginManager.apply(KmpMobileConventionPlugin::class.java)
         val ext = project.extensions.getByType(KmpTargetsExtension::class.java)
-        assertEquals(KmpTargetSet.mobile, ext.supported.get())
+        assertEquals(KmpTargetSet.mobile, ext.effectiveSupported())
     }
 
     @Test
@@ -50,9 +50,9 @@ class KmpConventionPluginsTest {
         val project = projectWith(dir, kmpTargets = "iosArm64")
         project.pluginManager.apply(KmpAppleConventionPlugin::class.java)
         val ext = project.extensions.getByType(KmpTargetsExtension::class.java)
-        assertEquals(KmpTargetSet.apple, ext.supported.get())
-        assertTrue(KmpTarget.Native.Apple.Watchos.Arm64 in ext.supported.get())
-        assertTrue(KmpTarget.Native.Apple.Tvos.Arm64 in ext.supported.get())
+        assertEquals(KmpTargetSet.apple, ext.effectiveSupported())
+        assertTrue(KmpTarget.Native.Apple.Watchos.Arm64 in ext.effectiveSupported())
+        assertTrue(KmpTarget.Native.Apple.Tvos.Arm64 in ext.effectiveSupported())
     }
 
     @Test
@@ -62,7 +62,7 @@ class KmpConventionPluginsTest {
         val project = projectWith(dir, kmpTargets = "iosArm64")
         project.pluginManager.apply(KmpLibraryConventionPlugin::class.java)
         val ext = project.extensions.getByType(KmpTargetsExtension::class.java)
-        assertEquals(KmpTargetSet.all, ext.supported.get())
+        assertEquals(KmpTargetSet.all, ext.effectiveSupported())
     }
 
     @Test
@@ -72,7 +72,7 @@ class KmpConventionPluginsTest {
         val project = projectWith(dir, kmpTargets = "jvm")
         project.pluginManager.apply(KmpJvmConventionPlugin::class.java)
         val ext = project.extensions.getByType(KmpTargetsExtension::class.java)
-        assertEquals(KmpTargetSet.of(KmpTarget.Jvm.Desktop), ext.supported.get())
+        assertEquals(KmpTargetSet.of(KmpTarget.Jvm.Desktop), ext.effectiveSupported())
         assertRegisteredTargets(project, "jvm")
     }
 
@@ -93,7 +93,7 @@ class KmpConventionPluginsTest {
         project.pluginManager.apply(KmpMobileConventionPlugin::class.java)
         project.pluginManager.apply(KmpWebConventionPlugin::class.java)
         val ext = project.extensions.getByType(KmpTargetsExtension::class.java)
-        assertEquals(KmpTargetSet.mobile + KmpTargetSet.web, ext.supported.get())
+        assertEquals(KmpTargetSet.mobile + KmpTargetSet.web, ext.effectiveSupported())
         assertRegisteredTargets(project, "iosArm64", "wasmJs")
     }
 

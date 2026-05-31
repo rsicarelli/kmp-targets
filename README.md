@@ -65,10 +65,11 @@ plugins {
 If a module's supported set and the selection don't overlap at all, the plugin registers no targets
 for it, logs a warning naming the module/supported/selection, and lets the build proceed.
 
-### Escape hatch (manual wiring)
+### Escape hatch (type-safe DSL)
 
 For a one-off module that fits no preset, apply the base id yourself alongside KGP and declare its
-supported set with the `kmptargets.supported` property (same grammar as `KMP_TARGETS`):
+supported set in the build script with the type-safe `kmpTargets { }` DSL — the whole target
+vocabulary is in scope as set algebra (`+` / `-`):
 
 ```kotlin
 // build.gradle.kts
@@ -76,25 +77,70 @@ plugins {
     kotlin("multiplatform") version "2.3.21"
     id("com.rsicarelli.kmptargets") version "<version>"
 }
+
+kmpTargets {
+    supported { jvm + linuxX64 }        // presets and leaves compose: e.g. mobile + web - iosX64
+}
 ```
 
-```properties
-# this module's gradle.properties
-kmptargets.supported=jvm,linuxX64
+Every preset (`all`, `mobile`, `apple`, `web`, `jvmFamily`, …) and every leaf (`jvm`, `iosArm64`,
+`linuxX64`, …) is available inside the block — no imports, no string parsing. Power users and
+[build-logic](#build-logic-convention-plugins) convention plugins can pass a raw `KmpTargetSet`
+instead: `supported(KmpTargetSet.mobile + KmpTargetSet.web)`.
+
+> The DSL is the per-module escape hatch because a module's `build.gradle.kts` is the one file Gradle
+> evaluates per-project. A `kmptargets.supported` entry in a **subproject's** `gradle.properties` is
+> *not* read by Gradle as a project property (only the root `gradle.properties`, `-P`, env vars, and
+> `GRADLE_USER_HOME` are), so it is silently ignored — use the DSL, or `-Pkmptargets.supported=…` at
+> the root, instead.
+
+Applying the base id with no `supported { }` keeps the original behaviour: supported defaults to all,
+so the global `KMP_TARGETS` alone decides what registers.
+
+You can likewise set a per-module **default** selection with `selection { … }`; a global
+`KMP_TARGETS` (below) always overrides it, so the global switch stays authoritative.
+
+```kotlin
+kmpTargets {
+    supported { mobile + web }
+    selection { jvm + iosArm64 }        // default when no global KMP_TARGETS is set
+}
 ```
 
-Applying the base id with no `kmptargets.supported` keeps the original behaviour: supported defaults
-to all, so the global `KMP_TARGETS` alone decides what registers.
+### Build logic (convention plugins)
+
+In a `build-logic` (precompiled script plugin or `Plugin<Project>`) setup, configure the same
+extension programmatically — the model types (`KmpTargetSet`, `KmpTarget`) are public API, so the
+raw algebra needs no DSL sugar:
+
+```kotlin
+// build-logic/src/main/kotlin/my.kmp-conventions.gradle.kts
+import com.rsicarelli.kmptargets.KmpTargetsExtension
+import com.rsicarelli.kmptargets.model.KmpTargetSet
+
+plugins { id("com.rsicarelli.kmptargets") }
+
+extensions.configure<KmpTargetsExtension> {
+    supported(KmpTargetSet.mobile + KmpTargetSet.web)   // type-safe, no strings
+}
+```
+
+This is how a team centralizes per-module supported sets in their own convention plugins, instead of
+threading a property file through every subproject. The type-safe `supported { … }` / `selection { … }`
+blocks work here too, since they are members of `KmpTargetsExtension`.
 
 ### Selecting targets
 
-Set the selection via any of these sources (priority order, highest first):
+The selection is **global** — one switch narrows the whole build. Set it via any of these sources
+(priority order, highest first):
 
 1. `-PKMP_TARGETS=...` on the CLI
 2. `ORG_GRADLE_PROJECT_KMP_TARGETS` environment variable
-3. `gradle.properties` (project, then root)
+3. the **root** `gradle.properties` (a *subproject's* `gradle.properties` is **not** a source — see
+   the note in [Escape hatch](#escape-hatch-type-safe-dsl))
 4. `local.properties` (per-developer, gitignored)
-5. Plugin default — every target the plugin currently knows about
+5. a per-module `kmpTargets { selection { … } }` default (overridden by all of the above)
+6. Plugin default — every target the plugin currently knows about
 
 ### Selection grammar
 

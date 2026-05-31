@@ -153,7 +153,7 @@ class HierarchyTemplateInProcessTest {
         project.pluginManager.apply("com.rsicarelli.kmptargets")
         project.pluginManager.apply("org.jetbrains.kotlin.multiplatform")
         val ext = project.extensions.getByType(KmpTargetsExtension::class.java)
-        val active = ext.selection.get() intersect KmpTargetSet.all
+        val active = ext.resolvedSelection() intersect KmpTargetSet.all
         val groups = computeHierarchySpec(active).roots.filterIsInstance<HierarchyNode.Group>()
         assertEquals(setOf(HierarchyGroup.IOS), groups.map { it.group }.toSet())
     }
