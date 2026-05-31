@@ -7,13 +7,14 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinHierarchyBuilder
  * Turns a pure [HierarchySpec] into the builder lambda KGP's `applyHierarchyTemplate { … }`
  * expects.
  *
- * Only the group structure (and the leaves *inside* groups) is emitted: a leaf that sits directly
- * under `common` is skipped, because KGP already attaches every registered target's `*Main` to
- * `commonMain` — emitting `withJvm()` at the common root would be a redundant no-op. So a spec with
- * no groups (e.g. jvm-only, web-only) yields an effectively empty template.
+ * Every root is emitted, including a leaf that sits directly under `common` (e.g. standalone `jvm`
+ * or a single collapsed native leaf like `iosArm64`). `applyHierarchyTemplate` *replaces* KGP's
+ * default hierarchy, so the `commonMain`→leaf edge is no longer auto-wired — emitting `withJvm()`
+ * at the common root is what keeps that edge. Skipping it dropped `commonMain` from the target
+ * (issue #16). Leaves inside groups reach `commonMain` transitively via their group's edge.
  */
 internal fun HierarchySpec.toTemplate(): KotlinHierarchyBuilder.Root.() -> Unit = {
-    common { roots.filterIsInstance<HierarchyNode.Group>().forEach { emit(it) } }
+    common { roots.forEach { emit(it) } }
 }
 
 private fun KotlinHierarchyBuilder.emit(node: HierarchyNode) {
