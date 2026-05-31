@@ -30,8 +30,9 @@ gradlePlugin {
             Triple("kmpLibrary", "library", "KmpLibraryConventionPlugin") to
                 "all shipped Kotlin Multiplatform targets",
             Triple("kmpMobile", "mobile", "KmpMobileConventionPlugin") to
-                "Android + iOS (the mobile-app shape)",
-            Triple("kmpApple", "apple", "KmpAppleConventionPlugin") to "iOS + macOS",
+                "Android + all iOS (the mobile-app shape)",
+            Triple("kmpApple", "apple", "KmpAppleConventionPlugin") to
+                "all Apple platforms (iOS + macOS + watchOS + tvOS)",
             Triple("kmpJvm", "jvm", "KmpJvmConventionPlugin") to "JVM (desktop/server)",
             Triple("kmpWeb", "web", "KmpWebConventionPlugin") to "JS + Wasm",
         )
