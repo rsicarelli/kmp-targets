@@ -6,4 +6,4 @@ plugins {
     id("com.rsicarelli.kmptargets") version "0.1.0-SNAPSHOT"
 }
 
-kmpTargets { supported { jvm } }
+kmpTargets { supports { jvm } }

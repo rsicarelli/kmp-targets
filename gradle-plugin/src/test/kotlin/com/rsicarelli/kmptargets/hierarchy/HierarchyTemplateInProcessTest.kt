@@ -144,7 +144,7 @@ class HierarchyTemplateInProcessTest {
     fun `given core and KGP applied when reading the active set then the spec matches the minimal tree`(
         @TempDir dir: Path
     ) {
-        // Proves the active-set -> spec wiring uses selection ∩ effectiveSupported. Materialization
+        // Proves the active-set -> spec wiring uses selection ∩ resolvedSupported. Materialization
         // is asserted by the source-set tests above; here we pin the pure decision on a real
         // extension fed by a real KMP_TARGETS property.
         dir.resolve("gradle.properties")

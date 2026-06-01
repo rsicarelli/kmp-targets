@@ -32,7 +32,7 @@ public fun parseKmpTargets(raw: String, registry: Set<KmpTarget> = KmpTarget.all
     if (tokens.isEmpty()) {
         return ParseResult.Ok(
             KmpTargetSet.empty,
-            warnings = listOf("KMP_TARGETS is empty; using fallback selection"),
+            warnings = listOf("KMP_TARGETS is empty; using the default selection"),
         )
     }
 

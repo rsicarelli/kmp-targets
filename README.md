@@ -28,7 +28,7 @@ its supported set, and the global selection narrows that further.
 ### Applying the plugin
 
 Apply KGP and the `com.rsicarelli.kmptargets` base id together, then declare the module's supported
-set with the type-safe `kmpTargets { supported { … } }` DSL — the whole target vocabulary is in scope
+set with the type-safe `kmpTargets { supports { … } }` DSL — the whole target vocabulary is in scope
 as set algebra (`+` / `-`), no imports, no strings:
 
 ```kotlin
@@ -39,27 +39,21 @@ plugins {
 }
 
 kmpTargets {
-    supported { mobile + web - iosX64 }     // presets and leaves compose freely
+    supports { mobile + web - iosX64 }      // presets and leaves compose freely
 }
 ```
 
 Every preset (`all`, `mobile`, `apple`, `web`, `jvmFamily`, …) and every leaf (`jvm`, `iosArm64`,
 `linuxX64`, …) is available inside the block. Build-logic and consumers needing a raw value can use
-the overload: `supported(KmpTargetSet.mobile + KmpTargetSet.web)`.
+the overload: `supports(KmpTargetSet.mobile + KmpTargetSet.web)`.
 
-If you omit the `supported` block, the module defaults to **all** targets — the global
+If you omit the `supports` block, the module defaults to **all** targets — the global
 `KMP_TARGETS` alone decides what registers. That's the right default for a generic library that
 wants to build whatever the developer is currently targeting.
 
-You can also set a per-module **default** selection with `selection { … }`; a global `KMP_TARGETS`
-(see below) always overrides it, so the global switch stays authoritative:
-
-```kotlin
-kmpTargets {
-    supported { mobile + web }
-    selection { jvm + iosArm64 }            // default when no global KMP_TARGETS is set
-}
-```
+The selection itself is **global** (the `KMP_TARGETS` property, see below) — there is no per-module
+selection block. A project-wide default for when `KMP_TARGETS` is unset can be set from build-logic
+via the `defaultSelection` property; a global `KMP_TARGETS` always overrides it.
 
 ### Seeing the DSL docs on hover (IntelliJ)
 
@@ -73,7 +67,7 @@ default — so out of the box you'll only see the bare signature. Turn it on onc
 2. Reload the Gradle project (Gradle tool window → 🔄). A sync is required for the setting to take
    effect.
 
-After the sync, hovering `supported`, `mobile`, `apple`, `iosArm64`, … shows their documentation.
+After the sync, hovering `supports`, `mobile`, `apple`, `iosArm64`, … shows their documentation.
 
 ### Build-logic conventions
 
@@ -92,7 +86,7 @@ plugins {
 }
 
 extensions.configure<KmpTargetsExtension> {
-    supported(KmpTargetSet.mobile)
+    supports(KmpTargetSet.mobile)
 }
 ```
 
@@ -115,7 +109,7 @@ The selection is **global** — one switch narrows the whole build. Set it via a
 3. the **root** `gradle.properties` (a *subproject's* `gradle.properties` is **not** a source —
    Gradle only reads root-level project properties)
 4. `local.properties` (per-developer, gitignored)
-5. a per-module `kmpTargets { selection { … } }` default (overridden by all of the above)
+5. a project-wide `defaultSelection` set from build-logic (overridden by all of the above)
 6. Plugin default — every target the plugin currently knows about
 
 ### Selection grammar

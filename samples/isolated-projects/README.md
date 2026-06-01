@@ -15,8 +15,8 @@ goes red.
 
 | Module | DSL | Supported | Registered with `KMP_TARGETS=jvm` |
 |---|---|---|---|
-| `:lib` | _(no `supported` block — defaults to `all`)_ | all targets | `jvm` |
-| `:app` | `kmpTargets { supported { jvm } }` | `jvm` | `jvm` |
+| `:lib` | _(no `supports` block — defaults to `all`)_ | all targets | `jvm` |
+| `:app` | `kmpTargets { supports { jvm } }` | `jvm` | `jvm` |
 
 `:app` depends on `:lib` via a `project(":lib")` dependency — a real cross-project edge that Isolated
 Projects must wire while keeping each project's configuration isolated. Only the JVM target is

@@ -1,6 +1,6 @@
 // Root of the multi-module sample.
 // Each subproject applies KGP + the `com.rsicarelli.kmptargets` base plugin and declares its
-// supported set via the `kmpTargets { supported { … } }` DSL. The global KMP_TARGETS
+// supported set via the `kmpTargets { supports { … } }` DSL. The global KMP_TARGETS
 // (gradle.properties) is intersected against each module's supported set.
 //
 // Kotlin Multiplatform is declared here once with `apply false` so every subproject shares a single

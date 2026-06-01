@@ -30,5 +30,5 @@ rootProject.name = "isolated-projects"
 // default-all → supports every target; with KMP_TARGETS=jvm registers jvm only
 include(":lib")
 
-// supported{jvm} → registers jvm; depends on :lib through a project dependency
+// supports{jvm} → registers jvm; depends on :lib through a project dependency
 include(":app")

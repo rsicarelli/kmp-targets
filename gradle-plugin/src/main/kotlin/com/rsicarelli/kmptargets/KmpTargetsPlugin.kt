@@ -21,15 +21,12 @@ public class KmpTargetsPlugin : Plugin<Project> {
 
     override fun apply(target: Project) {
         val ext = target.extensions.create("kmpTargets", KmpTargetsExtension::class.java)
-        ext.fallback.convention(KmpTargetSet.all)
-        // The per-module `selection { … }` block (if any) defaults to the fallback. A global
-        // `KMP_TARGETS` is stored separately and wins over it via `resolvedSelection()`.
-        ext.selectionProperty.convention(ext.fallback)
+        ext.defaultSelection.convention(KmpTargetSet.all)
 
         // Global selection: what the user wants to build now. A blank/absent property means "not
-        // overriding" → defer to the per-module selection/fallback. A non-blank property that
+        // overriding" → defer to `defaultSelection`. A non-blank property that
         // resolves to an empty set via minus operators (e.g. `jvm,-jvm`) is an explicit "build
-        // nothing" and must be honored, not silently treated as the default-all fallback (issue
+        // nothing" and must be honored, not silently treated as the default-all selection (issue
         // #9). Keying off `isNotBlank` (rather than the parsed set's emptiness) is what
         // distinguishes the two cases.
         val raw: String? = selectionSources(target).read()
@@ -43,20 +40,20 @@ public class KmpTargetsPlugin : Plugin<Project> {
         val globalHierarchyEnabled: Boolean? = hierarchyTemplateEnabledGlobally(target)
 
         // All work waits for the build-script body to run: target registration, the empty-overlap
-        // warning, and the hierarchy template are functions of the final `supported`/`selection`
-        // set declared via the DSL. The closure captures only `ext` (immutable sets + booleans)
-        // and the primitive flag, so it stays configuration-cache safe.
+        // warning, and the hierarchy template are functions of the final `supports` set declared
+        // via the DSL. The closure captures only `ext` (immutable sets + booleans) and the
+        // primitive flag, so it stays configuration-cache safe.
         target.afterEvaluate { p ->
             if (!p.plugins.hasPlugin(KGP_ID)) return@afterEvaluate
             registerResolved(p, ext)
             val selection = ext.resolvedSelection()
-            val active = selection intersect ext.effectiveSupported()
+            val active = selection intersect ext.resolvedSupported()
 
             // Advisory only: the selection is non-empty yet genuinely disjoint from the supported
             // set, so nothing registers. Keyed off the actual overlap (not "nothing registered"),
             // so the message can never name a token present in both lists (issue #10).
-            if (shouldWarnEmptyOverlap(selection, ext.effectiveSupported())) {
-                p.logger.warn(emptyOverlapWarning(p.path, selection, ext.effectiveSupported()))
+            if (shouldWarnEmptyOverlap(selection, ext.resolvedSupported())) {
+                p.logger.warn(emptyOverlapWarning(p.path, selection, ext.resolvedSupported()))
             }
 
             maybeApplyHierarchyTemplate(p, ext, active, globalHierarchyEnabled)
@@ -109,7 +106,7 @@ public class KmpTargetsPlugin : Plugin<Project> {
     /** Registers `selection ∩ supported`, skipping leaves already registered (idempotent). */
     private fun registerResolved(project: Project, ext: KmpTargetsExtension) {
         val kotlin = project.extensions.getByType(KotlinMultiplatformExtension::class.java)
-        val effective = ext.resolvedSelection() intersect ext.effectiveSupported()
+        val effective = ext.resolvedSelection() intersect ext.resolvedSupported()
         (effective.members - ext.registered).forEach { leaf ->
             registerTarget(kotlin, leaf)
             ext.registered.add(leaf)
