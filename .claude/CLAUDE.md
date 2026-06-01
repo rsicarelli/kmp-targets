@@ -4,11 +4,10 @@
 
 This is a **multi-module Gradle build**:
 
-- `:gradle-plugin` — the core plugin (`com.rsicarelli.kmptargets`) + the `KmpTargets` entry point. Source under `gradle-plugin/src/`.
-- `:convention-plugins` — the per-module convention plugins (`com.rsicarelli.kmptargets.{library,mobile,apple,jvm,web}`), thin wrappers over `KmpTargets.applyConvention`. Depends on `:gradle-plugin` (api) + KGP (implementation, so it can apply KGP for consumers).
+- `:gradle-plugin` — the only plugin (`com.rsicarelli.kmptargets`). The DSL (`kmpTargets { supported { … } / selection { … } }`) is the sole public API; teams that want `apply by id, no body` ergonomics build their own conventions in `build-logic/`. Source under `gradle-plugin/src/`.
 - Future: `:cli` — companion CLI for driving target selection from outside Gradle. Reserved as a sibling subproject.
 
-Do **not** collapse into a single-module layout. The structure keeps the dependency-light core publishable on its own and makes adding siblings painless.
+Do **not** collapse into a single-module layout. The structure keeps adding siblings painless.
 
 ## Dev loop
 

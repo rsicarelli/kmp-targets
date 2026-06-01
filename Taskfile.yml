@@ -25,7 +25,7 @@ tasks:
       - "{{.GRADLE}} check"
 
   publish-local:
-    desc: Publish core + convention plugins (and their markers) to Maven Local for sample iteration
+    desc: Publish the plugin (and its marker) to Maven Local for sample iteration
     cmds:
       - "{{.GRADLE}} publishToMavenLocal"
 

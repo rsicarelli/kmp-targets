@@ -2,7 +2,7 @@
 
 > Dynamically select which Kotlin Multiplatform targets to build.
 
-**Status:** alpha (pre-1.0). The core selector, per-module convention plugins, and the automatic minimal hierarchy template are implemented and exercised by the multi-module sample; further helper APIs (user-defined hierarchy groups, XCFramework) are roadmap items.
+**Status:** alpha (pre-1.0). The core selector and the automatic minimal hierarchy template are implemented and exercised by the multi-module sample; further helper APIs (user-defined hierarchy groups, XCFramework) are roadmap items.
 
 `kmp-targets` is a Gradle plugin for Kotlin Multiplatform projects that lets each developer (and each CI runner) choose which KMP targets to build, via a single Gradle property:
 
@@ -19,57 +19,17 @@ A real multi-module project is heterogeneous: a shared module builds every platf
 feature builds only Android + iOS, a tooling module builds only the JVM. `kmp-targets` separates two
 facts:
 
-- **What a module *can* build** — its *supported* set, declared per-module.
+- **What a module *can* build** — its *supported* set, declared per-module via the type-safe DSL.
 - **What you *want* to build now** — the global `KMP_TARGETS` *selection*.
 
 The plugin registers `selection ∩ supported` for each module. A module never builds a target outside
 its supported set, and the global selection narrows that further.
 
-### Convention plugins (recommended)
+### Applying the plugin
 
-Each module declares its supported shape by the convention plugin id it applies — one line, and it
-applies the Kotlin Multiplatform plugin for you (don't add `kotlin("multiplatform")` yourself):
-
-```kotlin
-// shared-core/build.gradle.kts   — supports all targets
-plugins { id("com.rsicarelli.kmptargets.library") version "<version>" }
-
-// feature-mobile/build.gradle.kts — supports Android + all iOS
-plugins { id("com.rsicarelli.kmptargets.mobile") version "<version>" }
-
-// jvm-tools/build.gradle.kts      — supports JVM only
-plugins { id("com.rsicarelli.kmptargets.jvm") version "<version>" }
-```
-
-| Plugin id | Supports |
-|---|---|
-| `com.rsicarelli.kmptargets.library` | all shipped targets |
-| `com.rsicarelli.kmptargets.mobile` | `androidTarget` + all iOS |
-| `com.rsicarelli.kmptargets.apple` | all Apple platforms (iOS + macOS + watchOS + tvOS) |
-| `com.rsicarelli.kmptargets.jvm` | `jvm` |
-| `com.rsicarelli.kmptargets.web` | `js`, `wasmJs`, `wasmWasi` |
-
-With `KMP_TARGETS=jvm,iosSimulatorArm64`: `library` registers both, `mobile` registers only
-`iosSimulatorArm64`, `jvm` registers only `jvm`.
-
-**Composition** — apply more than one id and their supported sets *union*:
-
-```kotlin
-plugins {
-    id("com.rsicarelli.kmptargets.apple") version "<version>"
-    id("com.rsicarelli.kmptargets.jvm") version "<version>"
-}
-// supports iOS/macOS ∪ JVM
-```
-
-If a module's supported set and the selection don't overlap at all, the plugin registers no targets
-for it, logs a warning naming the module/supported/selection, and lets the build proceed.
-
-### Escape hatch (type-safe DSL)
-
-For a one-off module that fits no preset, apply the base id yourself alongside KGP and declare its
-supported set in the build script with the type-safe `kmpTargets { }` DSL — the whole target
-vocabulary is in scope as set algebra (`+` / `-`):
+Apply KGP and the `com.rsicarelli.kmptargets` base id together, then declare the module's supported
+set with the type-safe `kmpTargets { supported { … } }` DSL — the whole target vocabulary is in scope
+as set algebra (`+` / `-`), no imports, no strings:
 
 ```kotlin
 // build.gradle.kts
@@ -79,55 +39,57 @@ plugins {
 }
 
 kmpTargets {
-    supported { jvm + linuxX64 }        // presets and leaves compose: e.g. mobile + web - iosX64
+    supported { mobile + web - iosX64 }     // presets and leaves compose freely
 }
 ```
 
 Every preset (`all`, `mobile`, `apple`, `web`, `jvmFamily`, …) and every leaf (`jvm`, `iosArm64`,
-`linuxX64`, …) is available inside the block — no imports, no string parsing. Power users and
-[build-logic](#build-logic-convention-plugins) convention plugins can pass a raw `KmpTargetSet`
-instead: `supported(KmpTargetSet.mobile + KmpTargetSet.web)`.
+`linuxX64`, …) is available inside the block. Build-logic and consumers needing a raw value can use
+the overload: `supported(KmpTargetSet.mobile + KmpTargetSet.web)`.
 
-> The DSL is the per-module escape hatch because a module's `build.gradle.kts` is the one file Gradle
-> evaluates per-project. A `kmptargets.supported` entry in a **subproject's** `gradle.properties` is
-> *not* read by Gradle as a project property (only the root `gradle.properties`, `-P`, env vars, and
-> `GRADLE_USER_HOME` are), so it is silently ignored — use the DSL, or `-Pkmptargets.supported=…` at
-> the root, instead.
+If you omit the `supported` block, the module defaults to **all** targets — the global
+`KMP_TARGETS` alone decides what registers. That's the right default for a generic library that
+wants to build whatever the developer is currently targeting.
 
-Applying the base id with no `supported { }` keeps the original behaviour: supported defaults to all,
-so the global `KMP_TARGETS` alone decides what registers.
-
-You can likewise set a per-module **default** selection with `selection { … }`; a global
-`KMP_TARGETS` (below) always overrides it, so the global switch stays authoritative.
+You can also set a per-module **default** selection with `selection { … }`; a global `KMP_TARGETS`
+(see below) always overrides it, so the global switch stays authoritative:
 
 ```kotlin
 kmpTargets {
     supported { mobile + web }
-    selection { jvm + iosArm64 }        // default when no global KMP_TARGETS is set
+    selection { jvm + iosArm64 }            // default when no global KMP_TARGETS is set
 }
 ```
 
-### Build logic (convention plugins)
+### Build-logic conventions
 
-In a `build-logic` (precompiled script plugin or `Plugin<Project>`) setup, configure the same
-extension programmatically — the model types (`KmpTargetSet`, `KmpTarget`) are public API, so the
-raw algebra needs no DSL sugar:
+The plugin ships just one extension (`KmpTargetsExtension`) and one set of public types
+(`KmpTargetSet`, `KmpTarget`) — there are no bundled "preset" plugin ids. Teams that want
+`apply by id, no body` ergonomics build their own conventions in `build-logic/`:
 
 ```kotlin
-// build-logic/src/main/kotlin/my.kmp-conventions.gradle.kts
+// build-logic/src/main/kotlin/my.mobile-module.gradle.kts
 import com.rsicarelli.kmptargets.KmpTargetsExtension
 import com.rsicarelli.kmptargets.model.KmpTargetSet
 
-plugins { id("com.rsicarelli.kmptargets") }
+plugins {
+    kotlin("multiplatform")
+    id("com.rsicarelli.kmptargets")
+}
 
 extensions.configure<KmpTargetsExtension> {
-    supported(KmpTargetSet.mobile + KmpTargetSet.web)   // type-safe, no strings
+    supported(KmpTargetSet.mobile)
 }
 ```
 
-This is how a team centralizes per-module supported sets in their own convention plugins, instead of
-threading a property file through every subproject. The type-safe `supported { … }` / `selection { … }`
-blocks work here too, since they are members of `KmpTargetsExtension`.
+```kotlin
+// feature-mobile/build.gradle.kts
+plugins { id("my.mobile-module") }
+```
+
+This is how a team centralizes per-module shape vocabulary in their own naming, instead of taking a
+vocabulary baked into this plugin's artifact. The DSL stays the primitive; convention plugins are an
+optional layer you own.
 
 ### Selecting targets
 
@@ -136,8 +98,8 @@ The selection is **global** — one switch narrows the whole build. Set it via a
 
 1. `-PKMP_TARGETS=...` on the CLI
 2. `ORG_GRADLE_PROJECT_KMP_TARGETS` environment variable
-3. the **root** `gradle.properties` (a *subproject's* `gradle.properties` is **not** a source — see
-   the note in [Escape hatch](#escape-hatch-type-safe-dsl))
+3. the **root** `gradle.properties` (a *subproject's* `gradle.properties` is **not** a source —
+   Gradle only reads root-level project properties)
 4. `local.properties` (per-developer, gitignored)
 5. a per-module `kmpTargets { selection { … } }` default (overridden by all of the above)
 6. Plugin default — every target the plugin currently knows about
@@ -227,7 +189,7 @@ supplies its own `applyHierarchyTemplate { … }`, so the plugin stays out of th
 The plugin is not yet published to the Gradle Plugin Portal or Maven Central. Track progress in the issues / releases. Locally:
 
 ```bash
-task publish-local           # publishes the core + convention plugins to mavenLocal
+task publish-local           # publishes the plugin to mavenLocal
 task sample                  # smoke test against the multi-module samples/hello-world
 ```
 
