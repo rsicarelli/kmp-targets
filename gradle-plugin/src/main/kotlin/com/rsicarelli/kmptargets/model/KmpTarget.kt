@@ -19,6 +19,7 @@ public sealed interface KmpTarget {
 
     public val aliases: Set<String>
 
+    /** JVM-backed targets: Android and the desktop JVM. */
     public sealed interface Jvm : KmpTarget {
 
         public data object Android : Jvm {
@@ -32,10 +33,13 @@ public sealed interface KmpTarget {
         }
     }
 
+    /** Kotlin/Native targets: Apple, Linux, MinGW (Windows), and Android NDK native. */
     public sealed interface Native : KmpTarget {
 
+        /** Apple platforms: iOS, macOS, watchOS, tvOS. */
         public sealed interface Apple : Native {
 
+            /** iOS — physical device and the two simulator architectures. */
             public sealed interface Ios : Apple {
 
                 public data object Arm64 : Ios {
@@ -43,18 +47,21 @@ public sealed interface KmpTarget {
                     override val aliases: Set<String> = setOf("ios-arm64")
                 }
 
+                /** iOS Simulator on Apple-silicon hosts. */
                 public data object SimulatorArm64 : Ios {
                     override val id: String = "iosSimulatorArm64"
                     override val aliases: Set<String> =
                         setOf("ios-sim-arm64", "ios-simulator-arm64")
                 }
 
+                /** iOS Simulator on Intel hosts. */
                 public data object X64 : Ios {
                     override val id: String = "iosX64"
                     override val aliases: Set<String> = setOf("ios-x64")
                 }
             }
 
+            /** macOS — Apple-silicon and Intel. */
             public sealed interface Macos : Apple {
 
                 public data object Arm64 : Macos {
@@ -68,6 +75,7 @@ public sealed interface KmpTarget {
                 }
             }
 
+            /** watchOS — devices (arm32/arm64) and the simulator architectures. */
             public sealed interface Watchos : Apple {
 
                 public data object Arm64 : Watchos {
@@ -80,11 +88,13 @@ public sealed interface KmpTarget {
                     override val aliases: Set<String> = setOf("watchos-arm32")
                 }
 
+                /** watchOS Simulator on Intel hosts. */
                 public data object X64 : Watchos {
                     override val id: String = "watchosX64"
                     override val aliases: Set<String> = setOf("watchos-x64")
                 }
 
+                /** watchOS Simulator on Apple-silicon hosts. */
                 public data object SimulatorArm64 : Watchos {
                     override val id: String = "watchosSimulatorArm64"
                     override val aliases: Set<String> =
@@ -97,6 +107,7 @@ public sealed interface KmpTarget {
                 }
             }
 
+            /** tvOS — physical device and the two simulator architectures. */
             public sealed interface Tvos : Apple {
 
                 public data object Arm64 : Tvos {
@@ -104,11 +115,13 @@ public sealed interface KmpTarget {
                     override val aliases: Set<String> = setOf("tvos-arm64")
                 }
 
+                /** tvOS Simulator on Intel hosts. */
                 public data object X64 : Tvos {
                     override val id: String = "tvosX64"
                     override val aliases: Set<String> = setOf("tvos-x64")
                 }
 
+                /** tvOS Simulator on Apple-silicon hosts. */
                 public data object SimulatorArm64 : Tvos {
                     override val id: String = "tvosSimulatorArm64"
                     override val aliases: Set<String> =
@@ -117,6 +130,7 @@ public sealed interface KmpTarget {
             }
         }
 
+        /** Linux — x86-64 and arm64. */
         public sealed interface Linux : Native {
 
             public data object X64 : Linux {
@@ -130,6 +144,7 @@ public sealed interface KmpTarget {
             }
         }
 
+        /** Windows via the MinGW toolchain. */
         public sealed interface Mingw : Native {
 
             public data object X64 : Mingw {
@@ -138,6 +153,7 @@ public sealed interface KmpTarget {
             }
         }
 
+        /** Android NDK native code, across the four supported ABIs. */
         public sealed interface AndroidNative : Native {
 
             public data object Arm32 : AndroidNative {
@@ -162,6 +178,7 @@ public sealed interface KmpTarget {
         }
     }
 
+    /** Web targets: JavaScript and the two WebAssembly flavours. */
     public sealed interface Web : KmpTarget {
 
         public data object Js : Web {

@@ -49,10 +49,13 @@ public value class KmpTargetSet private constructor(public val members: Set<KmpT
 
     public companion object {
 
+        /** No targets — a neutral starting point for building a set up with `+`. */
         public val empty: KmpTargetSet = KmpTargetSet(emptySet())
 
+        /** Every target the plugin ships. */
         public val all: KmpTargetSet = KmpTargetSet(KmpTarget.all)
 
+        /** The three iOS leaves: device arm64, simulator arm64, simulator x64. */
         public val appleMobile: KmpTargetSet =
             KmpTargetSet(
                 setOf(
@@ -62,11 +65,13 @@ public value class KmpTargetSet private constructor(public val members: Set<KmpT
                 )
             )
 
+        /** The two macOS leaves: arm64 and x64. */
         public val appleDesktop: KmpTargetSet =
             KmpTargetSet(
                 setOf(KmpTarget.Native.Apple.Macos.Arm64, KmpTarget.Native.Apple.Macos.X64)
             )
 
+        /** All five watchOS leaves. */
         public val appleWatch: KmpTargetSet =
             KmpTargetSet(
                 setOf(
@@ -78,6 +83,7 @@ public value class KmpTargetSet private constructor(public val members: Set<KmpT
                 )
             )
 
+        /** The three tvOS leaves: device arm64, simulator arm64, simulator x64. */
         public val appleTv: KmpTargetSet =
             KmpTargetSet(
                 setOf(
@@ -93,11 +99,14 @@ public value class KmpTargetSet private constructor(public val members: Set<KmpT
                 appleMobile.members + appleDesktop.members + appleWatch.members + appleTv.members
             )
 
+        /** The two Linux leaves: x64 and arm64. */
         public val linux: KmpTargetSet =
             KmpTargetSet(setOf(KmpTarget.Native.Linux.X64, KmpTarget.Native.Linux.Arm64))
 
+        /** Windows on x86-64, via the MinGW toolchain. */
         public val mingw: KmpTargetSet = KmpTargetSet(setOf(KmpTarget.Native.Mingw.X64))
 
+        /** The four Android NDK native leaves: arm32, arm64, x86, x64. */
         public val androidNative: KmpTargetSet =
             KmpTargetSet(
                 setOf(
@@ -114,9 +123,11 @@ public value class KmpTargetSet private constructor(public val members: Set<KmpT
         public val native: KmpTargetSet =
             KmpTargetSet(apple.members + linux.members + mingw.members + androidNative.members)
 
+        /** The three web leaves: `js`, `wasmJs`, `wasmWasi`. */
         public val web: KmpTargetSet =
             KmpTargetSet(setOf(KmpTarget.Web.Js, KmpTarget.Web.WasmJs, KmpTarget.Web.WasmWasi))
 
+        /** The two JVM-backed leaves: `androidTarget` and `jvm`. */
         public val jvmFamily: KmpTargetSet =
             KmpTargetSet(setOf(KmpTarget.Jvm.Android, KmpTarget.Jvm.Desktop))
 
@@ -128,6 +139,7 @@ public value class KmpTargetSet private constructor(public val members: Set<KmpT
         public val mobile: KmpTargetSet =
             KmpTargetSet(setOf<KmpTarget>(KmpTarget.Jvm.Android) + appleMobile.members)
 
+        /** Builds a set from explicit leaves — the low-level escape hatch behind the presets. */
         public fun of(vararg targets: KmpTarget): KmpTargetSet = KmpTargetSet(targets.toSet())
     }
 }

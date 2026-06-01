@@ -80,41 +80,82 @@ public object KmpTargetsDsl {
 
     // --- Leaves --------------------------------------------------------------------------------
 
+    /**
+     * Android (the JVM-backed `androidTarget`); registers only when AGP is applied to the module.
+     */
     public val androidTarget: KmpTargetSet = leaf(KmpTarget.Jvm.Android)
 
     /** `jvm` — the JVM desktop target. */
     public val jvm: KmpTargetSet = leaf(KmpTarget.Jvm.Desktop)
 
+    /** iOS on a physical 64-bit device. */
     public val iosArm64: KmpTargetSet = leaf(KmpTarget.Native.Apple.Ios.Arm64)
+
+    /** iOS Simulator on Apple-silicon hosts. */
     public val iosSimulatorArm64: KmpTargetSet = leaf(KmpTarget.Native.Apple.Ios.SimulatorArm64)
+
+    /** iOS Simulator on Intel hosts. */
     public val iosX64: KmpTargetSet = leaf(KmpTarget.Native.Apple.Ios.X64)
 
+    /** macOS on Apple-silicon. */
     public val macosArm64: KmpTargetSet = leaf(KmpTarget.Native.Apple.Macos.Arm64)
+
+    /** macOS on Intel. */
     public val macosX64: KmpTargetSet = leaf(KmpTarget.Native.Apple.Macos.X64)
 
+    /** watchOS on a 64-bit device. */
     public val watchosArm64: KmpTargetSet = leaf(KmpTarget.Native.Apple.Watchos.Arm64)
+
+    /** watchOS on an older 32-bit device. */
     public val watchosArm32: KmpTargetSet = leaf(KmpTarget.Native.Apple.Watchos.Arm32)
+
+    /** watchOS Simulator on Intel hosts. */
     public val watchosX64: KmpTargetSet = leaf(KmpTarget.Native.Apple.Watchos.X64)
+
+    /** watchOS Simulator on Apple-silicon hosts. */
     public val watchosSimulatorArm64: KmpTargetSet =
         leaf(KmpTarget.Native.Apple.Watchos.SimulatorArm64)
+
+    /** watchOS on a 64-bit device using the modern arm64 ABI. */
     public val watchosDeviceArm64: KmpTargetSet = leaf(KmpTarget.Native.Apple.Watchos.DeviceArm64)
 
+    /** tvOS on a physical 64-bit device. */
     public val tvosArm64: KmpTargetSet = leaf(KmpTarget.Native.Apple.Tvos.Arm64)
+
+    /** tvOS Simulator on Intel hosts. */
     public val tvosX64: KmpTargetSet = leaf(KmpTarget.Native.Apple.Tvos.X64)
+
+    /** tvOS Simulator on Apple-silicon hosts. */
     public val tvosSimulatorArm64: KmpTargetSet = leaf(KmpTarget.Native.Apple.Tvos.SimulatorArm64)
 
+    /** Linux on x86-64. */
     public val linuxX64: KmpTargetSet = leaf(KmpTarget.Native.Linux.X64)
+
+    /** Linux on arm64 (e.g. aarch64 servers, Raspberry Pi). */
     public val linuxArm64: KmpTargetSet = leaf(KmpTarget.Native.Linux.Arm64)
 
+    /** Windows on x86-64, via the MinGW toolchain. */
     public val mingwX64: KmpTargetSet = leaf(KmpTarget.Native.Mingw.X64)
 
+    /** Android NDK native on 32-bit ARM. */
     public val androidNativeArm32: KmpTargetSet = leaf(KmpTarget.Native.AndroidNative.Arm32)
+
+    /** Android NDK native on 64-bit ARM. */
     public val androidNativeArm64: KmpTargetSet = leaf(KmpTarget.Native.AndroidNative.Arm64)
+
+    /** Android NDK native on 32-bit x86. */
     public val androidNativeX86: KmpTargetSet = leaf(KmpTarget.Native.AndroidNative.X86)
+
+    /** Android NDK native on x86-64. */
     public val androidNativeX64: KmpTargetSet = leaf(KmpTarget.Native.AndroidNative.X64)
 
+    /** JavaScript, compiled to run on Node.js and browsers. */
     public val js: KmpTargetSet = leaf(KmpTarget.Web.Js)
+
+    /** WebAssembly for the browser/JS host (`wasm-js`). */
     public val wasmJs: KmpTargetSet = leaf(KmpTarget.Web.WasmJs)
+
+    /** WebAssembly for standalone WASI runtimes (`wasm-wasi`). */
     public val wasmWasi: KmpTargetSet = leaf(KmpTarget.Web.WasmWasi)
 
     private fun leaf(target: KmpTarget): KmpTargetSet = KmpTargetSet.of(target)

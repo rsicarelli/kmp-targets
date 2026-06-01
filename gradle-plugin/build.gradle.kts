@@ -7,6 +7,11 @@ plugins {
 
 kotlin { jvmToolchain(23) }
 
+// Publish a -sources.jar alongside the plugin so IntelliJ can render the DSL's KDoc on hover.
+// `java-gradle-plugin` builds the `pluginMaven` publication from `components["java"]`; attaching
+// the sources artifact to that component is all the wiring maven-publish needs.
+java { withSourcesJar() }
+
 ktfmt { kotlinLangStyle() }
 
 dependencies {
