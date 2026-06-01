@@ -30,33 +30,11 @@ public class KmpTargetsPlugin : Plugin<Project> {
         // overriding" → defer to the per-module selection/fallback. A non-blank property that
         // resolves to an empty set via minus operators (e.g. `jvm,-jvm`) is an explicit "build
         // nothing" and must be honored, not silently treated as the default-all fallback (issue
-        // #9).
-        // Keying off `isNotBlank` (rather than the parsed set's emptiness) is what distinguishes
-        // the
-        // two cases. Storing it as the override (rather than as `selection`'s convention) is what
-        // lets a global value win over a per-module `selection { … }` block.
+        // #9). Keying off `isNotBlank` (rather than the parsed set's emptiness) is what
+        // distinguishes the two cases.
         val raw: String? = selectionSources(target).read()
         if (raw != null && raw.isNotBlank()) {
             ext.globalSelection = parseOrThrow(raw, KMP_TARGETS)
-        }
-
-        // Per-module supported set declared via the `kmptargets.supported` property (the manual
-        // escape hatch for modules that don't apply a convention plugin). Convention plugins
-        // declare
-        // theirs through KmpTargets.declareSupported instead.
-        supportedSources(target).read()?.let { rawSupported ->
-            ext.accumulateSupported(parseOrThrow(rawSupported, SUPPORTED_PROPERTY))
-        }
-
-        // Register selection ∩ supported once KGP is present. Queued here so that, in the
-        // convention flow (core applied before KGP), the accumulated supported set is already
-        // visible when this fires. Idempotent, so it composes with the per-declaration passes in
-        // declareSupported. Guarded on `supported` being declared: if it is still unset (a module
-        // that will declare it from its build-script body via `supported { … }`), eager
-        // registration would wrongly register `selection ∩ all` and over-register, so we defer to
-        // the after-evaluate pass below, by which point the DSL block has run.
-        target.pluginManager.withPlugin(KGP_ID) {
-            if (ext.isSupportedDeclared()) KmpTargets.registerResolved(target, ext)
         }
 
         // Global default for the hierarchy template, read at apply time and pulled out as a
@@ -64,36 +42,31 @@ public class KmpTargetsPlugin : Plugin<Project> {
         // safe).
         val globalHierarchyEnabled: Boolean? = hierarchyTemplateEnabledGlobally(target)
 
-        // Two things deferred to afterEvaluate, for the same reason: the final active set is only
-        // known after every convention plugin has declared its supported slice (under composition
-        // .mobile + .web an earlier pass is transiently incomplete), and there is no public
-        // apply-time "all plugins applied" hook. Target *registration* stays eager; only these —
-        // the
-        // advisory warning and the hierarchy template, both functions of the final active set —
-        // wait.
-        // The closure captures only `ext` (immutable sets + booleans) and the primitive flag, so it
-        // stays configuration-cache safe.
+        // All work waits for the build-script body to run: target registration, the empty-overlap
+        // warning, and the hierarchy template are functions of the final `supported`/`selection`
+        // set declared via the DSL. The closure captures only `ext` (immutable sets + booleans)
+        // and the primitive flag, so it stays configuration-cache safe.
         target.afterEvaluate { p ->
             if (!p.plugins.hasPlugin(KGP_ID)) return@afterEvaluate
-            // Deferred registration pass: picks up a `supported { … }` / `selection { … }` declared
-            // in the build-script body (which runs after apply, so the eager pass above may have
-            // skipped it). Idempotent, so for the convention flow — already registered eagerly —
-            // this is a no-op.
-            KmpTargets.registerResolved(p, ext)
+            registerResolved(p, ext)
             val selection = ext.resolvedSelection()
             val active = selection intersect ext.effectiveSupported()
 
             // Advisory only: the selection is non-empty yet genuinely disjoint from the supported
             // set, so nothing registers. Keyed off the actual overlap (not "nothing registered"),
             // so the message can never name a token present in both lists (issue #10).
-            if (KmpTargets.shouldWarnEmptyOverlap(selection, ext.effectiveSupported())) {
-                p.logger.warn(
-                    KmpTargets.emptyOverlapWarning(p.path, selection, ext.effectiveSupported())
-                )
+            if (shouldWarnEmptyOverlap(selection, ext.effectiveSupported())) {
+                p.logger.warn(emptyOverlapWarning(p.path, selection, ext.effectiveSupported()))
             }
 
-            KmpTargets.maybeApplyHierarchyTemplate(p, ext, active, globalHierarchyEnabled)
+            maybeApplyHierarchyTemplate(p, ext, active, globalHierarchyEnabled)
         }
+    }
+
+    internal companion object {
+        const val KMP_TARGETS: String = "KMP_TARGETS"
+        const val HIERARCHY_TEMPLATE_PROPERTY: String = "kmptargets.hierarchyTemplate"
+        const val KGP_ID: String = "org.jetbrains.kotlin.multiplatform"
     }
 
     private fun selectionSources(target: Project): SelectionSource =
@@ -101,12 +74,6 @@ public class KmpTargetsPlugin : Plugin<Project> {
             GradlePropertySource(target.providers, KMP_TARGETS),
             EnvironmentVariableSource(target.providers, KMP_TARGETS),
             localPropertiesSource(target, KMP_TARGETS),
-        )
-
-    private fun supportedSources(target: Project): SelectionSource =
-        composeSelectionSources(
-            GradlePropertySource(target.providers, SUPPORTED_PROPERTY),
-            localPropertiesSource(target, SUPPORTED_PROPERTY),
         )
 
     /**
@@ -139,54 +106,8 @@ public class KmpTargetsPlugin : Plugin<Project> {
             is ParseResult.Err -> throw GradleException("$propertyName: ${r.message}")
         }
 
-    internal companion object {
-        const val KMP_TARGETS: String = "KMP_TARGETS"
-        const val SUPPORTED_PROPERTY: String = "kmptargets.supported"
-        const val HIERARCHY_TEMPLATE_PROPERTY: String = "kmptargets.hierarchyTemplate"
-        const val KGP_ID: String = "org.jetbrains.kotlin.multiplatform"
-    }
-}
-
-/**
- * Entry point convention plugins use to declare a module's supported targets and wire KGP. Lives in
- * the core so the registration mechanism (intersection, idempotency, ordering) has a single home
- * and convention plugins stay trivial.
- */
-public object KmpTargets {
-
-    /**
-     * Applies the core plugin, declares [supported] for this module, and applies the Kotlin
-     * Multiplatform plugin if it isn't already. Fails fast if the user applied
-     * `kotlin("multiplatform")` themselves — a convention plugin owns KGP application, and a
-     * pre-applied KGP would register targets before the supported set narrows them.
-     */
-    public fun applyConvention(project: Project, supported: KmpTargetSet) {
-        project.pluginManager.apply(KmpTargetsPlugin::class.java)
-        val ext = project.extensions.getByType(KmpTargetsExtension::class.java)
-        check(!project.plugins.hasPlugin(KmpTargetsPlugin.KGP_ID) || ext.kgpAppliedByConvention) {
-            "kmp-targets: do not apply kotlin(\"multiplatform\") yourself when using a kmp-targets " +
-                "convention plugin — it applies the Kotlin Multiplatform plugin for you " +
-                "(project '${project.path}')."
-        }
-        declareSupported(project, supported)
-        if (!project.plugins.hasPlugin(KmpTargetsPlugin.KGP_ID)) {
-            project.pluginManager.apply(KmpTargetsPlugin.KGP_ID)
-            ext.kgpAppliedByConvention = true
-        }
-    }
-
-    /**
-     * Adds [add] to this module's supported set and (re)runs an idempotent registration pass once
-     * KGP is present. Calling it repeatedly is how `.mobile` + `.web` compose into the union.
-     */
-    public fun declareSupported(project: Project, add: KmpTargetSet) {
-        val ext = project.extensions.getByType(KmpTargetsExtension::class.java)
-        ext.accumulateSupported(add)
-        project.pluginManager.withPlugin(KmpTargetsPlugin.KGP_ID) { registerResolved(project, ext) }
-    }
-
     /** Registers `selection ∩ supported`, skipping leaves already registered (idempotent). */
-    internal fun registerResolved(project: Project, ext: KmpTargetsExtension) {
+    private fun registerResolved(project: Project, ext: KmpTargetsExtension) {
         val kotlin = project.extensions.getByType(KotlinMultiplatformExtension::class.java)
         val effective = ext.resolvedSelection() intersect ext.effectiveSupported()
         (effective.members - ext.registered).forEach { leaf ->
@@ -201,7 +122,7 @@ public object KmpTargets {
      * auto-applies its default when no template has been applied yet. When disabled (or the active
      * set is empty), we apply nothing and let KGP fall back to its default.
      */
-    internal fun maybeApplyHierarchyTemplate(
+    private fun maybeApplyHierarchyTemplate(
         project: Project,
         ext: KmpTargetsExtension,
         active: KmpTargetSet,
@@ -213,24 +134,6 @@ public object KmpTargets {
         kotlin.applyHierarchyTemplate(computeHierarchySpec(active).toTemplate())
         ext.hierarchyTemplateApplied = true
     }
-
-    /**
-     * Whether to emit [emptyOverlapWarning]: only when the selection is non-empty yet genuinely
-     * disjoint from the supported set. Keyed off the actual overlap (not "nothing registered with
-     * KGP"), so the message can never name a token present in both lists (issue #10).
-     */
-    internal fun shouldWarnEmptyOverlap(selection: KmpTargetSet, supported: KmpTargetSet): Boolean =
-        selection.isNotEmpty() && (selection intersect supported).isEmpty()
-
-    internal fun emptyOverlapWarning(
-        path: String,
-        selection: KmpTargetSet,
-        supported: KmpTargetSet,
-    ): String =
-        "kmp-targets: '$path' supports ${ids(supported)} but the selection ${ids(selection)} " +
-            "matches none of them — registering no targets for this module."
-
-    private fun ids(set: KmpTargetSet): List<String> = set.members.map { it.id }.sorted()
 
     private fun registerTarget(kotlin: KotlinMultiplatformExtension, target: KmpTarget) {
         when (target) {
@@ -270,3 +173,21 @@ public object KmpTargets {
         }
     }
 }
+
+/**
+ * Whether to emit [emptyOverlapWarning]: only when the selection is non-empty yet genuinely
+ * disjoint from the supported set. Keyed off the actual overlap (not "nothing registered with
+ * KGP"), so the message can never name a token present in both lists (issue #10).
+ */
+internal fun shouldWarnEmptyOverlap(selection: KmpTargetSet, supported: KmpTargetSet): Boolean =
+    selection.isNotEmpty() && (selection intersect supported).isEmpty()
+
+internal fun emptyOverlapWarning(
+    path: String,
+    selection: KmpTargetSet,
+    supported: KmpTargetSet,
+): String =
+    "kmp-targets: '$path' supports ${ids(supported)} but the selection ${ids(selection)} " +
+        "matches none of them — registering no targets for this module."
+
+private fun ids(set: KmpTargetSet): List<String> = set.members.map { it.id }.sorted()

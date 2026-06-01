@@ -132,6 +132,31 @@ class KmpTargetsDslTest {
         assertRegisteredTargets(project /* none — selection ∩ supported is empty */)
     }
 
+    @Test
+    fun `given no DSL body and a global KMP_TARGETS when evaluated then selection registers under default-all supported`(
+        @TempDir dir: Path
+    ) {
+        // No `kmpTargets { … }` body at all — supported is undeclared, so `effectiveSupported`
+        // returns its default of `all`. The global selection alone decides what registers. This is
+        // the floor of the API contract: applying the base plugin with no configuration must still
+        // honor KMP_TARGETS as the single switch.
+        dir.resolve("gradle.properties").writeText("KMP_TARGETS=jvm,iosArm64\n")
+        val project = newEvaluatedProject(dir) { /* no extension configuration */ }
+        assertRegisteredTargets(project, "jvm", "iosArm64")
+    }
+
+    @Test
+    fun `given supported mobile plus web and a narrowing global KMP_TARGETS when evaluated then exactly the overlap registers`(
+        @TempDir dir: Path
+    ) {
+        // Composition test: the DSL takes the place of stacking two convention plugin ids (e.g.
+        // `.mobile` + `.web`). `supported { mobile + web }` is the equivalent declaration; with a
+        // selection that hits one leaf from each preset, only those leaves register.
+        dir.resolve("gradle.properties").writeText("KMP_TARGETS=iosArm64,wasmJs\n")
+        val project = newEvaluatedProject(dir) { ext -> ext.supported { mobile + web } }
+        assertRegisteredTargets(project, "iosArm64", "wasmJs")
+    }
+
     /**
      * Escape-hatch order: user applies KGP, then the base plugin, then configures the extension in
      * the body. The deferred registration runs only on [ProjectInternal.evaluate].

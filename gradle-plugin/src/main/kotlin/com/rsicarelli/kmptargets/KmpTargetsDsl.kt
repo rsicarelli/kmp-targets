@@ -25,8 +25,8 @@ import com.rsicarelli.kmptargets.model.KmpTargetSet
  *
  * Names mirror the canonical KGP target ids ([KmpTarget.id]) and the [KmpTargetSet] presets
  * exactly, so what you read in build files matches the `KMP_TARGETS` string grammar and the docs.
- * Power users and build-logic convention plugins can bypass this sugar entirely and assign the raw
- * property: `supported.set(KmpTargetSet.mobile + KmpTargetSet.web)`.
+ * Build-logic that needs a raw value can call the [KmpTargetsExtension.supported] overload:
+ * `supported(KmpTargetSet.mobile + KmpTargetSet.web)`.
  */
 @KmpTargetsDslMarker
 public object KmpTargetsDsl {

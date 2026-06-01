@@ -3,7 +3,6 @@ package com.rsicarelli.kmptargets
 import com.rsicarelli.kmptargets.model.KmpTarget
 import com.rsicarelli.kmptargets.model.KmpTargetSet
 import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Test
@@ -49,22 +48,23 @@ class KmpTargetsExtensionDslTest {
         val ext = newExtension()
         ext.supported { mobile }
         ext.supported { web }
-        // The DSL assigns (replaces); it does not accumulate like the convention path.
+        // The DSL block is an assignment, not an accumulator — to union, write `supported { mobile
+        // +
+        // web }`.
         assertEquals(KmpTargetSet.web, ext.effectiveSupported())
     }
 
     @Test
-    fun `given supported never declared when isSupportedDeclared then false and effectiveSupported is all`() {
+    fun `given supported never declared when effectiveSupported then defaults to all`() {
         val ext = newExtension()
-        assertFalse(ext.isSupportedDeclared())
         assertEquals(KmpTargetSet.all, ext.effectiveSupported())
     }
 
     @Test
-    fun `given supported block when isSupportedDeclared then true`() {
+    fun `given supported block declared when effectiveSupported then equals the block value`() {
         val ext = newExtension()
         ext.supported { jvm }
-        assertTrue(ext.isSupportedDeclared())
+        assertEquals(KmpTargetSet.of(KmpTarget.Jvm.Desktop), ext.effectiveSupported())
     }
 
     @Test

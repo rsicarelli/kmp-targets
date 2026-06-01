@@ -87,9 +87,7 @@ public value class KmpTargetSet private constructor(public val members: Set<KmpT
                 )
             )
 
-        /**
-         * Every Apple platform: iOS, macOS, watchOS, tvOS. Backs the `.apple` convention plugin.
-         */
+        /** Every Apple platform: iOS, macOS, watchOS, tvOS. */
         public val apple: KmpTargetSet =
             KmpTargetSet(
                 appleMobile.members + appleDesktop.members + appleWatch.members + appleTv.members
@@ -123,9 +121,9 @@ public value class KmpTargetSet private constructor(public val members: Set<KmpT
             KmpTargetSet(setOf(KmpTarget.Jvm.Android, KmpTarget.Jvm.Desktop))
 
         /**
-         * The canonical "mobile app" shape: Android plus all three iOS leaves. Backs the
-         * `com.rsicarelli.kmptargets.mobile` convention plugin. Android only registers if the
-         * user's selection actually includes it, so this preset does not force AGP onto consumers.
+         * The canonical "mobile app" shape: Android plus all three iOS leaves. Android only
+         * registers if the user's selection actually includes it, so this preset does not force AGP
+         * onto consumers.
          */
         public val mobile: KmpTargetSet =
             KmpTargetSet(setOf<KmpTarget>(KmpTarget.Jvm.Android) + appleMobile.members)

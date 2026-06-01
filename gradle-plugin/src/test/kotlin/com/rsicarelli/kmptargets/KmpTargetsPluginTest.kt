@@ -101,28 +101,6 @@ class KmpTargetsPluginTest {
     }
 
     @Test
-    fun `given kmptargets supported property is invalid when plugin is applied then error names supported property once`(
-        @TempDir dir: Path
-    ) {
-        dir.resolve("gradle.properties").writeText("kmptargets.supported=jvm,bogus\n")
-        val project = newProject(dir)
-        val ex =
-            assertFailsWith<Exception> { project.pluginManager.apply("com.rsicarelli.kmptargets") }
-        val rootCause =
-            generateSequence(ex as Throwable?) { it.cause }
-                .firstOrNull { it.message?.contains("kmptargets.supported") == true }
-        assertNotNull(rootCause, "expected kmptargets.supported-tagged cause, root: ${ex.message}")
-        assertTrue(
-            rootCause.message!!.contains("kmptargets.supported: unknown target 'bogus'"),
-            "expected message to name supported property and offending token, got: ${rootCause.message}",
-        )
-        assertTrue(
-            !rootCause.message!!.contains("kmptargets.supported: KMP_TARGETS"),
-            "expected no nested KMP_TARGETS label, got: ${rootCause.message}",
-        )
-    }
-
-    @Test
     fun `given KMP_TARGETS in local properties when plugin applied then selection reflects that value`(
         @TempDir dir: Path
     ) {
@@ -184,7 +162,7 @@ class KmpTargetsPluginTest {
         // androidTarget is in the supported set, so the selection is NOT disjoint — warning here
         // would be self-contradictory (issue #10).
         assertFalse(
-            KmpTargets.shouldWarnEmptyOverlap(
+            shouldWarnEmptyOverlap(
                 selection = KmpTargetSet.of(KmpTarget.Jvm.Android),
                 supported = KmpTargetSet.all,
             )
@@ -194,7 +172,7 @@ class KmpTargetsPluginTest {
     @Test
     fun `given selection disjoint from supported when deciding empty-overlap warning then it warns`() {
         assertTrue(
-            KmpTargets.shouldWarnEmptyOverlap(
+            shouldWarnEmptyOverlap(
                 selection = KmpTargetSet.of(KmpTarget.Web.WasmJs),
                 supported = KmpTargetSet.of(KmpTarget.Jvm.Desktop),
             )
