@@ -15,20 +15,15 @@ import org.gradle.api.provider.Property
  *   [selection] block sets the module's *default* desired set; a global `KMP_TARGETS` (`-P`, env,
  *   root `gradle.properties`, or `local.properties`) always overrides it, so CI stays
  *   authoritative.
- * - **supported** — what *this module* can build, declared per-module by the convention plugin id
- *   it applies (e.g. `com.rsicarelli.kmptargets.mobile`), the type-safe [supported] block, or the
- *   `kmptargets.supported` property. When nothing declares it, [effectiveSupported] defaults to
+ * - **supported** — what *this module* can build, declared per-module by the type-safe [supported]
+ *   block (or its raw value overload). When nothing declares it, [effectiveSupported] defaults to
  *   [KmpTargetSet.all].
  *
- * The plugin registers `selection ∩ supported`. Both [supported] and [selection] are settable from
- * the build-script body via the type-safe blocks below: declarations made during evaluation are
- * picked up by a deferred (after-evaluate) registration pass, so they are no longer subject to the
- * old "timing wall". The eager registration pass that the convention plugins rely on only fires
- * once the supported set has actually been declared, leaving the build-script body its chance to
- * narrow it.
- *
- * All values are immutable `KmpTargetSet`s of `data object` leaves, so the extension is
- * configuration-cache safe — no `Project` or task state is captured.
+ * The plugin registers `selection ∩ supported`. Both [supported] and [selection] are written from
+ * the build-script body via the type-safe blocks below: a single deferred (after-evaluate)
+ * registration pass picks up whatever the body set. The extension only ever holds immutable
+ * `KmpTargetSet`s of `data object` leaves, so it is configuration-cache safe — no `Project` or task
+ * state is captured.
  */
 public abstract class KmpTargetsExtension @Inject constructor(objects: ObjectFactory) {
 
@@ -52,8 +47,7 @@ public abstract class KmpTargetsExtension @Inject constructor(objects: ObjectFac
 
     /**
      * What this module can build. Unset means "not declared"; [effectiveSupported] treats that as
-     * [KmpTargetSet.all]. Written additively via [accumulateSupported] (so multiple convention
-     * plugins compose, e.g. `.mobile` + `.web`) or assigned outright via the [supported] blocks.
+     * [KmpTargetSet.all]. Written by the [supported] block (or its raw overload).
      */
     internal val supportedProperty: Property<KmpTargetSet> =
         objects.property(KmpTargetSet::class.java)
@@ -71,15 +65,14 @@ public abstract class KmpTargetsExtension @Inject constructor(objects: ObjectFac
      * kmpTargets { supported { mobile + web - iosX64 } }
      * ```
      *
-     * Assigns (replaces) the supported set — the build-script counterpart of applying a convention
-     * plugin id, for a one-off module that fits no preset. Prefer composing convention plugin ids
-     * when a preset (or union of presets) already matches.
+     * Assigns the supported set; calling more than once replaces. If you want union semantics,
+     * write the union inside the block (`supported { mobile + web }`).
      */
     public fun supported(block: KmpTargetsDsl.() -> KmpTargetSet) {
         supportedProperty.set(KmpTargetsDsl.block())
     }
 
-    /** Type-safe overload for build-logic: `supported(KmpTargetSet.mobile + KmpTargetSet.web)`. */
+    /** Raw overload for build-logic: `supported(KmpTargetSet.mobile + KmpTargetSet.web)`. */
     public fun supported(value: KmpTargetSet) {
         supportedProperty.set(value)
     }
@@ -97,7 +90,7 @@ public abstract class KmpTargetsExtension @Inject constructor(objects: ObjectFac
         selectionProperty.set(KmpTargetsDsl.block())
     }
 
-    /** Type-safe overload for build-logic: `selection(KmpTargetSet.jvmFamily)`. */
+    /** Raw overload for build-logic: `selection(KmpTargetSet.jvmFamily)`. */
     public fun selection(value: KmpTargetSet) {
         selectionProperty.set(value)
     }
@@ -126,22 +119,8 @@ public abstract class KmpTargetsExtension @Inject constructor(objects: ObjectFac
     internal var hierarchyTemplateApplied: Boolean = false
 
     /**
-     * True once a kmp-targets convention plugin has applied KGP, distinguishing it from a
-     * user-applied `kotlin("multiplatform")`.
-     */
-    internal var kgpAppliedByConvention: Boolean = false
-
-    /** Unions [add] into the supported set. Order-independent, so composition is commutative. */
-    internal fun accumulateSupported(add: KmpTargetSet) {
-        supportedProperty.set((supportedProperty.orNull ?: KmpTargetSet.empty) + add)
-    }
-
-    /** Whether a supported set has been declared (by convention, DSL, or property). */
-    internal fun isSupportedDeclared(): Boolean = supportedProperty.isPresent
-
-    /**
-     * The resolved supported set: the accumulated declaration, or [KmpTargetSet.all] if none.
-     * Public so build-logic (and consumers) can read what this module ended up declaring.
+     * The resolved supported set: the declared value, or [KmpTargetSet.all] if none. Public so
+     * build-logic (and consumers) can read what this module ended up declaring.
      */
     public fun effectiveSupported(): KmpTargetSet = supportedProperty.orNull ?: KmpTargetSet.all
 }

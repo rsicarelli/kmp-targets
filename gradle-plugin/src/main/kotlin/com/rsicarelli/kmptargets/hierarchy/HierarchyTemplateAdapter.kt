@@ -26,8 +26,8 @@ private fun KotlinHierarchyBuilder.emit(node: HierarchyNode) {
 
 /**
  * Attaches a single target to the current group. Exhaustive `when` over the sealed [KmpTarget] —
- * mirrors `KmpTargets.registerTarget`, so adding a new leaf forces a corresponding builder call
- * here (compile error until handled).
+ * mirrors [KmpTargetsPlugin]'s `registerTarget`, so adding a new leaf forces a corresponding
+ * builder call here (compile error until handled).
  */
 private fun KotlinHierarchyBuilder.withLeaf(target: KmpTarget) {
     when (target) {

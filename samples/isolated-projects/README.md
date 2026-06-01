@@ -13,10 +13,10 @@ goes red.
 
 ## Layout
 
-| Module | Convention plugin | Supported | Registered with `KMP_TARGETS=jvm` |
+| Module | DSL | Supported | Registered with `KMP_TARGETS=jvm` |
 |---|---|---|---|
-| `:lib` | `com.rsicarelli.kmptargets.library` | all targets | `jvm` |
-| `:app` | `com.rsicarelli.kmptargets.jvm` | `jvm` | `jvm` |
+| `:lib` | _(no `supported` block — defaults to `all`)_ | all targets | `jvm` |
+| `:app` | `kmpTargets { supported { jvm } }` | `jvm` | `jvm` |
 
 `:app` depends on `:lib` via a `project(":lib")` dependency — a real cross-project edge that Isolated
 Projects must wire while keeping each project's configuration isolated. Only the JVM target is

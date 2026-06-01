@@ -34,33 +34,10 @@ class KmpTargetsExtensionTest {
     }
 
     @Test
-    fun `given accumulateSupported called once when effectiveSupported then equals that set`() {
-        val ext = newExtension()
-        ext.accumulateSupported(KmpTargetSet.apple)
-        assertEquals(KmpTargetSet.apple, ext.effectiveSupported())
-    }
-
-    @Test
-    fun `given accumulateSupported called twice when effectiveSupported then equals the union`() {
-        val ext = newExtension()
-        ext.accumulateSupported(KmpTargetSet.mobile)
-        ext.accumulateSupported(KmpTargetSet.web)
-        assertEquals(KmpTargetSet.mobile + KmpTargetSet.web, ext.effectiveSupported())
-    }
-
-    @Test
-    fun `given accumulateSupported with overlapping sets when effectiveSupported then duplicates collapse`() {
-        val ext = newExtension()
-        ext.accumulateSupported(KmpTargetSet.apple)
-        ext.accumulateSupported(KmpTargetSet.appleMobile)
-        assertEquals(KmpTargetSet.apple, ext.effectiveSupported())
-    }
-
-    @Test
-    fun `given fallback set when selection is read then selection still empty until convention applied`() {
+    fun `given fallback set when selection is read then selection still empty until plugin applied`() {
         val ext = newExtension()
         ext.fallback.set(KmpTargetSet.web)
-        // Setting fallback doesn't auto-populate selection — that's the plugin's job
+        // Setting fallback doesn't auto-populate selection — that's the plugin's job.
         assertFalse(ext.selectionProperty.isPresent)
         assertTrue(ext.fallback.isPresent)
         assertEquals(KmpTargetSet.web, ext.fallback.get())
