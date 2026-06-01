@@ -168,7 +168,11 @@ class HierarchyTemplateInProcessTest {
         val project = ProjectBuilder.builder().withProjectDir(dir.toFile()).build()
         project.pluginManager.apply("com.rsicarelli.kmptargets")
         project.pluginManager.apply("org.jetbrains.kotlin.multiplatform")
+        // `configure` sets hierarchyTemplate, which must hold before the eager `supports` call that
+        // registers targets and applies the template. `supports { all }` keeps the active set equal
+        // to the KMP_TARGETS selection.
         configure(project)
+        project.extensions.getByType(KmpTargetsExtension::class.java).supports(KmpTargetSet.all)
         (project as ProjectInternal).evaluate()
         return project.extensions
             .getByType(KotlinMultiplatformExtension::class.java)
@@ -183,6 +187,7 @@ class HierarchyTemplateInProcessTest {
         val project = ProjectBuilder.builder().withProjectDir(dir.toFile()).build()
         project.pluginManager.apply("com.rsicarelli.kmptargets")
         project.pluginManager.apply("org.jetbrains.kotlin.multiplatform")
+        project.extensions.getByType(KmpTargetsExtension::class.java).supports(KmpTargetSet.all)
         (project as ProjectInternal).evaluate()
         return project.extensions
             .getByType(KotlinMultiplatformExtension::class.java)

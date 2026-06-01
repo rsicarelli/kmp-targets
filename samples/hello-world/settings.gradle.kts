@@ -1,4 +1,7 @@
 pluginManagement {
+    // The sample's own convention plugin lives in an included build so its `kmptargets.module` id
+    // resolves during plugin resolution (used by :eager-conventions).
+    includeBuild("build-logic")
     repositories {
         mavenLocal()
         gradlePluginPortal()
@@ -24,11 +27,12 @@ dependencyResolutionManagement {
 rootProject.name = "hello-world"
 
 // Heterogeneous modules, each declaring its supported shape via `kmpTargets { supports { … } }` in
-// its build script (or leaving it unset for the default-all). The global KMP_TARGETS (see
-// gradle.properties) is intersected against each module's set, then a minimal hierarchy template is
-// applied. With KMP_TARGETS=jvm,iosArm64,iosSimulatorArm64:
+// its build script. Targets are explicit — a module with no `supports` registers nothing. The
+// global
+// KMP_TARGETS (see gradle.properties) is intersected against each module's set, then a minimal
+// hierarchy template is applied. With KMP_TARGETS=jvm,iosArm64,iosSimulatorArm64:
 
-// default-all → jvm + iosMain (the 2 iOS leaves share iosMain; no appleMain)
+// supports{all} → jvm + iosMain (the 2 iOS leaves share iosMain; no appleMain)
 include(":shared-core")
 
 // supports{mobile} → iosMain only (jvm unsupported here, Android unselected)
@@ -40,7 +44,7 @@ include(":jvm-tools")
 // supports{apple+jvm} → jvm + iosMain
 include(":core-and-apple")
 
-// default-all, opts OUT → KGP default: iosMain + appleMain + nativeMain
+// supports{all}, opts OUT → KGP default: iosMain + appleMain + nativeMain
 include(":legacy-default")
 
 // no kmp-targets at all → KGP default, untouched (non-interference)
@@ -48,3 +52,7 @@ include(":plain-kmp")
 
 // supports{jvm+linuxX64} → jvm only (linuxX64 unselected, iOS unsupported)
 include(":escape-hatch-dsl")
+
+// build-logic convention (`kmptargets.module`) that declares `supports` then reads `kotlin.targets`
+// synchronously — proves eager registration. `verifyEagerTargets` fails the build if it regresses.
+include(":eager-conventions")

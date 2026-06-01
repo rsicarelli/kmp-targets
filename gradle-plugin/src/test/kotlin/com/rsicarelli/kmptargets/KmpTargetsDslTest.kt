@@ -14,10 +14,10 @@ import org.junit.jupiter.api.io.TempDir
 
 /**
  * Proves the type-safe `kmpTargets { … }` DSL set during the build-script body (the escape-hatch
- * flow: KGP applied first, then the base plugin, then a narrowing `supports { … }`). This is the
- * case the old "timing wall" silently dropped: registration is deferred to the after-evaluate pass,
- * so a `supports` set declared in the body is honored. `(project as ProjectInternal).evaluate()`
- * fires that pass in-process.
+ * flow: KGP applied first, then the base plugin, then a narrowing `supports { … }`). Registration
+ * is **eager** — it fires the moment `supports { … }` runs, so targets exist before `(project as
+ * ProjectInternal).evaluate()` is pumped (the pump only drives KGP's own hierarchy lifecycle).
+ * `defaultSelection`/`hierarchyTemplate` must therefore be set *before* `supports`.
  */
 class KmpTargetsDslTest {
 
@@ -47,10 +47,10 @@ class KmpTargetsDslTest {
     ) {
         val project =
             newEvaluatedProject(dir) { ext ->
-                ext.supports { all }
                 ext.defaultSelection.set(
                     KmpTargetSet.of(KmpTarget.Jvm.Desktop, KmpTarget.Native.Apple.Ios.Arm64)
                 )
+                ext.supports { all }
             }
         assertRegisteredTargets(project, "jvm", "iosArm64")
     }
@@ -62,8 +62,8 @@ class KmpTargetsDslTest {
         dir.resolve("gradle.properties").writeText("KMP_TARGETS=jvm\n")
         val project =
             newEvaluatedProject(dir) { ext ->
-                ext.supports { all }
                 ext.defaultSelection.set(KmpTargetSet.appleMobile) // ignored: global wins
+                ext.supports { all }
             }
         assertRegisteredTargets(project, "jvm")
     }
@@ -95,10 +95,10 @@ class KmpTargetsDslTest {
         dir.resolve("gradle.properties").writeText("KMP_TARGETS=\n")
         val project =
             newEvaluatedProject(dir) { ext ->
-                ext.supports { all }
                 ext.defaultSelection.set(
                     KmpTargetSet.of(KmpTarget.Jvm.Desktop, KmpTarget.Native.Linux.X64)
                 )
+                ext.supports { all }
             }
         assertRegisteredTargets(project, "jvm", "linuxX64")
     }
@@ -109,8 +109,8 @@ class KmpTargetsDslTest {
     ) {
         val project =
             newEvaluatedProject(dir) { ext ->
-                ext.supports { all }
                 ext.defaultSelection.set(KmpTargetSet.empty) // explicit "build nothing"
+                ext.supports { all }
             }
         assertRegisteredTargets(project /* none */)
     }
@@ -125,15 +125,41 @@ class KmpTargetsDslTest {
     }
 
     @Test
-    fun `given no DSL body and a global KMP_TARGETS when evaluated then selection registers under default-all supported`(
+    fun `given no supports declared and a global KMP_TARGETS when evaluated then nothing registers`(
         @TempDir dir: Path
     ) {
-        // No `kmpTargets { … }` body at all — supported is undeclared, so `resolvedSupported`
-        // returns its default of `all`. The global selection alone decides what registers. This is
-        // the floor of the API contract: applying the base plugin with no configuration must still
-        // honor KMP_TARGETS as the single switch.
+        // Targets are explicit: with no `supports { … }` there is nothing to register, regardless
+        // of
+        // KMP_TARGETS. This is the floor of the API contract under eager registration — there is no
+        // implicit default-all supported set.
         dir.resolve("gradle.properties").writeText("KMP_TARGETS=jvm,iosArm64\n")
         val project = newEvaluatedProject(dir) { /* no extension configuration */ }
+        assertRegisteredTargets(project /* none — supported was never declared */)
+    }
+
+    @Test
+    fun `given an explicit supports all and a global KMP_TARGETS when evaluated then the selection registers`(
+        @TempDir dir: Path
+    ) {
+        // `supports { all }` is the explicit opt-in to "build everything KMP_TARGETS selects": with
+        // supported = all, the global selection alone decides what registers.
+        dir.resolve("gradle.properties").writeText("KMP_TARGETS=jvm,iosArm64\n")
+        val project = newEvaluatedProject(dir) { ext -> ext.supports { all } }
+        assertRegisteredTargets(project, "jvm", "iosArm64")
+    }
+
+    @Test
+    fun `given supports called twice when evaluated then each target registers at most once`(
+        @TempDir dir: Path
+    ) {
+        // Eager registration is idempotent and unions: the second call registers only the delta
+        // (iosArm64); jvm, already registered, is not re-added and KGP does not throw.
+        dir.resolve("gradle.properties").writeText("KMP_TARGETS=all\n")
+        val project =
+            newEvaluatedProject(dir) { ext ->
+                ext.supports { jvm }
+                ext.supports { jvm + iosArm64 }
+            }
         assertRegisteredTargets(project, "jvm", "iosArm64")
     }
 
@@ -151,7 +177,8 @@ class KmpTargetsDslTest {
 
     /**
      * Escape-hatch order: user applies KGP, then the base plugin, then configures the extension in
-     * the body. The deferred registration runs only on [ProjectInternal.evaluate].
+     * the body — where `supports { … }` registers eagerly. [ProjectInternal.evaluate] is pumped
+     * only to drive KGP's own source-set hierarchy lifecycle.
      */
     private fun newEvaluatedProject(dir: Path, configure: (KmpTargetsExtension) -> Unit): Project {
         val project = ProjectBuilder.builder().withProjectDir(dir.toFile()).build()

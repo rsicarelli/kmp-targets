@@ -44,19 +44,19 @@ class KmpTargetsExtensionDslTest {
     }
 
     @Test
-    fun `given supports block called twice when resolvedSupported then the last assignment wins`() {
+    fun `given supports block called twice when resolvedSupported then the sets union`() {
         val ext = newExtension()
         ext.supports { mobile }
         ext.supports { web }
-        // The DSL block is an assignment, not an accumulator — to union, write `supports { mobile +
-        // web }`.
-        assertEquals(KmpTargetSet.web, ext.resolvedSupported())
+        // Registration is one-way (an already-registered target can't be retracted), so repeated
+        // calls union rather than replace. To narrow, write the final set in a single block.
+        assertEquals(KmpTargetSet.mobile + KmpTargetSet.web, ext.resolvedSupported())
     }
 
     @Test
-    fun `given supports never declared when resolvedSupported then defaults to all`() {
+    fun `given supports never declared when resolvedSupported then defaults to empty`() {
         val ext = newExtension()
-        assertEquals(KmpTargetSet.all, ext.resolvedSupported())
+        assertEquals(KmpTargetSet.empty, ext.resolvedSupported())
     }
 
     @Test

@@ -47,9 +47,12 @@ Every preset (`all`, `mobile`, `apple`, `web`, `jvmFamily`, …) and every leaf 
 `linuxX64`, …) is available inside the block. Build-logic and consumers needing a raw value can use
 the overload: `supports(KmpTargetSet.mobile + KmpTargetSet.web)`.
 
-If you omit the `supports` block, the module defaults to **all** targets — the global
-`KMP_TARGETS` alone decides what registers. That's the right default for a generic library that
-wants to build whatever the developer is currently targeting.
+Targets are **explicit**: a module that never calls `supports` registers nothing, just like plain
+KGP where every target is declared by hand. `supports` registers eagerly — the moment it runs — so
+call it before anything reads `kotlin.targets`, and calling it more than once **unions** (an
+already-registered target can't be retracted). To build whatever the developer is currently
+targeting, opt in explicitly with `supports { all }` — then the global `KMP_TARGETS` alone decides
+what registers.
 
 The selection itself is **global** (the `KMP_TARGETS` property, see below) — there is no per-module
 selection block. A project-wide default for when `KMP_TARGETS` is unset can be set from build-logic

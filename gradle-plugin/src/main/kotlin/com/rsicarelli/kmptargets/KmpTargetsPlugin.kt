@@ -34,29 +34,20 @@ public class KmpTargetsPlugin : Plugin<Project> {
             ext.globalSelection = parseOrThrow(raw, KMP_TARGETS)
         }
 
-        // Global default for the hierarchy template, read at apply time and pulled out as a
-        // primitive so the afterEvaluate closure below never captures `Project` (config-cache
-        // safe).
+        // Global default for the hierarchy template, read once at apply time as a primitive.
         val globalHierarchyEnabled: Boolean? = hierarchyTemplateEnabledGlobally(target)
 
-        // All work waits for the build-script body to run: target registration, the empty-overlap
-        // warning, and the hierarchy template are functions of the final `supports` set declared
-        // via the DSL. The closure captures only `ext` (immutable sets + booleans) and the
-        // primitive flag, so it stays configuration-cache safe.
-        target.afterEvaluate { p ->
-            if (!p.plugins.hasPlugin(KGP_ID)) return@afterEvaluate
-            registerResolved(p, ext)
-            val selection = ext.resolvedSelection()
-            val active = selection intersect ext.resolvedSupported()
-
-            // Advisory only: the selection is non-empty yet genuinely disjoint from the supported
-            // set, so nothing registers. Keyed off the actual overlap (not "nothing registered"),
-            // so the message can never name a token present in both lists (issue #10).
-            if (shouldWarnEmptyOverlap(selection, ext.resolvedSupported())) {
-                p.logger.warn(emptyOverlapWarning(p.path, selection, ext.resolvedSupported()))
+        // Eager registration: `supports { … }` in the build-script body registers `selection ∩
+        // supported` immediately — no deferred (after-evaluate) pass, no timing wall. We hook it
+        // via
+        // `withPlugin(KGP)` so registration fires the moment both KGP and a `supports` declaration
+        // are present (in either order); if KGP is never applied, nothing registers. This runs at
+        // configuration time and is never held by a Task, so no `Project` leaks into the config
+        // cache.
+        ext.onSupports = {
+            target.pluginManager.withPlugin(KGP_ID) {
+                register(target, ext, globalHierarchyEnabled)
             }
-
-            maybeApplyHierarchyTemplate(p, ext, active, globalHierarchyEnabled)
         }
     }
 
@@ -103,14 +94,33 @@ public class KmpTargetsPlugin : Plugin<Project> {
             is ParseResult.Err -> throw GradleException("$propertyName: ${r.message}")
         }
 
-    /** Registers `selection ∩ supported`, skipping leaves already registered (idempotent). */
-    private fun registerResolved(project: Project, ext: KmpTargetsExtension) {
+    /**
+     * Registers `selection ∩ supported`, emits the empty-overlap advisory, and applies the minimal
+     * hierarchy template — all off the cumulative supported set, so repeated `supports` calls only
+     * register the delta (idempotent) and the template still applies at most once.
+     */
+    private fun register(
+        project: Project,
+        ext: KmpTargetsExtension,
+        globalHierarchyEnabled: Boolean?,
+    ) {
         val kotlin = project.extensions.getByType(KotlinMultiplatformExtension::class.java)
-        val effective = ext.resolvedSelection() intersect ext.resolvedSupported()
-        (effective.members - ext.registered).forEach { leaf ->
+        val selection = ext.resolvedSelection()
+        val supported = ext.resolvedSupported()
+        val active = selection intersect supported
+        (active.members - ext.registered).forEach { leaf ->
             registerTarget(kotlin, leaf)
             ext.registered.add(leaf)
         }
+
+        // Advisory only: the selection is non-empty yet genuinely disjoint from the supported set,
+        // so nothing registers. Keyed off the actual overlap (not "nothing registered"), so the
+        // message can never name a token present in both lists (issue #10).
+        if (shouldWarnEmptyOverlap(selection, supported)) {
+            project.logger.warn(emptyOverlapWarning(project.path, selection, supported))
+        }
+
+        maybeApplyHierarchyTemplate(project, ext, active, globalHierarchyEnabled)
     }
 
     /**

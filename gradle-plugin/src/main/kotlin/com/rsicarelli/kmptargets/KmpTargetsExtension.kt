@@ -11,24 +11,27 @@ import org.gradle.api.provider.Property
  *
  * The plugin separates two facts:
  * - **supported** — what *this module* can build, declared per-module by the type-safe [supports]
- *   block (or its raw value overload). When nothing declares it, [resolvedSupported] defaults to
- *   [KmpTargetSet.all].
+ *   block (or its raw value overload). It is **explicit**: a module that never calls [supports]
+ *   registers no targets at all (just like plain KGP, where every target is declared by hand).
+ *   [resolvedSupported] returns [KmpTargetSet.empty] until something declares it.
  * - **selection** — what the user wants to build *now*. It is **global**: resolved from
  *   `KMP_TARGETS` (`-P`, env, root `gradle.properties`, or `local.properties`) and the same value
  *   for every module. When no global is provided, it falls back to [defaultSelection] (itself
  *   defaulting to [KmpTargetSet.all]).
  *
- * The plugin registers `selection ∩ supported`. [supports] is written from the build-script body; a
- * single deferred (after-evaluate) registration pass picks up whatever the body set. The extension
- * only ever holds immutable `KmpTargetSet`s of `data object` leaves, so it is configuration-cache
- * safe — no `Project` or task state is captured.
+ * The plugin registers `selection ∩ supported`. Registration is **eager**: calling [supports] from
+ * the build-script body registers the matching targets immediately (no deferred/after-evaluate
+ * pass), so anything that reads `kotlin.targets` afterwards sees them. The extension only ever
+ * holds immutable `KmpTargetSet`s of `data object` leaves, so it is configuration-cache safe — no
+ * `Project` or task state is captured.
  */
 public abstract class KmpTargetsExtension @Inject constructor(objects: ObjectFactory) {
 
     /**
      * The selection used when no global `KMP_TARGETS` is provided. Defaults to [KmpTargetSet.all].
      * Public so build-logic can set a project-wide default lazily; a global `KMP_TARGETS` always
-     * wins over it.
+     * wins over it. Set it **before** [supports], since [supports] registers eagerly off the
+     * resolved selection.
      */
     public abstract val defaultSelection: Property<KmpTargetSet>
 
@@ -39,42 +42,50 @@ public abstract class KmpTargetsExtension @Inject constructor(objects: ObjectFac
      * `applyDefaultHierarchyTemplate()` — also the escape hatch for a module that supplies its own
      * `applyHierarchyTemplate { … }`.
      *
-     * Readable from the build-script body: the template is applied in a deferred pass (after
-     * evaluation), by which point the DSL value has been set.
+     * Set it **before** [supports]: the template is applied as part of the eager registration that
+     * [supports] triggers, so it must already hold its value by then.
      */
     public abstract val hierarchyTemplate: Property<Boolean>
 
     /**
-     * What this module can build. Unset means "not declared"; [resolvedSupported] treats that as
-     * [KmpTargetSet.all]. Written by the [supports] block (or its raw overload).
+     * What this module can build. Unset means "not declared" → no targets register, and
+     * [resolvedSupported] returns [KmpTargetSet.empty]. Written by the [supports] block (or its raw
+     * overload), which unions on each call.
      */
     internal val supportsProperty: Property<KmpTargetSet> =
         objects.property(KmpTargetSet::class.java)
 
     /**
-     * Declares this module's supported set with the type-safe target vocabulary:
+     * Fired by [supports]; the plugin wires this to eager registration. Null until the plugin runs.
+     */
+    internal var onSupports: (() -> Unit)? = null
+
+    /**
+     * Declares this module's supported set with the type-safe target vocabulary and **registers**
+     * `selection ∩ supported` immediately:
      * ```kotlin
      * kmpTargets { supports { mobile + web - iosX64 } }
      * ```
      *
-     * Assigns the supported set; calling more than once replaces. If you want union semantics,
-     * write the union inside the block (`supports { mobile + web }`).
+     * Must be called before anything reads `kotlin.targets` (registration is eager). Calling more
+     * than once **unions** the sets — KGP target registration is one-way, so an already-registered
+     * target cannot be retracted. To narrow, write the final set inside a single block.
      */
     public fun supports(block: KmpTargetsDsl.() -> KmpTargetSet) {
-        supportsProperty.set(KmpTargetsDsl.block())
+        supports(KmpTargetsDsl.block())
     }
 
     /** Raw overload for build-logic: `supports(KmpTargetSet.mobile + KmpTargetSet.web)`. */
     public fun supports(value: KmpTargetSet) {
-        supportsProperty.set(value)
+        supportsProperty.set((supportsProperty.orNull ?: KmpTargetSet.empty) + value)
+        onSupports?.invoke()
     }
 
     /**
      * The global selection resolved from `KMP_TARGETS` at apply time, or `null` when no global
      * source provided one. When present it wins over [defaultSelection] (and an explicit empty set
      * is honored — see issue #9), which is what keeps the global switch authoritative. Stored as an
-     * immutable [KmpTargetSet], so capturing it in deferred closures stays configuration-cache
-     * safe.
+     * immutable [KmpTargetSet], so it stays configuration-cache safe.
      */
     internal var globalSelection: KmpTargetSet? = null
 
@@ -85,15 +96,16 @@ public abstract class KmpTargetsExtension @Inject constructor(objects: ObjectFac
      */
     public fun resolvedSelection(): KmpTargetSet = globalSelection ?: defaultSelection.get()
 
-    /** Leaves already registered with KGP, so repeated registration passes are idempotent. */
+    /** Leaves already registered with KGP, so repeated registration stays idempotent. */
     internal val registered: MutableSet<KmpTarget> = mutableSetOf()
 
     /** True once the minimal hierarchy template has been applied, so it is applied at most once. */
     internal var hierarchyTemplateApplied: Boolean = false
 
     /**
-     * The resolved supported set: the declared value, or [KmpTargetSet.all] if none. Public so
-     * build-logic (and consumers) can read what this module ended up declaring.
+     * The resolved supported set: the declared value (unioned across [supports] calls), or
+     * [KmpTargetSet.empty] if none was declared. Public so build-logic (and consumers) can read
+     * what this module ended up declaring.
      */
-    public fun resolvedSupported(): KmpTargetSet = supportsProperty.orNull ?: KmpTargetSet.all
+    public fun resolvedSupported(): KmpTargetSet = supportsProperty.orNull ?: KmpTargetSet.empty
 }

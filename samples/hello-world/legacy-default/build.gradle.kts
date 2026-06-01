@@ -3,12 +3,15 @@ plugins {
     // template. KGP then applies its default hierarchy, so the two iOS leaves get the full
     // redundant
     // chain — `iosMain` + `appleMain` + `nativeMain` — instead of just `iosMain`. This is the
-    // side-by-side proof of what the feature removes. `supported` is left at its default of `all`.
+    // side-by-side proof of what the feature removes. It still `supports { all }`, like
+    // :shared-core.
     kotlin("multiplatform")
     id("com.rsicarelli.kmptargets") version "0.1.0-SNAPSHOT"
 }
 
 kmpTargets {
     // Project-level override (wins over the global `kmptargets.hierarchyTemplate` default of true).
+    // Set before `supports`, since `supports` applies the template as part of eager registration.
     hierarchyTemplate.set(false)
+    supports { all }
 }
