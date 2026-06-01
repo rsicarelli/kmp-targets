@@ -12,7 +12,7 @@ class KmpTargetsExtensionTest {
     @Test
     fun `given extension created when selection accessed then property is present and unset`() {
         val ext = newExtension()
-        assertFalse(ext.selection.isPresent)
+        assertFalse(ext.selectionProperty.isPresent)
     }
 
     @Test
@@ -24,7 +24,7 @@ class KmpTargetsExtensionTest {
     @Test
     fun `given extension created when supported accessed then property is unset`() {
         val ext = newExtension()
-        assertFalse(ext.supported.isPresent)
+        assertFalse(ext.supportedProperty.isPresent)
     }
 
     @Test
@@ -61,7 +61,7 @@ class KmpTargetsExtensionTest {
         val ext = newExtension()
         ext.fallback.set(KmpTargetSet.web)
         // Setting fallback doesn't auto-populate selection — that's the plugin's job
-        assertFalse(ext.selection.isPresent)
+        assertFalse(ext.selectionProperty.isPresent)
         assertTrue(ext.fallback.isPresent)
         assertEquals(KmpTargetSet.web, ext.fallback.get())
     }

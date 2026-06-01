@@ -26,3 +26,4 @@ include(":jvm-tools") //      .jvm     → jvm only, no intermediate source sets
 include(":core-and-apple") // .apple + .jvm (composition) → jvm + iosMain
 include(":legacy-default") // .library but opts OUT → KGP default: iosMain + appleMain + nativeMain
 include(":plain-kmp") //      no kmp-targets at all → KGP default, untouched (non-interference)
+include(":escape-hatch-dsl") // base id + type-safe `supported { jvm + linuxX64 }` DSL → jvm only

@@ -33,7 +33,7 @@ class KmpTargetsPluginTest {
         val project = newProject(dir)
         project.pluginManager.apply("com.rsicarelli.kmptargets")
         val ext = project.extensions.getByType(KmpTargetsExtension::class.java)
-        assertEquals(KmpTargetSet.all, ext.selection.get())
+        assertEquals(KmpTargetSet.all, ext.resolvedSelection())
     }
 
     @Test
@@ -46,7 +46,7 @@ class KmpTargetsPluginTest {
         val ext = project.extensions.getByType(KmpTargetsExtension::class.java)
         assertEquals(
             KmpTargetSet.of(KmpTarget.Jvm.Android, KmpTarget.Native.Apple.Ios.Arm64),
-            ext.selection.get(),
+            ext.resolvedSelection(),
         )
     }
 
@@ -58,7 +58,7 @@ class KmpTargetsPluginTest {
         val project = newProject(dir)
         project.pluginManager.apply("com.rsicarelli.kmptargets")
         val ext = project.extensions.getByType(KmpTargetsExtension::class.java)
-        assertEquals(KmpTargetSet.appleMobile, ext.selection.get())
+        assertEquals(KmpTargetSet.appleMobile, ext.resolvedSelection())
     }
 
     @Test
@@ -69,7 +69,7 @@ class KmpTargetsPluginTest {
         project.pluginManager.apply("com.rsicarelli.kmptargets")
         val ext = project.extensions.getByType(KmpTargetsExtension::class.java)
         ext.fallback.set(KmpTargetSet.web)
-        assertEquals(KmpTargetSet.web, ext.selection.get())
+        assertEquals(KmpTargetSet.web, ext.resolvedSelection())
     }
 
     @Test
@@ -130,7 +130,7 @@ class KmpTargetsPluginTest {
         val project = newProject(dir)
         project.pluginManager.apply("com.rsicarelli.kmptargets")
         val ext = project.extensions.getByType(KmpTargetsExtension::class.java)
-        assertEquals(KmpTargetSet.of(KmpTarget.Jvm.Android), ext.selection.get())
+        assertEquals(KmpTargetSet.of(KmpTarget.Jvm.Android), ext.resolvedSelection())
     }
 
     @Test
@@ -142,7 +142,7 @@ class KmpTargetsPluginTest {
         val project = newProject(dir)
         project.pluginManager.apply("com.rsicarelli.kmptargets")
         val ext = project.extensions.getByType(KmpTargetsExtension::class.java)
-        assertEquals(KmpTargetSet.of(KmpTarget.Native.Apple.Ios.Arm64), ext.selection.get())
+        assertEquals(KmpTargetSet.of(KmpTarget.Native.Apple.Ios.Arm64), ext.resolvedSelection())
     }
 
     @Test
@@ -154,7 +154,7 @@ class KmpTargetsPluginTest {
         project.pluginManager.apply("com.rsicarelli.kmptargets")
         val ext = project.extensions.getByType(KmpTargetsExtension::class.java)
         // A blank property is not "I want zero targets" — it's "I'm not overriding"; fallback wins.
-        assertEquals(KmpTargetSet.all, ext.selection.get())
+        assertEquals(KmpTargetSet.all, ext.resolvedSelection())
     }
 
     @Test
@@ -166,7 +166,7 @@ class KmpTargetsPluginTest {
         project.pluginManager.apply("com.rsicarelli.kmptargets")
         val ext = project.extensions.getByType(KmpTargetsExtension::class.java)
         // An explicit selection narrowed to nothing means "build nothing", not "build everything".
-        assertEquals(KmpTargetSet.empty, ext.selection.get())
+        assertEquals(KmpTargetSet.empty, ext.resolvedSelection())
     }
 
     @Test
