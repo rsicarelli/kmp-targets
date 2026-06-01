@@ -22,9 +22,9 @@ class KmpTargetsExtensionTest {
     }
 
     @Test
-    fun `given supports unset when resolvedSupported then defaults to all`() {
+    fun `given supports unset when resolvedSupported then defaults to empty`() {
         val ext = newExtension()
-        assertEquals(KmpTargetSet.all, ext.resolvedSupported())
+        assertEquals(KmpTargetSet.empty, ext.resolvedSupported())
     }
 
     @Test
