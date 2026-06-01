@@ -82,11 +82,15 @@ tasks:
       - rm -rf samples/isolated-projects/build samples/isolated-projects/.gradle samples/isolated-projects/*/build
 
   fmt:
-    desc: Format Kotlin sources with ktfmt (kotlinlang style)
+    desc: Format Kotlin sources with ktfmt (kotlinlang style) across the main build and both samples
     cmds:
       - "{{.GRADLE}} ktfmtFormat"
+      - "{{.GRADLE}} -p samples/hello-world ktfmtFormat"
+      - "{{.GRADLE}} -p samples/isolated-projects ktfmtFormat"
 
   fmt:check:
-    desc: Verify Kotlin sources are ktfmt-formatted (run by `task check`)
+    desc: Verify Kotlin sources are ktfmt-formatted across the main build and both samples (run by `task check`)
     cmds:
       - "{{.GRADLE}} ktfmtCheck"
+      - "{{.GRADLE}} -p samples/hello-world ktfmtCheck"
+      - "{{.GRADLE}} -p samples/isolated-projects ktfmtCheck"

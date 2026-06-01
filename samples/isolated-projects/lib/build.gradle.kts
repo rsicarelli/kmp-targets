@@ -4,4 +4,9 @@ plugins {
     // under Isolated Projects — proof the plugin applies without reaching across projects.
     kotlin("multiplatform")
     id("com.rsicarelli.kmptargets") version "0.1.0-SNAPSHOT"
+    id("com.ncorti.ktfmt.gradle")
 }
+
+ktfmt { kotlinLangStyle() }
+
+tasks.named("check") { dependsOn("ktfmtCheck") }

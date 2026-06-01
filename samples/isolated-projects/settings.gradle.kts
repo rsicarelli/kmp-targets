@@ -13,6 +13,10 @@ dependencyResolutionManagement {
         mavenCentral()
         google()
     }
+
+    // Share the main repo's version catalog so Kotlin/ktfmt versions stay in lock-step with the
+    // plugin under test (see `../hello-world/settings.gradle.kts` for the same pattern).
+    versionCatalogs { create("libs") { from(files("../../gradle/libs.versions.toml")) } }
 }
 
 rootProject.name = "isolated-projects"
@@ -22,5 +26,9 @@ rootProject.name = "isolated-projects"
 // cross-project access (and `Project` capture). This sample therefore only configures cleanly while
 // the plugin keeps touching nothing but the project it is applied to — making it the executable
 // guard for that contract.
-include(":lib") // default-all → supports every target; with KMP_TARGETS=jvm registers jvm only
-include(":app") // supported{jvm} → registers jvm; depends on :lib through a project dependency
+
+// default-all → supports every target; with KMP_TARGETS=jvm registers jvm only
+include(":lib")
+
+// supported{jvm} → registers jvm; depends on :lib through a project dependency
+include(":app")

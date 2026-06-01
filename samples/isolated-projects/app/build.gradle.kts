@@ -4,14 +4,13 @@ plugins {
     // project's configuration isolated.
     kotlin("multiplatform")
     id("com.rsicarelli.kmptargets") version "0.1.0-SNAPSHOT"
+    id("com.ncorti.ktfmt.gradle")
 }
+
+ktfmt { kotlinLangStyle() }
+
+tasks.named("check") { dependsOn("ktfmtCheck") }
 
 kmpTargets { supported { jvm } }
 
-kotlin {
-    sourceSets {
-        commonMain.dependencies {
-            implementation(project(":lib"))
-        }
-    }
-}
+kotlin { sourceSets { commonMain.dependencies { implementation(project(":lib")) } } }
