@@ -27,7 +27,7 @@ class KmpTargetsPluginTest {
     }
 
     @Test
-    fun `given plugin applied without any property when selection is read then equals fallback default KmpTargetSet all`(
+    fun `given plugin applied without any property when selection is read then equals defaultSelection default KmpTargetSet all`(
         @TempDir dir: Path
     ) {
         val project = newProject(dir)
@@ -62,13 +62,13 @@ class KmpTargetsPluginTest {
     }
 
     @Test
-    fun `given user fallback override when plugin applied without property then selection equals that fallback`(
+    fun `given user defaultSelection override when plugin applied without property then selection equals that default`(
         @TempDir dir: Path
     ) {
         val project = newProject(dir)
         project.pluginManager.apply("com.rsicarelli.kmptargets")
         val ext = project.extensions.getByType(KmpTargetsExtension::class.java)
-        ext.fallback.set(KmpTargetSet.web)
+        ext.defaultSelection.set(KmpTargetSet.web)
         assertEquals(KmpTargetSet.web, ext.resolvedSelection())
     }
 
@@ -131,12 +131,13 @@ class KmpTargetsPluginTest {
         val project = newProject(dir)
         project.pluginManager.apply("com.rsicarelli.kmptargets")
         val ext = project.extensions.getByType(KmpTargetsExtension::class.java)
-        // A blank property is not "I want zero targets" — it's "I'm not overriding"; fallback wins.
+        // A blank property is not "I want zero targets" — it's "I'm not overriding"; the default
+        // wins.
         assertEquals(KmpTargetSet.all, ext.resolvedSelection())
     }
 
     @Test
-    fun `given KMP_TARGETS narrows to nothing via minus when selection is read then it is empty not fallback`(
+    fun `given KMP_TARGETS narrows to nothing via minus when selection is read then it is empty not the default`(
         @TempDir dir: Path
     ) {
         dir.resolve("gradle.properties").writeText("KMP_TARGETS=jvm,-jvm\n")

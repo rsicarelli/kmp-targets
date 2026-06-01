@@ -4,29 +4,28 @@ import com.rsicarelli.kmptargets.model.KmpTarget
 import com.rsicarelli.kmptargets.model.KmpTargetSet
 
 /**
- * Marks the receiver of the type-safe `kmpTargets { supported { … } }` / `selection { … }` blocks
- * so the outer [KmpTargetsExtension] members are not accidentally in scope inside a target
- * expression.
+ * Marks the receiver of the type-safe `kmpTargets { supports { … } }` block so the outer
+ * [KmpTargetsExtension] members are not accidentally in scope inside a target expression.
  */
 @DslMarker public annotation class KmpTargetsDslMarker
 
 /**
- * Vocabulary in scope inside a `supported { … }` / `selection { … }` block.
+ * Vocabulary in scope inside a `supports { … }` block.
  *
  * Every preset and every leaf is exposed as a [KmpTargetSet], so the whole grammar is just set
  * algebra with `+` and `-`:
  * ```kotlin
  * kmpTargets {
- *     supported { mobile + web }              // two presets
- *     supported { apple + jvm - iosX64 }      // presets, leaf subtraction
- *     supported { iosArm64 + iosSimulatorArm64 } // bare leaves
+ *     supports { mobile + web }              // two presets
+ *     supports { apple + jvm - iosX64 }      // presets, leaf subtraction
+ *     supports { iosArm64 + iosSimulatorArm64 } // bare leaves
  * }
  * ```
  *
  * Names mirror the canonical KGP target ids ([KmpTarget.id]) and the [KmpTargetSet] presets
  * exactly, so what you read in build files matches the `KMP_TARGETS` string grammar and the docs.
- * Build-logic that needs a raw value can call the [KmpTargetsExtension.supported] overload:
- * `supported(KmpTargetSet.mobile + KmpTargetSet.web)`.
+ * Build-logic that needs a raw value can call the [KmpTargetsExtension.supports] overload:
+ * `supports(KmpTargetSet.mobile + KmpTargetSet.web)`.
  */
 @KmpTargetsDslMarker
 public object KmpTargetsDsl {

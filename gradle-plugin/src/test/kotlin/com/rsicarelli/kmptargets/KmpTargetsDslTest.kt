@@ -1,5 +1,6 @@
 package com.rsicarelli.kmptargets
 
+import com.rsicarelli.kmptargets.model.KmpTarget
 import com.rsicarelli.kmptargets.model.KmpTargetSet
 import java.nio.file.Path
 import kotlin.io.path.writeText
@@ -13,122 +14,113 @@ import org.junit.jupiter.api.io.TempDir
 
 /**
  * Proves the type-safe `kmpTargets { … }` DSL set during the build-script body (the escape-hatch
- * flow: KGP applied first, then the base plugin, then a narrowing `supported { … }`). This is the
+ * flow: KGP applied first, then the base plugin, then a narrowing `supports { … }`). This is the
  * case the old "timing wall" silently dropped: registration is deferred to the after-evaluate pass,
- * so a `supported`/`selection` declared in the body is honored. `(project as ProjectInternal)
- * .evaluate()` fires that pass in-process.
+ * so a `supports` set declared in the body is honored. `(project as ProjectInternal).evaluate()`
+ * fires that pass in-process.
  */
 class KmpTargetsDslTest {
 
     @Test
-    fun `given supported declared via DSL after KGP when evaluated then only the DSL set registers`(
+    fun `given supports declared via DSL after KGP when evaluated then only the DSL set registers`(
         @TempDir dir: Path
     ) {
         dir.resolve("gradle.properties").writeText("KMP_TARGETS=jvm,iosArm64,linuxX64\n")
-        val project = newEvaluatedProject(dir) { ext -> ext.supported { jvm + linuxX64 } }
+        val project = newEvaluatedProject(dir) { ext -> ext.supports { jvm + linuxX64 } }
         // selection (jvm,iosArm64,linuxX64) ∩ supported (jvm,linuxX64) = jvm,linuxX64.
         assertRegisteredTargets(project, "jvm", "linuxX64")
     }
 
     @Test
-    fun `given supported leaves composed via DSL when evaluated then the union registers`(
+    fun `given supports leaves composed via DSL when evaluated then the union registers`(
         @TempDir dir: Path
     ) {
         dir.resolve("gradle.properties").writeText("KMP_TARGETS=all\n")
         val project =
-            newEvaluatedProject(dir) { ext -> ext.supported { iosArm64 + iosSimulatorArm64 + jvm } }
+            newEvaluatedProject(dir) { ext -> ext.supports { iosArm64 + iosSimulatorArm64 + jvm } }
         assertRegisteredTargets(project, "iosArm64", "iosSimulatorArm64", "jvm")
     }
 
     @Test
-    fun `given a per-module selection default and no global when evaluated then the default applies`(
+    fun `given a defaultSelection and no global when evaluated then the default applies`(
         @TempDir dir: Path
     ) {
         val project =
             newEvaluatedProject(dir) { ext ->
-                ext.supported { all }
-                ext.selection { jvm + iosArm64 }
+                ext.supports { all }
+                ext.defaultSelection.set(
+                    KmpTargetSet.of(KmpTarget.Jvm.Desktop, KmpTarget.Native.Apple.Ios.Arm64)
+                )
             }
         assertRegisteredTargets(project, "jvm", "iosArm64")
     }
 
     @Test
-    fun `given a per-module selection default and a global KMP_TARGETS when evaluated then global wins`(
+    fun `given a defaultSelection and a global KMP_TARGETS when evaluated then global wins`(
         @TempDir dir: Path
     ) {
         dir.resolve("gradle.properties").writeText("KMP_TARGETS=jvm\n")
         val project =
             newEvaluatedProject(dir) { ext ->
-                ext.supported { all }
-                ext.selection { iosArm64 + iosSimulatorArm64 } // ignored: global wins
+                ext.supports { all }
+                ext.defaultSelection.set(KmpTargetSet.appleMobile) // ignored: global wins
             }
         assertRegisteredTargets(project, "jvm")
     }
 
     @Test
-    fun `given supported via DSL value overload when evaluated then it registers`(
+    fun `given supports via DSL value overload when evaluated then it registers`(
         @TempDir dir: Path
     ) {
         dir.resolve("gradle.properties").writeText("KMP_TARGETS=all\n")
         val project =
-            newEvaluatedProject(dir) { ext -> ext.supported(KmpTargetSet.web + KmpTargetSet.linux) }
+            newEvaluatedProject(dir) { ext -> ext.supports(KmpTargetSet.web + KmpTargetSet.linux) }
         assertRegisteredTargets(project, "js", "wasmJs", "wasmWasi", "linuxX64", "linuxArm64")
     }
 
     @Test
-    fun `given supported block with subtraction when evaluated then the removed leaf does not register`(
+    fun `given supports block with subtraction when evaluated then the removed leaf does not register`(
         @TempDir dir: Path
     ) {
         dir.resolve("gradle.properties").writeText("KMP_TARGETS=all\n")
-        val project = newEvaluatedProject(dir) { ext -> ext.supported { appleMobile - iosX64 } }
+        val project = newEvaluatedProject(dir) { ext -> ext.supports { appleMobile - iosX64 } }
         assertRegisteredTargets(project, "iosArm64", "iosSimulatorArm64")
     }
 
     @Test
-    fun `given a selection value default and a global KMP_TARGETS when evaluated then global wins`(
+    fun `given a blank global and a defaultSelection when evaluated then the default applies`(
         @TempDir dir: Path
     ) {
-        dir.resolve("gradle.properties").writeText("KMP_TARGETS=jvm\n")
-        val project =
-            newEvaluatedProject(dir) { ext ->
-                ext.supported { all }
-                ext.selection(KmpTargetSet.web) // ignored: global wins
-            }
-        assertRegisteredTargets(project, "jvm")
-    }
-
-    @Test
-    fun `given a blank global and a selection default when evaluated then the default applies`(
-        @TempDir dir: Path
-    ) {
-        // A blank KMP_TARGETS means "not overriding" — the per-module default selection stands.
+        // A blank KMP_TARGETS means "not overriding" — the project-wide defaultSelection stands.
         dir.resolve("gradle.properties").writeText("KMP_TARGETS=\n")
         val project =
             newEvaluatedProject(dir) { ext ->
-                ext.supported { all }
-                ext.selection { jvm + linuxX64 }
+                ext.supports { all }
+                ext.defaultSelection.set(
+                    KmpTargetSet.of(KmpTarget.Jvm.Desktop, KmpTarget.Native.Linux.X64)
+                )
             }
         assertRegisteredTargets(project, "jvm", "linuxX64")
     }
 
     @Test
-    fun `given an empty selection default and no global when evaluated then nothing registers`(
+    fun `given an empty defaultSelection and no global when evaluated then nothing registers`(
         @TempDir dir: Path
     ) {
         val project =
             newEvaluatedProject(dir) { ext ->
-                ext.supported { all }
-                ext.selection { empty } // explicit "build nothing"
+                ext.supports { all }
+                ext.defaultSelection.set(KmpTargetSet.empty) // explicit "build nothing"
             }
         assertRegisteredTargets(project /* none */)
     }
 
     @Test
-    fun `given a supported set disjoint from the selection when evaluated then nothing registers`(
+    fun `given a supports set disjoint from the selection when evaluated then nothing registers`(
         @TempDir dir: Path
     ) {
         dir.resolve("gradle.properties").writeText("KMP_TARGETS=wasmJs\n")
-        val project = newEvaluatedProject(dir) { ext -> ext.supported { jvm + linuxX64 } }
+        val project = newEvaluatedProject(dir) { ext -> ext.supports { jvm + linuxX64 } }
         assertRegisteredTargets(project /* none — selection ∩ supported is empty */)
     }
 
@@ -136,7 +128,7 @@ class KmpTargetsDslTest {
     fun `given no DSL body and a global KMP_TARGETS when evaluated then selection registers under default-all supported`(
         @TempDir dir: Path
     ) {
-        // No `kmpTargets { … }` body at all — supported is undeclared, so `effectiveSupported`
+        // No `kmpTargets { … }` body at all — supported is undeclared, so `resolvedSupported`
         // returns its default of `all`. The global selection alone decides what registers. This is
         // the floor of the API contract: applying the base plugin with no configuration must still
         // honor KMP_TARGETS as the single switch.
@@ -146,14 +138,14 @@ class KmpTargetsDslTest {
     }
 
     @Test
-    fun `given supported mobile plus web and a narrowing global KMP_TARGETS when evaluated then exactly the overlap registers`(
+    fun `given supports mobile plus web and a narrowing global KMP_TARGETS when evaluated then exactly the overlap registers`(
         @TempDir dir: Path
     ) {
         // Composition test: the DSL takes the place of stacking two convention plugin ids (e.g.
-        // `.mobile` + `.web`). `supported { mobile + web }` is the equivalent declaration; with a
+        // `.mobile` + `.web`). `supports { mobile + web }` is the equivalent declaration; with a
         // selection that hits one leaf from each preset, only those leaves register.
         dir.resolve("gradle.properties").writeText("KMP_TARGETS=iosArm64,wasmJs\n")
-        val project = newEvaluatedProject(dir) { ext -> ext.supported { mobile + web } }
+        val project = newEvaluatedProject(dir) { ext -> ext.supports { mobile + web } }
         assertRegisteredTargets(project, "iosArm64", "wasmJs")
     }
 

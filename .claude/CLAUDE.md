@@ -4,7 +4,7 @@
 
 This is a **multi-module Gradle build**:
 
-- `:gradle-plugin` — the only plugin (`com.rsicarelli.kmptargets`). The DSL (`kmpTargets { supported { … } / selection { … } }`) is the sole public API; teams that want `apply by id, no body` ergonomics build their own conventions in `build-logic/`. Source under `gradle-plugin/src/`.
+- `:gradle-plugin` — the only plugin (`com.rsicarelli.kmptargets`). The DSL (`kmpTargets { supports { … } }`) is the sole public API; teams that want `apply by id, no body` ergonomics build their own conventions in `build-logic/`. Source under `gradle-plugin/src/`.
 - Future: `:cli` — companion CLI for driving target selection from outside Gradle. Reserved as a sibling subproject.
 
 Do **not** collapse into a single-module layout. The structure keeps adding siblings painless.

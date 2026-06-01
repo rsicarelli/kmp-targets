@@ -10,37 +10,29 @@ import org.junit.jupiter.api.Test
 class KmpTargetsExtensionTest {
 
     @Test
-    fun `given extension created when selection accessed then property is present and unset`() {
+    fun `given extension created when defaultSelection accessed then property is unset`() {
         val ext = newExtension()
-        assertFalse(ext.selectionProperty.isPresent)
+        assertFalse(ext.defaultSelection.isPresent)
     }
 
     @Test
-    fun `given extension created when fallback accessed then property is present and unset`() {
+    fun `given extension created when supports accessed then property is unset`() {
         val ext = newExtension()
-        assertFalse(ext.fallback.isPresent)
+        assertFalse(ext.supportsProperty.isPresent)
     }
 
     @Test
-    fun `given extension created when supported accessed then property is unset`() {
+    fun `given supports unset when resolvedSupported then defaults to all`() {
         val ext = newExtension()
-        assertFalse(ext.supportedProperty.isPresent)
+        assertEquals(KmpTargetSet.all, ext.resolvedSupported())
     }
 
     @Test
-    fun `given supported unset when effectiveSupported then defaults to all`() {
+    fun `given defaultSelection set when read then it holds that value`() {
         val ext = newExtension()
-        assertEquals(KmpTargetSet.all, ext.effectiveSupported())
-    }
-
-    @Test
-    fun `given fallback set when selection is read then selection still empty until plugin applied`() {
-        val ext = newExtension()
-        ext.fallback.set(KmpTargetSet.web)
-        // Setting fallback doesn't auto-populate selection — that's the plugin's job.
-        assertFalse(ext.selectionProperty.isPresent)
-        assertTrue(ext.fallback.isPresent)
-        assertEquals(KmpTargetSet.web, ext.fallback.get())
+        ext.defaultSelection.set(KmpTargetSet.web)
+        assertTrue(ext.defaultSelection.isPresent)
+        assertEquals(KmpTargetSet.web, ext.defaultSelection.get())
     }
 
     private fun newExtension(): KmpTargetsExtension {

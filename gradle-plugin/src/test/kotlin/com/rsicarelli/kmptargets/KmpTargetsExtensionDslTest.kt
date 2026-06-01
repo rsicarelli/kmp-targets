@@ -8,69 +8,70 @@ import org.gradle.testfixtures.ProjectBuilder
 import org.junit.jupiter.api.Test
 
 /**
- * Extension-level coverage of the type-safe `supported { … }` / `selection { … }` blocks, the raw
- * value overloads, and the [KmpTargetsExtension.resolvedSelection] precedence (global override wins
- * over a per-module selection). These assert the pure DSL → property wiring without applying KGP;
- * the in-process registration is covered by [KmpTargetsDslTest].
+ * Extension-level coverage of the type-safe `supports { … }` block, its raw value overload, and the
+ * [KmpTargetsExtension.resolvedSelection] precedence (a global `KMP_TARGETS` wins over
+ * [KmpTargetsExtension.defaultSelection]). These assert the pure DSL → property wiring without
+ * applying KGP; the in-process registration is covered by [KmpTargetsDslTest].
  */
 class KmpTargetsExtensionDslTest {
 
     @Test
-    fun `given supported block when effectiveSupported then equals the declared union`() {
+    fun `given supports block when resolvedSupported then equals the declared union`() {
         val ext = newExtension()
-        ext.supported { mobile + web }
-        assertEquals(KmpTargetSet.mobile + KmpTargetSet.web, ext.effectiveSupported())
+        ext.supports { mobile + web }
+        assertEquals(KmpTargetSet.mobile + KmpTargetSet.web, ext.resolvedSupported())
     }
 
     @Test
-    fun `given supported block with subtraction when effectiveSupported then the leaf is removed`() {
+    fun `given supports block with subtraction when resolvedSupported then the leaf is removed`() {
         val ext = newExtension()
-        ext.supported { appleMobile - iosX64 }
+        ext.supports { appleMobile - iosX64 }
         assertEquals(
             KmpTargetSet.appleMobile - KmpTarget.Native.Apple.Ios.X64,
-            ext.effectiveSupported(),
+            ext.resolvedSupported(),
         )
-        assertTrue(KmpTarget.Native.Apple.Ios.X64 !in ext.effectiveSupported())
+        assertTrue(KmpTarget.Native.Apple.Ios.X64 !in ext.resolvedSupported())
     }
 
     @Test
-    fun `given supported value overload when effectiveSupported then equals that value`() {
+    fun `given supports value overload when resolvedSupported then equals that value`() {
         val ext = newExtension()
-        ext.supported(KmpTargetSet.of(KmpTarget.Jvm.Desktop, KmpTarget.Native.Linux.X64))
+        ext.supports(KmpTargetSet.of(KmpTarget.Jvm.Desktop, KmpTarget.Native.Linux.X64))
         assertEquals(
             KmpTargetSet.of(KmpTarget.Jvm.Desktop, KmpTarget.Native.Linux.X64),
-            ext.effectiveSupported(),
+            ext.resolvedSupported(),
         )
     }
 
     @Test
-    fun `given supported block called twice when effectiveSupported then the last assignment wins`() {
+    fun `given supports block called twice when resolvedSupported then the last assignment wins`() {
         val ext = newExtension()
-        ext.supported { mobile }
-        ext.supported { web }
-        // The DSL block is an assignment, not an accumulator — to union, write `supported { mobile
-        // +
+        ext.supports { mobile }
+        ext.supports { web }
+        // The DSL block is an assignment, not an accumulator — to union, write `supports { mobile +
         // web }`.
-        assertEquals(KmpTargetSet.web, ext.effectiveSupported())
+        assertEquals(KmpTargetSet.web, ext.resolvedSupported())
     }
 
     @Test
-    fun `given supported never declared when effectiveSupported then defaults to all`() {
+    fun `given supports never declared when resolvedSupported then defaults to all`() {
         val ext = newExtension()
-        assertEquals(KmpTargetSet.all, ext.effectiveSupported())
+        assertEquals(KmpTargetSet.all, ext.resolvedSupported())
     }
 
     @Test
-    fun `given supported block declared when effectiveSupported then equals the block value`() {
+    fun `given supports block declared when resolvedSupported then equals the block value`() {
         val ext = newExtension()
-        ext.supported { jvm }
-        assertEquals(KmpTargetSet.of(KmpTarget.Jvm.Desktop), ext.effectiveSupported())
+        ext.supports { jvm }
+        assertEquals(KmpTargetSet.of(KmpTarget.Jvm.Desktop), ext.resolvedSupported())
     }
 
     @Test
-    fun `given selection block and no global when resolvedSelection then equals the block value`() {
+    fun `given defaultSelection set and no global when resolvedSelection then equals that value`() {
         val ext = newExtension()
-        ext.selection { jvm + iosArm64 }
+        ext.defaultSelection.set(
+            KmpTargetSet.of(KmpTarget.Jvm.Desktop, KmpTarget.Native.Apple.Ios.Arm64)
+        )
         assertEquals(
             KmpTargetSet.of(KmpTarget.Jvm.Desktop, KmpTarget.Native.Apple.Ios.Arm64),
             ext.resolvedSelection(),
@@ -78,25 +79,18 @@ class KmpTargetsExtensionDslTest {
     }
 
     @Test
-    fun `given selection value overload and no global when resolvedSelection then equals that value`() {
+    fun `given a global selection and a defaultSelection when resolvedSelection then global wins`() {
         val ext = newExtension()
-        ext.selection(KmpTargetSet.web)
-        assertEquals(KmpTargetSet.web, ext.resolvedSelection())
-    }
-
-    @Test
-    fun `given both a global selection and a selection block when resolvedSelection then global wins`() {
-        val ext = newExtension()
-        ext.selection { iosArm64 + iosSimulatorArm64 }
+        ext.defaultSelection.set(KmpTargetSet.appleMobile)
         ext.globalSelection = KmpTargetSet.of(KmpTarget.Jvm.Desktop)
         assertEquals(KmpTargetSet.of(KmpTarget.Jvm.Desktop), ext.resolvedSelection())
     }
 
     @Test
-    fun `given a global selection narrowed to empty when resolvedSelection then it is empty not the block`() {
+    fun `given a global selection narrowed to empty when resolvedSelection then it is empty not the default`() {
         val ext = newExtension()
-        ext.selection { jvm }
-        // An explicit "build nothing" global (e.g. KMP_TARGETS=jvm,-jvm) must win over the block.
+        ext.defaultSelection.set(KmpTargetSet.of(KmpTarget.Jvm.Desktop))
+        // An explicit "build nothing" global (e.g. KMP_TARGETS=jvm,-jvm) must win over the default.
         ext.globalSelection = KmpTargetSet.empty
         assertEquals(KmpTargetSet.empty, ext.resolvedSelection())
     }

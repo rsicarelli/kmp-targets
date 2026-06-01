@@ -1,5 +1,5 @@
 plugins {
-    // Supports all targets (default when no `kmpTargets { supported { … } }` block is declared);
+    // Supports all targets (default when no `kmpTargets { supports { … } }` block is declared);
     // intersected with KMP_TARGETS=jvm (see ../gradle.properties) it registers jvm only. Configured
     // under Isolated Projects — proof the plugin applies without reaching across projects.
     kotlin("multiplatform")

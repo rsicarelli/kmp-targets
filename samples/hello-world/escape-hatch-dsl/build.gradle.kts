@@ -12,5 +12,5 @@ kmpTargets {
     // selection ∩ supported = jvm — so only `jvm` registers (linuxX64 is supported but unselected;
     // the iOS leaves are selected but unsupported). This declaration is read from the build-script
     // body and honored by the deferred registration pass — the old "timing wall" used to drop it.
-    supported { jvm + linuxX64 }
+    supports { jvm + linuxX64 }
 }

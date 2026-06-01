@@ -11,6 +11,6 @@ ktfmt { kotlinLangStyle() }
 
 tasks.named("check") { dependsOn("ktfmtCheck") }
 
-kmpTargets { supported { jvm } }
+kmpTargets { supports { jvm } }
 
 kotlin { sourceSets { commonMain.dependencies { implementation(project(":lib")) } } }
