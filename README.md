@@ -61,6 +61,20 @@ kmpTargets {
 }
 ```
 
+### Seeing the DSL docs on hover (IntelliJ)
+
+The plugin ships a sources jar, so every preset, leaf, and extension member carries KDoc you can
+read on hover (`F1` / Quick Documentation). But `kmpTargets { … }` resolves through the **build-script
+(plugin) classpath**, and IntelliJ does **not** attach sources for build-script dependencies by
+default — so out of the box you'll only see the bare signature. Turn it on once:
+
+1. **Settings → Advanced Settings → Build Tools. Gradle** → enable **"Attach scripts dependencies
+   sources"** (also enable **"Download sources"**).
+2. Reload the Gradle project (Gradle tool window → 🔄). A sync is required for the setting to take
+   effect.
+
+After the sync, hovering `supported`, `mobile`, `apple`, `iosArm64`, … shows their documentation.
+
 ### Build-logic conventions
 
 The plugin ships just one extension (`KmpTargetsExtension`) and one set of public types
