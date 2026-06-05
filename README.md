@@ -195,6 +195,27 @@ kmpTargets { hierarchyTemplate.set(false) }
 Precedence is **project DSL > global property > built-in default (`true`)**. Opt out when a module
 supplies its own `applyHierarchyTemplate { … }`, so the plugin stays out of the way.
 
+### Host compatibility
+
+The registered target set is **host-blind by design**: selecting `iosArm64` registers `iosArm64` on
+macOS, Linux, and Windows alike, so configuration-cache keys, task graphs, and published metadata
+stay identical across CI agents. But not every host can *compile* every native target — `iosArm64`
+needs a macOS host.
+
+When the selection includes a native target the current host cannot compile, the plugin logs a
+configuration-time **warning** naming the target(s) and the host (e.g. `LINUX_X64`) — and **still
+registers them**. Nothing is silently dropped; your explicit selection is honored deterministically,
+and Kotlin/Native's compile/link tasks for those targets simply won't succeed on that host:
+
+```
+kmp-targets: ':shared' selects [iosArm64] which cannot be compiled on this host (LINUX_X64) —
+still registered (selection is host-independent), but compile/link tasks for them will fail or
+be skipped here.
+```
+
+The warning is purely advisory and fires at most once per target per module. JVM and Web targets
+(`androidTarget`, `jvm`, `js`, `wasmJs`, `wasmWasi`) are host-agnostic and never warned.
+
 ## Installation
 
 The plugin is not yet published to the Gradle Plugin Portal or Maven Central. Track progress in the issues / releases. Locally:
