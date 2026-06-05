@@ -13,8 +13,14 @@ internal object ConfigKeys {
     /** Global opt-out for the minimal hierarchy template (`true`/`false`). */
     const val HIERARCHY_TEMPLATE: String = "kmptargets.hierarchyTemplate"
 
+    /**
+     * Global opt-in promoting the selection/host advisories to build failures (`true`/`false`,
+     * default off — issue #34).
+     */
+    const val STRICT: String = "kmptargets.strict"
+
     /** Every key the dedicated config files may legally contain (unknown keys fail the build). */
-    val ALL: Set<String> = setOf(TARGETS, HIERARCHY_TEMPLATE)
+    val ALL: Set<String> = setOf(TARGETS, HIERARCHY_TEMPLATE, STRICT)
 
     /** Committed, team-shared config file at the root of the build. */
     const val COMMITTED_FILE: String = "kmp-targets.properties"

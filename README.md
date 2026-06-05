@@ -289,6 +289,32 @@ be skipped here.
 The warning is purely advisory and fires at most once per target per module. JVM and Web targets
 (`androidTarget`, `jvm`, `js`, `wasmJs`, `wasmWasi`) are host-agnostic and never warned.
 
+### Strict mode
+
+By default both advisories — the **empty-overlap** warning (a non-empty selection that matches
+nothing a module `supports`, so the module registers zero targets) and the **host-impossible**
+warning above — are just that: warnings. Right for local iteration, easy to miss in CI, where a
+module silently building nothing is usually a real configuration bug.
+
+`kmptargets.strict=true` promotes exactly those two advisories to configuration-time **build
+failures** (`GradleException`) with the **identical message text** — severity changes, policy does
+not. It never changes *which* configurations are flagged and never changes *what registers*.
+Default **off**, deliberately. The flag resolves through the same
+[precedence chain](#selecting-targets) as every `kmptargets.*` key; anything other than
+`true`/`false` (case-insensitive) is treated as unset, i.e. off.
+
+The recommended setup keeps local builds advisory and turns CI strict:
+
+```yaml
+# CI only — e.g. a GitHub Actions env block
+env:
+  ORG_GRADLE_PROJECT_kmptargets.strict: "true"   # or: ./gradlew build -Pkmptargets.strict=true
+```
+
+> **Heads-up for cross-host CI:** with strict on, a selection that includes targets the agent
+> cannot compile (e.g. iOS leaves on a Linux runner) fails the build by design. Strict CI pairs
+> with per-host selections (e.g. `-Pkmptargets.targets=linux,jvm,web` on Linux agents).
+
 ## Installation
 
 The plugin is not yet published to the Gradle Plugin Portal or Maven Central. Track progress in the issues / releases. Locally:
