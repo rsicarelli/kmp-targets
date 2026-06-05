@@ -99,6 +99,9 @@ public abstract class KmpTargetsExtension @Inject constructor(objects: ObjectFac
     /** Leaves already registered with KGP, so repeated registration stays idempotent. */
     internal val registered: MutableSet<KmpTarget> = mutableSetOf()
 
+    /** Leaves already named in a host-impossible warning, so each is warned at most once. */
+    internal val hostWarned: MutableSet<KmpTarget> = mutableSetOf()
+
     /** True once the minimal hierarchy template has been applied, so it is applied at most once. */
     internal var hierarchyTemplateApplied: Boolean = false
 

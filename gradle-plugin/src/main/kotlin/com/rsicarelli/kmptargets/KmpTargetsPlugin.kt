@@ -3,6 +3,8 @@ package com.rsicarelli.kmptargets
 import com.rsicarelli.kmptargets.hierarchy.computeHierarchySpec
 import com.rsicarelli.kmptargets.hierarchy.resolveHierarchyTemplateEnabled
 import com.rsicarelli.kmptargets.hierarchy.toTemplate
+import com.rsicarelli.kmptargets.host.hostImpossibleWarning
+import com.rsicarelli.kmptargets.host.impossibleOnHost
 import com.rsicarelli.kmptargets.model.KmpTarget
 import com.rsicarelli.kmptargets.model.KmpTargetSet
 import com.rsicarelli.kmptargets.parser.ParseResult
@@ -16,6 +18,7 @@ import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import org.jetbrains.kotlin.konan.target.HostManager
 
 public class KmpTargetsPlugin : Plugin<Project> {
 
@@ -95,9 +98,10 @@ public class KmpTargetsPlugin : Plugin<Project> {
         }
 
     /**
-     * Registers `selection ∩ supported`, emits the empty-overlap advisory, and applies the minimal
-     * hierarchy template — all off the cumulative supported set, so repeated `supports` calls only
-     * register the delta (idempotent) and the template still applies at most once.
+     * Registers `selection ∩ supported`, emits the empty-overlap and host-impossible advisories,
+     * and applies the minimal hierarchy template — all off the cumulative supported set, so
+     * repeated `supports` calls only register the delta (idempotent), each host warning names a
+     * leaf at most once, and the template still applies at most once.
      */
     private fun register(
         project: Project,
@@ -118,6 +122,24 @@ public class KmpTargetsPlugin : Plugin<Project> {
         // message can never name a token present in both lists (issue #10).
         if (shouldWarnEmptyOverlap(selection, supported)) {
             project.logger.warn(emptyOverlapWarning(project.path, selection, supported))
+        }
+
+        // Host-awareness (#32): advisory only — names registered native targets this host cannot
+        // compile, never changing what registers (the set stays identical across hosts).
+        // HostManager is touched only here, inside `withPlugin(KGP_ID)` at configuration time, so
+        // its classes never load when KGP is absent and nothing host-derived is held by a task
+        // action. Deduped per leaf via `hostWarned`, so a later `supports` union that introduces a
+        // new impossible leaf still warns — for that leaf only.
+        val fresh = impossibleOnHost(active, HostManager().enabled.toSet()).members - ext.hostWarned
+        if (fresh.isNotEmpty()) {
+            project.logger.warn(
+                hostImpossibleWarning(
+                    project.path,
+                    HostManager.host,
+                    KmpTargetSet.of(*fresh.toTypedArray()),
+                )
+            )
+            ext.hostWarned += fresh
         }
 
         maybeApplyHierarchyTemplate(project, ext, active, globalHierarchyEnabled)
