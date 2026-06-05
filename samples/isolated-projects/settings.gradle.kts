@@ -27,7 +27,7 @@ rootProject.name = "isolated-projects"
 // the plugin keeps touching nothing but the project it is applied to — making it the executable
 // guard for that contract.
 
-// default-all → supports every target; with KMP_TARGETS=jvm registers jvm only
+// default-all → supports every target; with kmptargets.targets=jvm registers jvm only
 include(":lib")
 
 // supports{jvm} → registers jvm; depends on :lib through a project dependency

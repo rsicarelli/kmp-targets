@@ -3,7 +3,7 @@ package com.rsicarelli.kmptargets.parser
 import com.rsicarelli.kmptargets.model.KmpTargetSet
 
 /**
- * Outcome of parsing a `KMP_TARGETS` string into a [KmpTargetSet].
+ * Outcome of parsing a `kmptargets.targets` string into a [KmpTargetSet].
  *
  * [Ok] carries the resolved selection plus any non-fatal warnings (empty input, redundant tokens,
  * etc). [Err] carries a human-readable message and the offending token (when applicable) so the

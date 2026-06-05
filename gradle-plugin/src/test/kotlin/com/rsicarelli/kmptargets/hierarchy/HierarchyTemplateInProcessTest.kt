@@ -87,6 +87,28 @@ class HierarchyTemplateInProcessTest {
     }
 
     @Test
+    fun `given hierarchy template false in committed config file and iOS only when applied then KGP default applies`(
+        @TempDir dir: Path
+    ) {
+        // The dedicated config file carries the hierarchy key with the same precedence chain as the
+        // selection key (issue #30).
+        dir.resolve("kmp-targets.properties").writeText("kmptargets.hierarchyTemplate=false\n")
+        val sourceSets = sourceSetsOf(dir, "iosArm64,iosX64,iosSimulatorArm64")
+        assertTrue("appleMain" in sourceSets, "file off should keep KGP default: $sourceSets")
+    }
+
+    @Test
+    fun `given hierarchy template false in committed but true in personal file when applied then minimal template wins`(
+        @TempDir dir: Path
+    ) {
+        dir.resolve("kmp-targets.properties").writeText("kmptargets.hierarchyTemplate=false\n")
+        dir.resolve("kmp-targets.local.properties").writeText("kmptargets.hierarchyTemplate=true\n")
+        val sourceSets = sourceSetsOf(dir, "iosArm64,iosX64,iosSimulatorArm64")
+        assertTrue("iosMain" in sourceSets, sourceSets.toString())
+        assertFalse("appleMain" in sourceSets, "personal file should win: $sourceSets")
+    }
+
+    @Test
     fun `given global property false but project override true when applied then minimal template wins`(
         @TempDir dir: Path
     ) {
@@ -146,9 +168,9 @@ class HierarchyTemplateInProcessTest {
     ) {
         // Proves the active-set -> spec wiring uses selection ∩ resolvedSupported. Materialization
         // is asserted by the source-set tests above; here we pin the pure decision on a real
-        // extension fed by a real KMP_TARGETS property.
+        // extension fed by a real kmptargets.targets property.
         dir.resolve("gradle.properties")
-            .writeText("KMP_TARGETS=iosArm64,iosX64,iosSimulatorArm64\n")
+            .writeText("kmptargets.targets=iosArm64,iosX64,iosSimulatorArm64\n")
         val project = ProjectBuilder.builder().withProjectDir(dir.toFile()).build()
         project.pluginManager.apply("com.rsicarelli.kmptargets")
         project.pluginManager.apply("org.jetbrains.kotlin.multiplatform")
@@ -164,13 +186,13 @@ class HierarchyTemplateInProcessTest {
         extraProps: String = "",
         configure: (Project) -> Unit = {},
     ): Set<String> {
-        dir.resolve("gradle.properties").writeText("KMP_TARGETS=$kmpTargets\n$extraProps")
+        dir.resolve("gradle.properties").writeText("kmptargets.targets=$kmpTargets\n$extraProps")
         val project = ProjectBuilder.builder().withProjectDir(dir.toFile()).build()
         project.pluginManager.apply("com.rsicarelli.kmptargets")
         project.pluginManager.apply("org.jetbrains.kotlin.multiplatform")
         // `configure` sets hierarchyTemplate, which must hold before the eager `supports` call that
         // registers targets and applies the template. `supports { all }` keeps the active set equal
-        // to the KMP_TARGETS selection.
+        // to the kmptargets.targets selection.
         configure(project)
         project.extensions.getByType(KmpTargetsExtension::class.java).supports(KmpTargetSet.all)
         (project as ProjectInternal).evaluate()
@@ -183,7 +205,7 @@ class HierarchyTemplateInProcessTest {
 
     /** Direct `dependsOn` source-set names of [sourceSet] after the minimal template is applied. */
     private fun dependsOnOf(dir: Path, kmpTargets: String, sourceSet: String): Set<String> {
-        dir.resolve("gradle.properties").writeText("KMP_TARGETS=$kmpTargets\n")
+        dir.resolve("gradle.properties").writeText("kmptargets.targets=$kmpTargets\n")
         val project = ProjectBuilder.builder().withProjectDir(dir.toFile()).build()
         project.pluginManager.apply("com.rsicarelli.kmptargets")
         project.pluginManager.apply("org.jetbrains.kotlin.multiplatform")

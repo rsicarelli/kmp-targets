@@ -17,7 +17,7 @@ body:
       description: |
         If applicable, sketch the property syntax, plugin DSL, or task surface you'd want.
       placeholder: |
-        KMP_TARGETS=android,iosAll,wasm
+        kmptargets.targets=android,iosAll,wasm
         # or
         kmpTargets {
             require("android")

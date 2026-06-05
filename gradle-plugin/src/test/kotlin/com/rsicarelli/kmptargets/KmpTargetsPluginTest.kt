@@ -37,10 +37,10 @@ class KmpTargetsPluginTest {
     }
 
     @Test
-    fun `given KMP_TARGETS gradle property is set when selection is read then it reflects the parsed value`(
+    fun `given kmptargets targets gradle property is set when selection is read then it reflects the parsed value`(
         @TempDir dir: Path
     ) {
-        dir.resolve("gradle.properties").writeText("KMP_TARGETS=android,iosArm64\n")
+        dir.resolve("gradle.properties").writeText("kmptargets.targets=android,iosArm64\n")
         val project = newProject(dir)
         project.pluginManager.apply("com.rsicarelli.kmptargets")
         val ext = project.extensions.getByType(KmpTargetsExtension::class.java)
@@ -51,10 +51,10 @@ class KmpTargetsPluginTest {
     }
 
     @Test
-    fun `given KMP_TARGETS gradle property is appleMobile when selection is read then it equals KmpTargetSet appleMobile`(
+    fun `given kmptargets targets gradle property is appleMobile when selection is read then it equals KmpTargetSet appleMobile`(
         @TempDir dir: Path
     ) {
-        dir.resolve("gradle.properties").writeText("KMP_TARGETS=appleMobile\n")
+        dir.resolve("gradle.properties").writeText("kmptargets.targets=appleMobile\n")
         val project = newProject(dir)
         project.pluginManager.apply("com.rsicarelli.kmptargets")
         val ext = project.extensions.getByType(KmpTargetsExtension::class.java)
@@ -73,10 +73,10 @@ class KmpTargetsPluginTest {
     }
 
     @Test
-    fun `given KMP_TARGETS is invalid when plugin is applied then a GradleException surfaces in the failure chain`(
+    fun `given kmptargets targets is invalid when plugin is applied then a GradleException surfaces in the failure chain`(
         @TempDir dir: Path
     ) {
-        dir.resolve("gradle.properties").writeText("KMP_TARGETS=iosArm65\n")
+        dir.resolve("gradle.properties").writeText("kmptargets.targets=iosArm65\n")
         val project = newProject(dir)
         val ex =
             assertFailsWith<Exception> { project.pluginManager.apply("com.rsicarelli.kmptargets") }
@@ -84,14 +84,17 @@ class KmpTargetsPluginTest {
         // message.
         val rootCause =
             generateSequence(ex as Throwable?) { it.cause }
-                .firstOrNull { it.message?.contains("KMP_TARGETS") == true }
-        assertNotNull(rootCause, "expected KMP_TARGETS-tagged cause in chain, root: ${ex.message}")
+                .firstOrNull { it.message?.contains("kmptargets.targets") == true }
+        assertNotNull(
+            rootCause,
+            "expected kmptargets.targets-tagged cause in chain, root: ${ex.message}",
+        )
         assertTrue(
             rootCause.message!!.contains("iosArm65"),
             "expected message to include offending token, got: ${rootCause.message}",
         )
         assertTrue(
-            !rootCause.message!!.contains("KMP_TARGETS: KMP_TARGETS"),
+            !rootCause.message!!.contains("kmptargets.targets: kmptargets.targets"),
             "expected a single property prefix, got: ${rootCause.message}",
         )
         assertTrue(
@@ -101,10 +104,10 @@ class KmpTargetsPluginTest {
     }
 
     @Test
-    fun `given KMP_TARGETS in local properties when plugin applied then selection reflects that value`(
+    fun `given kmptargets targets in local properties when plugin applied then selection reflects that value`(
         @TempDir dir: Path
     ) {
-        dir.resolve("local.properties").writeText("KMP_TARGETS=android\n")
+        dir.resolve("local.properties").writeText("kmptargets.targets=android\n")
         val project = newProject(dir)
         project.pluginManager.apply("com.rsicarelli.kmptargets")
         val ext = project.extensions.getByType(KmpTargetsExtension::class.java)
@@ -112,11 +115,11 @@ class KmpTargetsPluginTest {
     }
 
     @Test
-    fun `given KMP_TARGETS in both gradle properties and local properties when plugin applied then gradle property wins`(
+    fun `given kmptargets targets in both gradle properties and local properties when plugin applied then gradle property wins`(
         @TempDir dir: Path
     ) {
-        dir.resolve("gradle.properties").writeText("KMP_TARGETS=iosArm64\n")
-        dir.resolve("local.properties").writeText("KMP_TARGETS=android\n")
+        dir.resolve("gradle.properties").writeText("kmptargets.targets=iosArm64\n")
+        dir.resolve("local.properties").writeText("kmptargets.targets=android\n")
         val project = newProject(dir)
         project.pluginManager.apply("com.rsicarelli.kmptargets")
         val ext = project.extensions.getByType(KmpTargetsExtension::class.java)
@@ -124,10 +127,10 @@ class KmpTargetsPluginTest {
     }
 
     @Test
-    fun `given KMP_TARGETS is blank when plugin applied then selection falls back to default`(
+    fun `given kmptargets targets is blank when plugin applied then selection falls back to default`(
         @TempDir dir: Path
     ) {
-        dir.resolve("gradle.properties").writeText("KMP_TARGETS=\n")
+        dir.resolve("gradle.properties").writeText("kmptargets.targets=\n")
         val project = newProject(dir)
         project.pluginManager.apply("com.rsicarelli.kmptargets")
         val ext = project.extensions.getByType(KmpTargetsExtension::class.java)
@@ -137,15 +140,114 @@ class KmpTargetsPluginTest {
     }
 
     @Test
-    fun `given KMP_TARGETS narrows to nothing via minus when selection is read then it is empty not the default`(
+    fun `given kmptargets targets narrows to nothing via minus when selection is read then it is empty not the default`(
         @TempDir dir: Path
     ) {
-        dir.resolve("gradle.properties").writeText("KMP_TARGETS=jvm,-jvm\n")
+        dir.resolve("gradle.properties").writeText("kmptargets.targets=jvm,-jvm\n")
         val project = newProject(dir)
         project.pluginManager.apply("com.rsicarelli.kmptargets")
         val ext = project.extensions.getByType(KmpTargetsExtension::class.java)
         // An explicit selection narrowed to nothing means "build nothing", not "build everything".
         assertEquals(KmpTargetSet.empty, ext.resolvedSelection())
+    }
+
+    @Test
+    fun `given committed config file with targets key when plugin applied then selection reflects it`(
+        @TempDir dir: Path
+    ) {
+        dir.resolve("kmp-targets.properties").writeText("kmptargets.targets=android\n")
+        val project = newProject(dir)
+        project.pluginManager.apply("com.rsicarelli.kmptargets")
+        val ext = project.extensions.getByType(KmpTargetsExtension::class.java)
+        assertEquals(KmpTargetSet.of(KmpTarget.Jvm.Android), ext.resolvedSelection())
+    }
+
+    @Test
+    fun `given personal and committed config files when plugin applied then the personal file wins`(
+        @TempDir dir: Path
+    ) {
+        dir.resolve("kmp-targets.properties").writeText("kmptargets.targets=android\n")
+        dir.resolve("kmp-targets.local.properties").writeText("kmptargets.targets=jvm\n")
+        val project = newProject(dir)
+        project.pluginManager.apply("com.rsicarelli.kmptargets")
+        val ext = project.extensions.getByType(KmpTargetsExtension::class.java)
+        assertEquals(KmpTargetSet.of(KmpTarget.Jvm.Desktop), ext.resolvedSelection())
+    }
+
+    @Test
+    fun `given committed config file and gradle properties when plugin applied then the committed file wins`(
+        @TempDir dir: Path
+    ) {
+        // The dedicated file is the consolidation point: once a team adopts it, a stale key left
+        // behind in gradle.properties must not silently override it (issue #30).
+        dir.resolve("gradle.properties").writeText("kmptargets.targets=jvm\n")
+        dir.resolve("kmp-targets.properties").writeText("kmptargets.targets=android\n")
+        val project = newProject(dir)
+        project.pluginManager.apply("com.rsicarelli.kmptargets")
+        val ext = project.extensions.getByType(KmpTargetsExtension::class.java)
+        assertEquals(KmpTargetSet.of(KmpTarget.Jvm.Android), ext.resolvedSelection())
+    }
+
+    @Test
+    fun `given cli property and personal config file when plugin applied then the cli value wins`(
+        @TempDir dir: Path
+    ) {
+        dir.resolve("kmp-targets.local.properties").writeText("kmptargets.targets=android\n")
+        val project = newProject(dir)
+        project.gradle.startParameter.projectProperties = mapOf("kmptargets.targets" to "jvm")
+        project.pluginManager.apply("com.rsicarelli.kmptargets")
+        val ext = project.extensions.getByType(KmpTargetsExtension::class.java)
+        assertEquals(KmpTargetSet.of(KmpTarget.Jvm.Desktop), ext.resolvedSelection())
+    }
+
+    @Test
+    fun `given committed config file with blank targets value when plugin applied then selection falls back to default`(
+        @TempDir dir: Path
+    ) {
+        // Blank is "present but not overriding" — it falls through to the default selection, and
+        // shadows lower layers rather than deferring to them (same contract as gradle.properties).
+        dir.resolve("kmp-targets.properties").writeText("kmptargets.targets=\n")
+        dir.resolve("gradle.properties").writeText("kmptargets.targets=android\n")
+        val project = newProject(dir)
+        project.pluginManager.apply("com.rsicarelli.kmptargets")
+        val ext = project.extensions.getByType(KmpTargetsExtension::class.java)
+        assertEquals(KmpTargetSet.all, ext.resolvedSelection())
+    }
+
+    @Test
+    fun `given committed config file with unknown key when plugin applied then the build fails with a suggestion`(
+        @TempDir dir: Path
+    ) {
+        dir.resolve("kmp-targets.properties").writeText("kmptargets.tagets=jvm\n")
+        val project = newProject(dir)
+        val ex =
+            assertFailsWith<Exception> { project.pluginManager.apply("com.rsicarelli.kmptargets") }
+        val rootCause =
+            generateSequence(ex as Throwable?) { it.cause }
+                .firstOrNull { it.message?.contains("kmp-targets.properties") == true }
+        assertNotNull(rootCause, "expected file-tagged cause in chain, root: ${ex.message}")
+        assertTrue(
+            rootCause.message!!.contains("did you mean 'kmptargets.targets'?"),
+            "expected suggestion, got: ${rootCause.message}",
+        )
+    }
+
+    @Test
+    fun `given personal config file with unknown key when plugin applied then the build fails naming that file`(
+        @TempDir dir: Path
+    ) {
+        dir.resolve("kmp-targets.local.properties").writeText("kmptargets.hierachyTemplate=false\n")
+        val project = newProject(dir)
+        val ex =
+            assertFailsWith<Exception> { project.pluginManager.apply("com.rsicarelli.kmptargets") }
+        val rootCause =
+            generateSequence(ex as Throwable?) { it.cause }
+                .firstOrNull { it.message?.contains("kmp-targets.local.properties") == true }
+        assertNotNull(rootCause, "expected file-tagged cause in chain, root: ${ex.message}")
+        assertTrue(
+            rootCause.message!!.contains("did you mean 'kmptargets.hierarchyTemplate'?"),
+            "expected suggestion, got: ${rootCause.message}",
+        )
     }
 
     @Test

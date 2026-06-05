@@ -7,8 +7,8 @@
 `kmp-targets` is a Gradle plugin for Kotlin Multiplatform projects that lets each developer (and each CI runner) choose which KMP targets to build, via a single Gradle property:
 
 ```properties
-# local.properties, gradle.properties, or -P
-KMP_TARGETS=jvm,iosArm64
+# kmp-targets.properties (committed), kmp-targets.local.properties (personal), gradle.properties, or -P
+kmptargets.targets=jvm,iosArm64
 ```
 
 Targets you don't select are never registered with KGP, so their compile/link/KSP/publish tasks never run — cutting Gradle sync and build times when you only need a subset.
@@ -20,7 +20,7 @@ feature builds only Android + iOS, a tooling module builds only the JVM. `kmp-ta
 facts:
 
 - **What a module *can* build** — its *supported* set, declared per-module via the type-safe DSL.
-- **What you *want* to build now** — the global `KMP_TARGETS` *selection*.
+- **What you *want* to build now** — the global `kmptargets.targets` *selection*.
 
 The plugin registers `selection ∩ supported` for each module. A module never builds a target outside
 its supported set, and the global selection narrows that further.
@@ -51,12 +51,13 @@ Targets are **explicit**: a module that never calls `supports` registers nothing
 KGP where every target is declared by hand. `supports` registers eagerly — the moment it runs — so
 call it before anything reads `kotlin.targets`, and calling it more than once **unions** (an
 already-registered target can't be retracted). To build whatever the developer is currently
-targeting, opt in explicitly with `supports { all }` — then the global `KMP_TARGETS` alone decides
-what registers.
+targeting, opt in explicitly with `supports { all }` — then the global `kmptargets.targets` alone
+decides what registers.
 
-The selection itself is **global** (the `KMP_TARGETS` property, see below) — there is no per-module
-selection block. A project-wide default for when `KMP_TARGETS` is unset can be set from build-logic
-via the `defaultSelection` property; a global `KMP_TARGETS` always overrides it.
+The selection itself is **global** (the `kmptargets.targets` property, see below) — there is no
+per-module selection block. A project-wide default for when `kmptargets.targets` is unset can be set
+from build-logic via the `defaultSelection` property; a global `kmptargets.targets` always overrides
+it.
 
 ### Seeing the DSL docs on hover (IntelliJ)
 
@@ -102,27 +103,59 @@ This is how a team centralizes per-module shape vocabulary in their own naming, 
 vocabulary baked into this plugin's artifact. The DSL stays the primitive; convention plugins are an
 optional layer you own.
 
+### Configuration files
+
+Global `kmp-targets` configuration lives in a **dedicated, committed root config file** —
+`kmp-targets.properties` — so there is one discoverable place to see what the plugin is configured
+to do, instead of loose keys buried among unrelated daemon/cache settings in `gradle.properties`:
+
+```properties
+# kmp-targets.properties — committed, team-shared
+kmptargets.targets=jvm,iosArm64
+kmptargets.hierarchyTemplate=true
+```
+
+An optional **personal override file** — `kmp-targets.local.properties`, git-ignored — mirrors
+Bazel's `try-import user.bazelrc`: absent it is ignored; present, its keys override the committed
+file's. Both files accept only the known `kmptargets.*` keys — an unknown key **fails the build**
+with a "did you mean …?" suggestion, so a typo can't silently no-op.
+
+Both files are read as tracked configuration-cache inputs: editing one invalidates the cache,
+leaving them untouched keeps cache hits.
+
 ### Selecting targets
 
 The selection is **global** — one switch narrows the whole build. Set it via any of these sources
 (priority order, highest first):
 
-1. `-PKMP_TARGETS=...` on the CLI
-2. `ORG_GRADLE_PROJECT_KMP_TARGETS` environment variable
-3. the **root** `gradle.properties` (a *subproject's* `gradle.properties` is **not** a source —
+1. `-Pkmptargets.targets=...` on the CLI
+2. `ORG_GRADLE_PROJECT_kmptargets.targets` environment variable
+3. `kmp-targets.local.properties` (per-developer, gitignored)
+4. `kmp-targets.properties` (committed, team-shared)
+5. the **root** `gradle.properties` (a *subproject's* `gradle.properties` is **not** a source —
    Gradle only reads root-level project properties)
-4. `local.properties` (per-developer, gitignored)
-5. a project-wide `defaultSelection` set from build-logic (overridden by all of the above)
-6. Plugin default — every target the plugin currently knows about
+6. `local.properties` (per-developer, gitignored)
+7. a project-wide `defaultSelection` set from build-logic (overridden by all of the above)
+8. Plugin default — every target the plugin currently knows about
+
+The dedicated files beat `gradle.properties` deliberately: once a team adopts the consolidation
+point, a stale key left behind in `gradle.properties` can't silently override it. One nuance: the
+rarer `-Dorg.gradle.project.kmptargets.targets` and `~/.gradle/gradle.properties` forms resolve at
+the `gradle.properties` layer, i.e. below the dedicated files.
+
+> **Breaking rename (pre-1.0):** the selection key used to be `KMP_TARGETS` (env:
+> `ORG_GRADLE_PROJECT_KMP_TARGETS` or bare `KMP_TARGETS`). It is now `kmptargets.targets` — the old
+> key is **not read at all**; a build still setting only `KMP_TARGETS` falls through to
+> `defaultSelection` / the plugin default. See [CHANGELOG.md](./CHANGELOG.md).
 
 ### Selection grammar
 
 ```properties
-KMP_TARGETS=android,iosArm64        # explicit list
-KMP_TARGETS=appleMobile             # preset (iosArm64 + iosSimulatorArm64)
-KMP_TARGETS=appleMobile,-iosArm64   # preset minus a leaf
-KMP_TARGETS=apple,+android          # preset plus an addition
-KMP_TARGETS=ANDROID, ios-arm64      # aliases + case-insensitive
+kmptargets.targets=android,iosArm64        # explicit list
+kmptargets.targets=appleMobile             # preset (iosArm64 + iosSimulatorArm64)
+kmptargets.targets=appleMobile,-iosArm64   # preset minus a leaf
+kmptargets.targets=apple,+android          # preset plus an addition
+kmptargets.targets=ANDROID, ios-arm64      # aliases + case-insensitive
 ```
 
 Available presets:
@@ -180,10 +213,11 @@ hierarchy instead — collapsing every redundant single-child group:
 | iOS + Linux | `nativeMain` over `iosMain` + `linuxMain` — no `appleMain` |
 
 It's **on by default** and applied automatically — no configuration needed. To opt out (and let KGP
-apply its own default), set the Gradle property globally or override per project (project wins):
+apply its own default), set the global key or override per project (project wins):
 
 ```properties
-# root gradle.properties — global default
+# kmp-targets.properties — global default (also accepted via -P, env, gradle.properties,
+# local.properties — same precedence chain as kmptargets.targets)
 kmptargets.hierarchyTemplate=false
 ```
 
@@ -192,7 +226,7 @@ kmptargets.hierarchyTemplate=false
 kmpTargets { hierarchyTemplate.set(false) }
 ```
 
-Precedence is **project DSL > global property > built-in default (`true`)**. Opt out when a module
+Precedence is **project DSL > global key > built-in default (`true`)**. Opt out when a module
 supplies its own `applyHierarchyTemplate { … }`, so the plugin stays out of the way.
 
 ## Installation

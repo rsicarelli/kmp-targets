@@ -4,7 +4,7 @@ import com.rsicarelli.kmptargets.model.KmpTarget
 import com.rsicarelli.kmptargets.model.KmpTargetSet
 
 /**
- * Parses a `KMP_TARGETS` value into a [KmpTargetSet].
+ * Parses a `kmptargets.targets` value into a [KmpTargetSet].
  *
  * Grammar (informal):
  * ```
@@ -32,7 +32,7 @@ public fun parseKmpTargets(raw: String, registry: Set<KmpTarget> = KmpTarget.all
     if (tokens.isEmpty()) {
         return ParseResult.Ok(
             KmpTargetSet.empty,
-            warnings = listOf("KMP_TARGETS is empty; using the default selection"),
+            warnings = listOf("kmptargets.targets is empty; using the default selection"),
         )
     }
 

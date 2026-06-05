@@ -1,5 +1,5 @@
 plugins {
-    // Supports JVM only. With KMP_TARGETS=jvm,iosArm64,iosSimulatorArm64 the iOS targets are
+    // Supports JVM only. With kmptargets.targets=jvm,iosArm64,iosSimulatorArm64 the iOS targets are
     // dropped
     // and only `jvm` registers.
     kotlin("multiplatform")

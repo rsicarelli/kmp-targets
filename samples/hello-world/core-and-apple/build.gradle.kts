@@ -1,5 +1,6 @@
 plugins {
-    // Composition: supported = apple ∪ jvm. With KMP_TARGETS=jvm,iosArm64,iosSimulatorArm64 this
+    // Composition: supported = apple ∪ jvm. With kmptargets.targets=jvm,iosArm64,iosSimulatorArm64
+    // this
     // registers jvm + both iOS leaves — more than `apple` alone (all Apple platforms) or `jvm`
     // alone
     // (jvm only). The DSL takes the place of stacking two convention ids: the supported set is just

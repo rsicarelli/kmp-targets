@@ -1,5 +1,6 @@
 plugins {
-    // Supports jvm only; registers jvm under KMP_TARGETS=jvm. Depends on :lib through a project
+    // Supports jvm only; registers jvm under kmptargets.targets=jvm. Depends on :lib through a
+    // project
     // dependency — a real cross-project edge that Isolated Projects must wire while keeping each
     // project's configuration isolated.
     kotlin("multiplatform")

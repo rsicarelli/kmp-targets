@@ -14,7 +14,7 @@ public fun composeSelectionSources(vararg sources: SelectionSource): SelectionSo
     }
 
 /**
- * Reads `KMP_TARGETS` from a Gradle property (`-P<name>=...` or `gradle.properties`).
+ * Reads `kmptargets.targets` from a Gradle property (`-P<name>=...` or `gradle.properties`).
  *
  * The [providers] reference is captured at construction and the property value is fetched lazily on
  * each [read] call, so the Gradle configuration cache treats the property as a tracked input via
@@ -29,7 +29,7 @@ public class GradlePropertySource(
 }
 
 /**
- * Reads `KMP_TARGETS` from an environment variable. Same configuration-cache contract as
+ * Reads `kmptargets.targets` from an environment variable. Same configuration-cache contract as
  * [GradlePropertySource].
  */
 public class EnvironmentVariableSource(
@@ -41,7 +41,7 @@ public class EnvironmentVariableSource(
 }
 
 /**
- * Reads `KMP_TARGETS` from a `local.properties` file in [rootDir].
+ * Reads `kmptargets.targets` from a `local.properties` file in [rootDir].
  *
  * This implementation reads the file directly; the plugin wraps it in a Gradle `ValueSource` so the
  * file is tracked as a configuration-cache input. Used directly (without that wrapper) only in
