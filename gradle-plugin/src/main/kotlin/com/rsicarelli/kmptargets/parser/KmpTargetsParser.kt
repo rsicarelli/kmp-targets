@@ -45,7 +45,7 @@ public fun parseKmpTargets(raw: String, registry: Set<KmpTarget> = KmpTarget.all
     val presets: Map<String, KmpTargetSet> = PRESETS
 
     val knownNames: Set<String> =
-        registry.flatMap { target -> listOf(target.id) + target.aliases }.toSet() + PRESET_NAMES
+        registry.flatMap { target -> listOf(target.id) + target.aliases }.toSet() + presetNames
 
     var accumulator = KmpTargetSet.empty
     for (rawToken in tokens) {
@@ -95,7 +95,12 @@ private val PRESETS_BY_NAME: Map<String, KmpTargetSet> =
 
 private val PRESETS: Map<String, KmpTargetSet> = PRESETS_BY_NAME.mapKeys { it.key.lowercase() }
 
-private val PRESET_NAMES: Set<String> = PRESETS_BY_NAME.keys
+/**
+ * The preset names the parser accepts, in declaration order (curated to read sensibly: `all`
+ * first). Shared with `kmpTargetsInfo` so the printed vocabulary can never drift from what
+ * [parseKmpTargets] actually resolves.
+ */
+internal val presetNames: List<String> = PRESETS_BY_NAME.keys.toList()
 
 /**
  * Lowercase family names users commonly try to use as selectors. None of them resolve to a leaf,

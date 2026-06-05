@@ -5,11 +5,14 @@ import com.rsicarelli.kmptargets.hierarchy.resolveHierarchyTemplateEnabled
 import com.rsicarelli.kmptargets.hierarchy.toTemplate
 import com.rsicarelli.kmptargets.host.hostImpossibleWarning
 import com.rsicarelli.kmptargets.host.impossibleOnHost
+import com.rsicarelli.kmptargets.info.KmpTargetsInfoTask
+import com.rsicarelli.kmptargets.info.OriginLabels
 import com.rsicarelli.kmptargets.model.KmpTarget
 import com.rsicarelli.kmptargets.model.KmpTargetSet
 import com.rsicarelli.kmptargets.parser.ParseResult
 import com.rsicarelli.kmptargets.parser.didYouMean
 import com.rsicarelli.kmptargets.parser.parseKmpTargets
+import com.rsicarelli.kmptargets.parser.presetNames
 import com.rsicarelli.kmptargets.source.ConfigFileValueSource
 import com.rsicarelli.kmptargets.source.ConfigKeys
 import com.rsicarelli.kmptargets.source.EnvironmentVariableSource
@@ -42,11 +45,21 @@ public class KmpTargetsPlugin : Plugin<Project> {
         // resolves to an empty set via minus operators (e.g. `jvm,-jvm`) is an explicit "build
         // nothing" and must be honored, not silently treated as the default-all selection (issue
         // #9). Keying off `isNotBlank` (rather than the parsed set's emptiness) is what
-        // distinguishes the two cases.
-        val raw: String? = configSources(target, ConfigKeys.TARGETS, personal, committed).read()
+        // distinguishes the two cases. The first-non-null walk preserves the exact
+        // `composeSelectionSources` semantics (lower layers stay unread once one wins) while also
+        // capturing WHICH layer won, for `kmpTargetsInfo`'s origin report (issue #33).
+        val winner: Pair<String, String>? =
+            labeledSources(target, ConfigKeys.TARGETS, personal, committed).firstNotNullOfOrNull {
+                (label, source) ->
+                source.read()?.let { value -> label to value }
+            }
+        val raw: String? = winner?.second
         if (raw != null && raw.isNotBlank()) {
             ext.globalSelection = parseOrThrow(raw, ConfigKeys.TARGETS)
         }
+        // A blank winner shadows lower layers but does not override the default, so it yields no
+        // origin either — the report then falls through to the defaultSelection/built-in labels.
+        val configOrigin: String? = winner?.takeIf { it.second.isNotBlank() }?.first
 
         // Global default for the hierarchy template, read once at apply time as a primitive.
         val globalHierarchyEnabled: Boolean? =
@@ -64,6 +77,56 @@ public class KmpTargetsPlugin : Plugin<Project> {
                 register(target, ext, globalHierarchyEnabled)
             }
         }
+
+        registerInfoTask(target, ext, configOrigin)
+    }
+
+    /**
+     * Registers the `kmpTargetsInfo` introspection task (issue #33): one task that answers "what
+     * did the plugin decide for this module, and why?".
+     *
+     * Timing under the eager model: registration happens at apply time, but `supports { … }` only
+     * unions the supported set while the build-script body runs. The selection/supported/registered
+     * inputs are therefore wired as providers that map straight to sorted-id `String` lists —
+     * Gradle realizes a scheduled task's property providers at task-graph calculation, after the
+     * whole body ran, so they observe the final state and only primitives are serialized into the
+     * configuration cache. Registration is lazy on purpose: when the task is not requested it is
+     * never configured, so the providers never realize and nothing here can leak into the cache.
+     *
+     * The providers call only `resolvedSelection()`/`resolvedSupported()` — pure reads that never
+     * fire `onSupports` — so the report can never register targets as a side effect. It is also
+     * registered unconditionally (not gated on KGP): without KGP or `supports`, the report states
+     * explicitly that nothing is declared and nothing registers.
+     */
+    private fun registerInfoTask(target: Project, ext: KmpTargetsExtension, configOrigin: String?) {
+        val projectPath = target.path
+        target.tasks.register("kmpTargetsInfo", KmpTargetsInfoTask::class.java) { task ->
+            task.group = "help"
+            task.description =
+                "Prints the resolved kmp-targets selection, its origin, the supported set, and " +
+                    "the registered intersection for this project."
+            task.projectPath.set(projectPath)
+            task.presetNames.set(presetNames)
+            task.leafIds.set(KmpTarget.all.map { it.id }.sorted())
+            task.selectionIds.set(target.provider { ids(ext.resolvedSelection()) })
+            task.supportedIds.set(target.provider { ids(ext.resolvedSupported()) })
+            task.supportsDeclared.set(target.provider { ext.supportsProperty.isPresent })
+            task.registeredIds.set(
+                target.provider { ids(ext.resolvedSelection() intersect ext.resolvedSupported()) }
+            )
+            // The config-layer origin is fixed at apply time, but the fallback labels must read
+            // `defaultSelection` lazily — the body may override it after apply.
+            task.originLabel.set(
+                target.provider {
+                    configOrigin
+                        ?: if (ext.defaultSelection.get() == KmpTargetSet.all) {
+                            OriginLabels.DEFAULT_BUILTIN
+                        } else {
+                            OriginLabels.DEFAULT_BUILD_LOGIC
+                        }
+                }
+            )
+        }
     }
 
     internal companion object {
@@ -73,8 +136,10 @@ public class KmpTargetsPlugin : Plugin<Project> {
     /**
      * The full precedence chain for one global config key (highest first): CLI `-P` →
      * `ORG_GRADLE_PROJECT_<key>` env → personal file → committed file → `gradle.properties` →
-     * `local.properties`. Both global knobs read through this one chain, so they always share the
-     * same precedence.
+     * `local.properties` — each layer paired with the [OriginLabels] name `kmpTargetsInfo` reports
+     * when that layer wins. Both global knobs read through this one chain (via [configSources]), so
+     * they always share the same precedence, and origin reporting can never drift from value
+     * resolution. Adding a future config layer means adding exactly one entry here.
      *
      * The top of the chain is decomposed by hand: `providers.gradleProperty` fuses CLI, env, and
      * `gradle.properties` into one provider with no origin information, but the dedicated files
@@ -84,24 +149,37 @@ public class KmpTargetsPlugin : Plugin<Project> {
      * `ORG_GRADLE_PROJECT_` mapping; `gradleProperty` then serves as the `gradle.properties` layer.
      * It still re-matches CLI/env values, but the first-non-null composition has already caught
      * those above, so the overlap is harmless. Documented nuance: `-Dorg.gradle.project.<key>` and
-     * `~/.gradle/gradle.properties` resolve at that layer too, i.e. below the dedicated files.
+     * `~/.gradle/gradle.properties` resolve at that layer too, i.e. below the dedicated files —
+     * which is why that layer's origin label names the whole fused group.
      */
+    private fun labeledSources(
+        target: Project,
+        key: String,
+        personal: Map<String, String>?,
+        committed: Map<String, String>?,
+    ): List<Pair<String, SelectionSource>> {
+        val cli: String? = target.gradle.startParameter.projectProperties[key]
+        return listOf(
+            OriginLabels.cli(key) to SelectionSource { cli },
+            OriginLabels.environmentVariable(key) to
+                EnvironmentVariableSource(target.providers, ConfigKeys.ENV_PREFIX + key),
+            ConfigKeys.LOCAL_FILE to SelectionSource { personal?.get(key) },
+            ConfigKeys.COMMITTED_FILE to SelectionSource { committed?.get(key) },
+            OriginLabels.gradleProperties(key) to GradlePropertySource(target.providers, key),
+            OriginLabels.LOCAL_PROPERTIES to localPropertiesSource(target, key),
+        )
+    }
+
+    /** The [labeledSources] chain composed into a plain first-non-null value source. */
     private fun configSources(
         target: Project,
         key: String,
         personal: Map<String, String>?,
         committed: Map<String, String>?,
-    ): SelectionSource {
-        val cli: String? = target.gradle.startParameter.projectProperties[key]
-        return composeSelectionSources(
-            SelectionSource { cli },
-            EnvironmentVariableSource(target.providers, ConfigKeys.ENV_PREFIX + key),
-            SelectionSource { personal?.get(key) },
-            SelectionSource { committed?.get(key) },
-            GradlePropertySource(target.providers, key),
-            localPropertiesSource(target, key),
+    ): SelectionSource =
+        composeSelectionSources(
+            *labeledSources(target, key, personal, committed).map { it.second }.toTypedArray()
         )
-    }
 
     /**
      * Reads the global `kmptargets.hierarchyTemplate` flag through the standard [configSources]
