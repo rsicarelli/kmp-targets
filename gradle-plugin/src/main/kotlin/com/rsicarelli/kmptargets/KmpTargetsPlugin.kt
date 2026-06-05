@@ -3,8 +3,7 @@ package com.rsicarelli.kmptargets
 import com.rsicarelli.kmptargets.hierarchy.computeHierarchySpec
 import com.rsicarelli.kmptargets.hierarchy.resolveHierarchyTemplateEnabled
 import com.rsicarelli.kmptargets.hierarchy.toTemplate
-import com.rsicarelli.kmptargets.host.hostImpossibleWarning
-import com.rsicarelli.kmptargets.host.impossibleOnHost
+import com.rsicarelli.kmptargets.host.enforceHostCompatibility
 import com.rsicarelli.kmptargets.info.KmpTargetsInfoTask
 import com.rsicarelli.kmptargets.info.OriginLabels
 import com.rsicarelli.kmptargets.model.KmpTarget
@@ -65,6 +64,10 @@ public class KmpTargetsPlugin : Plugin<Project> {
         val globalHierarchyEnabled: Boolean? =
             hierarchyTemplateEnabledGlobally(target, personal, committed)
 
+        // Strict mode (#34): opt-in promotion of the selection/host advisories to failures, read
+        // once at apply time as a primitive Boolean (default off) so no `Project` is captured.
+        val strict: Boolean = strictModeEnabled(target, personal, committed)
+
         // Eager registration: `supports { … }` in the build-script body registers `selection ∩
         // supported` immediately — no deferred (after-evaluate) pass, no timing wall. We hook it
         // via
@@ -74,7 +77,7 @@ public class KmpTargetsPlugin : Plugin<Project> {
         // cache.
         ext.onSupports = {
             target.pluginManager.withPlugin(KGP_ID) {
-                register(target, ext, globalHierarchyEnabled)
+                register(target, ext, globalHierarchyEnabled, strict)
             }
         }
 
@@ -197,6 +200,22 @@ public class KmpTargetsPlugin : Plugin<Project> {
             ?.lowercase()
             ?.toBooleanStrictOrNull()
 
+    /**
+     * Reads the global `kmptargets.strict` flag through the standard [configSources] chain.
+     * Deliberately opt-in: unset — or anything other than `true`/`false` (case-insensitive, per
+     * `toBooleanStrictOrNull`) — means OFF, the advisory-only behavior.
+     */
+    private fun strictModeEnabled(
+        target: Project,
+        personal: Map<String, String>?,
+        committed: Map<String, String>?,
+    ): Boolean =
+        configSources(target, ConfigKeys.STRICT, personal, committed)
+            .read()
+            ?.trim()
+            ?.lowercase()
+            ?.toBooleanStrictOrNull() ?: false
+
     /** The parsed entries of a dedicated config file in the root directory, or `null` if absent. */
     private fun configFile(target: Project, fileName: String): Map<String, String>? =
         target.providers
@@ -245,11 +264,17 @@ public class KmpTargetsPlugin : Plugin<Project> {
      * and applies the minimal hierarchy template — all off the cumulative supported set, so
      * repeated `supports` calls only register the delta (idempotent), each host warning names a
      * leaf at most once, and the template still applies at most once.
+     *
+     * When [strict] is on (#34), both advisories fail the build instead of warning — with the
+     * identical message text. Severity changes; policy does not: `shouldWarnEmptyOverlap` and
+     * `impossibleOnHost` stay the single source of truth for *whether* to flag, and what registers
+     * is never affected.
      */
     private fun register(
         project: Project,
         ext: KmpTargetsExtension,
         globalHierarchyEnabled: Boolean?,
+        strict: Boolean,
     ) {
         val kotlin = project.extensions.getByType(KotlinMultiplatformExtension::class.java)
         val selection = ext.resolvedSelection()
@@ -260,30 +285,34 @@ public class KmpTargetsPlugin : Plugin<Project> {
             ext.registered.add(leaf)
         }
 
-        // Advisory only: the selection is non-empty yet genuinely disjoint from the supported set,
-        // so nothing registers. Keyed off the actual overlap (not "nothing registered"), so the
-        // message can never name a token present in both lists (issue #10).
+        // The selection is non-empty yet genuinely disjoint from the supported set, so nothing
+        // registers. Keyed off the actual overlap (not "nothing registered"), so the message can
+        // never name a token present in both lists (issue #10). Safe to fail here under strict:
+        // the intersection is empty, so no target half-registered before the throw.
         if (shouldWarnEmptyOverlap(selection, supported)) {
-            project.logger.warn(emptyOverlapWarning(project.path, selection, supported))
+            warnOrFail(strict, emptyOverlapWarning(project.path, selection, supported)) {
+                project.logger.warn(it)
+            }
         }
 
-        // Host-awareness (#32): advisory only — names registered native targets this host cannot
-        // compile, never changing what registers (the set stays identical across hosts).
-        // HostManager is touched only here, inside `withPlugin(KGP_ID)` at configuration time, so
-        // its classes never load when KGP is absent and nothing host-derived is held by a task
-        // action. Deduped per leaf via `hostWarned`, so a later `supports` union that introduces a
-        // new impossible leaf still warns — for that leaf only.
-        val fresh = impossibleOnHost(active, HostManager().enabled.toSet()).members - ext.hostWarned
-        if (fresh.isNotEmpty()) {
-            project.logger.warn(
-                hostImpossibleWarning(
-                    project.path,
-                    HostManager.host,
-                    KmpTargetSet.of(*fresh.toTypedArray()),
-                )
-            )
-            ext.hostWarned += fresh
-        }
+        // Host-awareness (#32): names registered native targets this host cannot compile, never
+        // changing what registers (the set stays identical across hosts). HostManager is touched
+        // only here, inside `withPlugin(KGP_ID)` at configuration time, so its classes never load
+        // when KGP is absent and nothing host-derived is held by a task action. Deduped per leaf
+        // via `hostWarned`, so a later `supports` union that introduces a new impossible leaf
+        // still flags — for that leaf only. The decision lives behind an enabled-set parameter
+        // (`enforceHostCompatibility`) so strict-mode tests can simulate any host.
+        ext.hostWarned +=
+            enforceHostCompatibility(
+                path = project.path,
+                active = active,
+                enabled = HostManager().enabled.toSet(),
+                host = HostManager.host,
+                alreadyWarned = ext.hostWarned,
+                strict = strict,
+            ) {
+                project.logger.warn(it)
+            }
 
         maybeApplyHierarchyTemplate(project, ext, active, globalHierarchyEnabled)
     }
@@ -344,6 +373,16 @@ public class KmpTargetsPlugin : Plugin<Project> {
             KmpTarget.Web.WasmWasi -> kotlin.wasmWasi { nodejs() }
         }
     }
+}
+
+/**
+ * Strict mode's single escalation point (#34): warn when [strict] is off — byte-for-byte the
+ * advisory behavior — and fail with the **same** [message] when on. Severity changes; the decision
+ * of *whether* to flag stays with the callers' policy functions.
+ */
+internal fun warnOrFail(strict: Boolean, message: String, warn: (String) -> Unit) {
+    if (strict) throw GradleException(message)
+    warn(message)
 }
 
 /**

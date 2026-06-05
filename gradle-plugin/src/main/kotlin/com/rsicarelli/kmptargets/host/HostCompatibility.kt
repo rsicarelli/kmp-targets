@@ -2,6 +2,7 @@ package com.rsicarelli.kmptargets.host
 
 import com.rsicarelli.kmptargets.model.KmpTarget
 import com.rsicarelli.kmptargets.model.KmpTargetSet
+import com.rsicarelli.kmptargets.warnOrFail
 import org.jetbrains.kotlin.konan.target.KonanTarget
 
 /**
@@ -63,3 +64,33 @@ internal fun hostImpossibleWarning(
     "kmp-targets: '$path' selects ${impossible.members.map { it.id }.sorted()} which cannot be " +
         "compiled on this host (${host.name.uppercase()}) — still registered (selection is " +
         "host-independent), but compile/link tasks for them will fail or be skipped here."
+
+/**
+ * The host-advisory step of registration, behind an injected [enabled] set so strict-mode tests can
+ * simulate any host (on a macOS machine nothing is host-impossible, so the real path can never be
+ * triggered deterministically in-process).
+ *
+ * Computes the freshly-flagged leaves — [impossibleOnHost] minus [alreadyWarned] — and escalates
+ * them through [warnOrFail]: advisory when [strict] is off, `GradleException` with the identical
+ * [hostImpossibleWarning] text when on. Returns the fresh set for the caller's dedup bookkeeping
+ * (an empty fresh set is a silent no-op, so a leaf is flagged at most once per build). Policy stays
+ * owned by [impossibleOnHost]/[hostImpossibleWarning]; this only sequences decision → severity.
+ */
+internal fun enforceHostCompatibility(
+    path: String,
+    active: KmpTargetSet,
+    enabled: Set<KonanTarget>,
+    host: KonanTarget,
+    alreadyWarned: Set<KmpTarget>,
+    strict: Boolean,
+    warn: (String) -> Unit,
+): Set<KmpTarget> {
+    val fresh = impossibleOnHost(active, enabled).members - alreadyWarned
+    if (fresh.isEmpty()) return emptySet()
+    warnOrFail(
+        strict,
+        hostImpossibleWarning(path, host, KmpTargetSet.of(*fresh.toTypedArray())),
+        warn,
+    )
+    return fresh
+}
