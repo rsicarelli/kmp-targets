@@ -52,7 +52,7 @@ All tests use **GIVEN-WHEN-THEN** naming:
 
 ```kotlin
 @Test
-fun `given supported mobile and KMP_TARGETS iosArm64 when evaluated then iosArm64 registers`() { ... }
+fun `given supported mobile and kmptargets targets iosArm64 when evaluated then iosArm64 registers`() { ... }
 ```
 
 This is enforced by convention, not tooling (yet). It makes test failures self-documenting and matches the testing standard in the broader `rsicarelli` open-source ecosystem.

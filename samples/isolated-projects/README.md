@@ -13,7 +13,7 @@ goes red.
 
 ## Layout
 
-| Module | DSL | Supported | Registered with `KMP_TARGETS=jvm` |
+| Module | DSL | Supported | Registered with `kmptargets.targets=jvm` |
 |---|---|---|---|
 | `:lib` | _(no `supports` block — defaults to `all`)_ | all targets | `jvm` |
 | `:app` | `kmpTargets { supports { jvm } }` | `jvm` | `jvm` |

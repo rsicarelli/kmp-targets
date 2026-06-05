@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test
  * Pure, Gradle-free coverage of the [KmpTargetsDsl] receiver vocabulary used inside `kmpTargets {
  * supports { … } }`. Every preset and every leaf must map to exactly the same `KmpTargetSet` the
  * string grammar and the public model produce — otherwise the type-safe DSL would silently disagree
- * with `KMP_TARGETS=…` and the docs.
+ * with `kmptargets.targets=…` and the docs.
  */
 class KmpTargetsDslVocabularyTest {
 

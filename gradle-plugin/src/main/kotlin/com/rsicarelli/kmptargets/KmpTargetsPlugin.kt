@@ -8,7 +8,10 @@ import com.rsicarelli.kmptargets.host.impossibleOnHost
 import com.rsicarelli.kmptargets.model.KmpTarget
 import com.rsicarelli.kmptargets.model.KmpTargetSet
 import com.rsicarelli.kmptargets.parser.ParseResult
+import com.rsicarelli.kmptargets.parser.didYouMean
 import com.rsicarelli.kmptargets.parser.parseKmpTargets
+import com.rsicarelli.kmptargets.source.ConfigFileValueSource
+import com.rsicarelli.kmptargets.source.ConfigKeys
 import com.rsicarelli.kmptargets.source.EnvironmentVariableSource
 import com.rsicarelli.kmptargets.source.GradlePropertySource
 import com.rsicarelli.kmptargets.source.LocalPropertyValueSource
@@ -26,19 +29,28 @@ public class KmpTargetsPlugin : Plugin<Project> {
         val ext = target.extensions.create("kmpTargets", KmpTargetsExtension::class.java)
         ext.defaultSelection.convention(KmpTargetSet.all)
 
+        // Dedicated config files, each read once as a whole map (tracked config-cache inputs) and
+        // validated against the key registry — a typo fails the build instead of silently no-oping
+        // (Bazel-style, issue #30).
+        val personal: Map<String, String>? = configFile(target, ConfigKeys.LOCAL_FILE)
+        val committed: Map<String, String>? = configFile(target, ConfigKeys.COMMITTED_FILE)
+        validateKnownKeys(personal, ConfigKeys.LOCAL_FILE)
+        validateKnownKeys(committed, ConfigKeys.COMMITTED_FILE)
+
         // Global selection: what the user wants to build now. A blank/absent property means "not
         // overriding" → defer to `defaultSelection`. A non-blank property that
         // resolves to an empty set via minus operators (e.g. `jvm,-jvm`) is an explicit "build
         // nothing" and must be honored, not silently treated as the default-all selection (issue
         // #9). Keying off `isNotBlank` (rather than the parsed set's emptiness) is what
         // distinguishes the two cases.
-        val raw: String? = selectionSources(target).read()
+        val raw: String? = configSources(target, ConfigKeys.TARGETS, personal, committed).read()
         if (raw != null && raw.isNotBlank()) {
-            ext.globalSelection = parseOrThrow(raw, KMP_TARGETS)
+            ext.globalSelection = parseOrThrow(raw, ConfigKeys.TARGETS)
         }
 
         // Global default for the hierarchy template, read once at apply time as a primitive.
-        val globalHierarchyEnabled: Boolean? = hierarchyTemplateEnabledGlobally(target)
+        val globalHierarchyEnabled: Boolean? =
+            hierarchyTemplateEnabledGlobally(target, personal, committed)
 
         // Eager registration: `supports { … }` in the build-script body registers `selection ∩
         // supported` immediately — no deferred (after-evaluate) pass, no timing wall. We hook it
@@ -55,32 +67,85 @@ public class KmpTargetsPlugin : Plugin<Project> {
     }
 
     internal companion object {
-        const val KMP_TARGETS: String = "KMP_TARGETS"
-        const val HIERARCHY_TEMPLATE_PROPERTY: String = "kmptargets.hierarchyTemplate"
         const val KGP_ID: String = "org.jetbrains.kotlin.multiplatform"
     }
 
-    private fun selectionSources(target: Project): SelectionSource =
-        composeSelectionSources(
-            GradlePropertySource(target.providers, KMP_TARGETS),
-            EnvironmentVariableSource(target.providers, KMP_TARGETS),
-            localPropertiesSource(target, KMP_TARGETS),
+    /**
+     * The full precedence chain for one global config key (highest first): CLI `-P` →
+     * `ORG_GRADLE_PROJECT_<key>` env → personal file → committed file → `gradle.properties` →
+     * `local.properties`. Both global knobs read through this one chain, so they always share the
+     * same precedence.
+     *
+     * The top of the chain is decomposed by hand: `providers.gradleProperty` fuses CLI, env, and
+     * `gradle.properties` into one provider with no origin information, but the dedicated files
+     * must slot *between* env and `gradle.properties` (the consolidation point beats legacy loose
+     * keys, issue #30). So CLI is read eagerly from the start parameter (a config-cache input — any
+     * `-P` change invalidates the entry) and env explicitly via Gradle's native
+     * `ORG_GRADLE_PROJECT_` mapping; `gradleProperty` then serves as the `gradle.properties` layer.
+     * It still re-matches CLI/env values, but the first-non-null composition has already caught
+     * those above, so the overlap is harmless. Documented nuance: `-Dorg.gradle.project.<key>` and
+     * `~/.gradle/gradle.properties` resolve at that layer too, i.e. below the dedicated files.
+     */
+    private fun configSources(
+        target: Project,
+        key: String,
+        personal: Map<String, String>?,
+        committed: Map<String, String>?,
+    ): SelectionSource {
+        val cli: String? = target.gradle.startParameter.projectProperties[key]
+        return composeSelectionSources(
+            SelectionSource { cli },
+            EnvironmentVariableSource(target.providers, ConfigKeys.ENV_PREFIX + key),
+            SelectionSource { personal?.get(key) },
+            SelectionSource { committed?.get(key) },
+            GradlePropertySource(target.providers, key),
+            localPropertiesSource(target, key),
         )
+    }
 
     /**
-     * Reads the global `kmptargets.hierarchyTemplate` flag (Gradle property or `local.properties`).
-     * `null` means "not set — use the built-in default"; anything other than `true`/`false`
+     * Reads the global `kmptargets.hierarchyTemplate` flag through the standard [configSources]
+     * chain. `null` means "not set — use the built-in default"; anything other than `true`/`false`
      * (case-insensitive) is treated as unset.
      */
-    private fun hierarchyTemplateEnabledGlobally(target: Project): Boolean? =
-        composeSelectionSources(
-                GradlePropertySource(target.providers, HIERARCHY_TEMPLATE_PROPERTY),
-                localPropertiesSource(target, HIERARCHY_TEMPLATE_PROPERTY),
-            )
+    private fun hierarchyTemplateEnabledGlobally(
+        target: Project,
+        personal: Map<String, String>?,
+        committed: Map<String, String>?,
+    ): Boolean? =
+        configSources(target, ConfigKeys.HIERARCHY_TEMPLATE, personal, committed)
             .read()
             ?.trim()
             ?.lowercase()
             ?.toBooleanStrictOrNull()
+
+    /** The parsed entries of a dedicated config file in the root directory, or `null` if absent. */
+    private fun configFile(target: Project, fileName: String): Map<String, String>? =
+        target.providers
+            .of(ConfigFileValueSource::class.java) {
+                it.parameters.rootDir.set(target.rootDir)
+                it.parameters.fileName.set(fileName)
+            }
+            .orNull
+
+    /**
+     * Fails the build when a dedicated config file carries a key outside [ConfigKeys.ALL] — a typo
+     * must not silently no-op (Bazel's "fail loud on unknown key" parity, issue #30).
+     */
+    private fun validateKnownKeys(entries: Map<String, String>?, fileName: String) {
+        if (entries == null) return
+        val unknown = entries.keys - ConfigKeys.ALL
+        if (unknown.isEmpty()) return
+        val described =
+            unknown.sorted().joinToString(", ") { key ->
+                val suggestion = didYouMean(key, ConfigKeys.ALL)
+                if (suggestion != null) "'$key' (did you mean '$suggestion'?)" else "'$key'"
+            }
+        throw GradleException(
+            "$fileName: unknown key(s) $described. " +
+                "Known keys: ${ConfigKeys.ALL.sorted().joinToString(", ")}"
+        )
+    }
 
     private fun localPropertiesSource(target: Project, propertyName: String): SelectionSource {
         val provider =

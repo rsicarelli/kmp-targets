@@ -29,8 +29,9 @@ rootProject.name = "hello-world"
 // Heterogeneous modules, each declaring its supported shape via `kmpTargets { supports { … } }` in
 // its build script. Targets are explicit — a module with no `supports` registers nothing. The
 // global
-// KMP_TARGETS (see gradle.properties) is intersected against each module's set, then a minimal
-// hierarchy template is applied. With KMP_TARGETS=jvm,iosArm64,iosSimulatorArm64:
+// kmptargets.targets (see kmp-targets.properties) is intersected against each module's set, then a
+// minimal
+// hierarchy template is applied. With kmptargets.targets=jvm,iosArm64,iosSimulatorArm64:
 
 // supports{all} → jvm + iosMain (the 2 iOS leaves share iosMain; no appleMain)
 include(":shared-core")

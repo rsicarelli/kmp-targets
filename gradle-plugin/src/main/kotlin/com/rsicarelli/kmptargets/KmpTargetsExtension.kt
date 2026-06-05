@@ -15,9 +15,9 @@ import org.gradle.api.provider.Property
  *   registers no targets at all (just like plain KGP, where every target is declared by hand).
  *   [resolvedSupported] returns [KmpTargetSet.empty] until something declares it.
  * - **selection** — what the user wants to build *now*. It is **global**: resolved from
- *   `KMP_TARGETS` (`-P`, env, root `gradle.properties`, or `local.properties`) and the same value
- *   for every module. When no global is provided, it falls back to [defaultSelection] (itself
- *   defaulting to [KmpTargetSet.all]).
+ *   `kmptargets.targets` (`-P`, env, the dedicated `kmp-targets(.local).properties` files, root
+ *   `gradle.properties`, or `local.properties`) and the same value for every module. When no global
+ *   is provided, it falls back to [defaultSelection] (itself defaulting to [KmpTargetSet.all]).
  *
  * The plugin registers `selection ∩ supported`. Registration is **eager**: calling [supports] from
  * the build-script body registers the matching targets immediately (no deferred/after-evaluate
@@ -28,10 +28,10 @@ import org.gradle.api.provider.Property
 public abstract class KmpTargetsExtension @Inject constructor(objects: ObjectFactory) {
 
     /**
-     * The selection used when no global `KMP_TARGETS` is provided. Defaults to [KmpTargetSet.all].
-     * Public so build-logic can set a project-wide default lazily; a global `KMP_TARGETS` always
-     * wins over it. Set it **before** [supports], since [supports] registers eagerly off the
-     * resolved selection.
+     * The selection used when no global `kmptargets.targets` is provided. Defaults to
+     * [KmpTargetSet.all]. Public so build-logic can set a project-wide default lazily; a global
+     * `kmptargets.targets` always wins over it. Set it **before** [supports], since [supports]
+     * registers eagerly off the resolved selection.
      */
     public abstract val defaultSelection: Property<KmpTargetSet>
 
@@ -82,15 +82,15 @@ public abstract class KmpTargetsExtension @Inject constructor(objects: ObjectFac
     }
 
     /**
-     * The global selection resolved from `KMP_TARGETS` at apply time, or `null` when no global
-     * source provided one. When present it wins over [defaultSelection] (and an explicit empty set
-     * is honored — see issue #9), which is what keeps the global switch authoritative. Stored as an
-     * immutable [KmpTargetSet], so it stays configuration-cache safe.
+     * The global selection resolved from `kmptargets.targets` at apply time, or `null` when no
+     * global source provided one. When present it wins over [defaultSelection] (and an explicit
+     * empty set is honored — see issue #9), which is what keeps the global switch authoritative.
+     * Stored as an immutable [KmpTargetSet], so it stays configuration-cache safe.
      */
     internal var globalSelection: KmpTargetSet? = null
 
     /**
-     * The selection actually used to register targets: the global `KMP_TARGETS` if present,
+     * The selection actually used to register targets: the global `kmptargets.targets` if present,
      * otherwise [defaultSelection] (which itself defaults to [KmpTargetSet.all]). Public so
      * build-logic can read the resolved set (e.g. for conditional configuration).
      */

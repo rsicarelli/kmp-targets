@@ -23,8 +23,8 @@ import com.rsicarelli.kmptargets.model.KmpTargetSet
  * ```
  *
  * Names mirror the canonical KGP target ids ([KmpTarget.id]) and the [KmpTargetSet] presets
- * exactly, so what you read in build files matches the `KMP_TARGETS` string grammar and the docs.
- * Build-logic that needs a raw value can call the [KmpTargetsExtension.supports] overload:
+ * exactly, so what you read in build files matches the `kmptargets.targets` string grammar and the
+ * docs. Build-logic that needs a raw value can call the [KmpTargetsExtension.supports] overload:
  * `supports(KmpTargetSet.mobile + KmpTargetSet.web)`.
  */
 @KmpTargetsDslMarker

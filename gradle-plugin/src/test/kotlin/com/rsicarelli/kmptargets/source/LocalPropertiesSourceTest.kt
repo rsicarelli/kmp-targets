@@ -11,21 +11,21 @@ class LocalPropertiesSourceTest {
 
     @Test
     fun `given local properties with the key when read then returns the value`(@TempDir dir: Path) {
-        dir.resolve("local.properties").writeText("KMP_TARGETS=android,iosArm64\n")
-        val source = LocalPropertiesSource(dir.toFile(), "KMP_TARGETS")
+        dir.resolve("local.properties").writeText("kmptargets.targets=android,iosArm64\n")
+        val source = LocalPropertiesSource(dir.toFile(), "kmptargets.targets")
         assertEquals("android,iosArm64", source.read())
     }
 
     @Test
     fun `given local properties without the key when read then returns null`(@TempDir dir: Path) {
         dir.resolve("local.properties").writeText("OTHER_KEY=value\n")
-        val source = LocalPropertiesSource(dir.toFile(), "KMP_TARGETS")
+        val source = LocalPropertiesSource(dir.toFile(), "kmptargets.targets")
         assertNull(source.read())
     }
 
     @Test
     fun `given no local properties file when read then returns null`(@TempDir dir: Path) {
-        val source = LocalPropertiesSource(dir.toFile(), "KMP_TARGETS")
+        val source = LocalPropertiesSource(dir.toFile(), "kmptargets.targets")
         assertNull(source.read())
     }
 
@@ -34,8 +34,8 @@ class LocalPropertiesSourceTest {
         @TempDir dir: Path
     ) {
         // java.util.Properties strips leading whitespace from values but keeps trailing
-        dir.resolve("local.properties").writeText("KMP_TARGETS=  android\n")
-        val source = LocalPropertiesSource(dir.toFile(), "KMP_TARGETS")
+        dir.resolve("local.properties").writeText("kmptargets.targets=  android\n")
+        val source = LocalPropertiesSource(dir.toFile(), "kmptargets.targets")
         assertEquals("android", source.read())
     }
 
@@ -43,8 +43,8 @@ class LocalPropertiesSourceTest {
     fun `given local properties with empty value when read then returns empty string`(
         @TempDir dir: Path
     ) {
-        dir.resolve("local.properties").writeText("KMP_TARGETS=\n")
-        val source = LocalPropertiesSource(dir.toFile(), "KMP_TARGETS")
+        dir.resolve("local.properties").writeText("kmptargets.targets=\n")
+        val source = LocalPropertiesSource(dir.toFile(), "kmptargets.targets")
         assertEquals("", source.read())
     }
 
@@ -55,12 +55,12 @@ class LocalPropertiesSourceTest {
         dir.resolve("local.properties")
             .writeText(
                 """
-                # set KMP_TARGETS to override the default selection
-                KMP_TARGETS=appleMobile
+                # set kmptargets.targets to override the default selection
+                kmptargets.targets=appleMobile
                 """
                     .trimIndent()
             )
-        val source = LocalPropertiesSource(dir.toFile(), "KMP_TARGETS")
+        val source = LocalPropertiesSource(dir.toFile(), "kmptargets.targets")
         assertEquals("appleMobile", source.read())
     }
 
@@ -72,12 +72,12 @@ class LocalPropertiesSourceTest {
             .writeText(
                 """
                 sdk.dir=/Users/foo/Library/Android/sdk
-                KMP_TARGETS=android
+                kmptargets.targets=android
                 org.gradle.jvmargs=-Xmx2g
                 """
                     .trimIndent()
             )
-        val source = LocalPropertiesSource(dir.toFile(), "KMP_TARGETS")
+        val source = LocalPropertiesSource(dir.toFile(), "kmptargets.targets")
         assertEquals("android", source.read())
     }
 

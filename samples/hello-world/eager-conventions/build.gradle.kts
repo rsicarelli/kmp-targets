@@ -7,7 +7,7 @@ plugins {
 
 // EAGER PROOF. `kmpModule` declares the supported set and then reads `kotlin.targets`
 // synchronously,
-// wiring one task per registered target. With KMP_TARGETS=jvm,iosArm64,iosSimulatorArm64
+// wiring one task per registered target. With kmptargets.targets=jvm,iosArm64,iosSimulatorArm64
 // intersected
 // against supports { jvm + iosArm64 }, the convention sees exactly [iosArm64, jvm] — at
 // configuration

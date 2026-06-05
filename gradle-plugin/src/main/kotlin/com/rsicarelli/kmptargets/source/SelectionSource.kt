@@ -1,8 +1,8 @@
 package com.rsicarelli.kmptargets.source
 
 /**
- * A source that can produce a raw `KMP_TARGETS` string (e.g. from a Gradle property, an environment
- * variable, or a `local.properties` file).
+ * A source that can produce a raw `kmptargets.targets` string (e.g. from a Gradle property, an
+ * environment variable, or a `local.properties` file).
  *
  * Implementations return `null` to mean **absent**; an empty string means **present but blank**
  * (the parser will treat that as "use the default selection" and emit a warning). The distinction

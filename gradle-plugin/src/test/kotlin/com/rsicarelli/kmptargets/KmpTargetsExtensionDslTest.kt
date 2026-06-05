@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test
 
 /**
  * Extension-level coverage of the type-safe `supports { … }` block, its raw value overload, and the
- * [KmpTargetsExtension.resolvedSelection] precedence (a global `KMP_TARGETS` wins over
+ * [KmpTargetsExtension.resolvedSelection] precedence (a global `kmptargets.targets` wins over
  * [KmpTargetsExtension.defaultSelection]). These assert the pure DSL → property wiring without
  * applying KGP; the in-process registration is covered by [KmpTargetsDslTest].
  */
@@ -90,7 +90,8 @@ class KmpTargetsExtensionDslTest {
     fun `given a global selection narrowed to empty when resolvedSelection then it is empty not the default`() {
         val ext = newExtension()
         ext.defaultSelection.set(KmpTargetSet.of(KmpTarget.Jvm.Desktop))
-        // An explicit "build nothing" global (e.g. KMP_TARGETS=jvm,-jvm) must win over the default.
+        // An explicit "build nothing" global (e.g. kmptargets.targets=jvm,-jvm) must win over the
+        // default.
         ext.globalSelection = KmpTargetSet.empty
         assertEquals(KmpTargetSet.empty, ext.resolvedSelection())
     }

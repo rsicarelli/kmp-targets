@@ -8,7 +8,8 @@ plugins {
 }
 
 kmpTargets {
-    // Supports JVM + Linux only. With the sample's KMP_TARGETS=jvm,iosArm64,iosSimulatorArm64,
+    // Supports JVM + Linux only. With the sample's
+    // kmptargets.targets=jvm,iosArm64,iosSimulatorArm64,
     // selection ∩ supported = jvm — so only `jvm` registers (linuxX64 is supported but unselected;
     // the iOS leaves are selected but unsupported). `supports` registers eagerly, the moment this
     // line runs.

@@ -12,14 +12,14 @@ body:
     attributes:
       label: What happened?
       description: A clear and concise description of the bug.
-      placeholder: When I set KMP_TARGETS=... I expected ... but got ...
+      placeholder: When I set kmptargets.targets=... I expected ... but got ...
     validations:
       required: true
 
   - type: input
     id: kmp-targets-value
     attributes:
-      label: KMP_TARGETS value
+      label: kmptargets.targets value
       description: The value you passed (in local.properties, -P, or env var). Leave blank if unset.
       placeholder: android,iosArm64
 

@@ -14,6 +14,10 @@ java { withSourcesJar() }
 
 ktfmt { kotlinLangStyle() }
 
+val testKitPluginClasspath: Configuration by configurations.creating
+
+tasks.pluginUnderTestMetadata { pluginClasspath.from(testKitPluginClasspath) }
+
 dependencies {
     compileOnly(libs.kotlin.gradlePlugin)
 
@@ -21,6 +25,11 @@ dependencies {
     testImplementation(libs.kotlin.gradlePlugin)
     testImplementation(libs.junit.jupiter)
     testImplementation(kotlin("test-junit5"))
+
+    // KGP is compileOnly above (consumers bring their own), but TestKit child builds resolve the
+    // plugin classpath from the plugin-under-test metadata — without KGP there, Gradle cannot even
+    // decorate KmpTargetsPlugin. Funnel it in through a dedicated resolvable configuration.
+    testKitPluginClasspath(libs.kotlin.gradlePlugin)
 }
 
 gradlePlugin {
@@ -32,7 +41,7 @@ gradlePlugin {
             implementationClass = "com.rsicarelli.kmptargets.KmpTargetsPlugin"
             displayName = "KMP Targets"
             description =
-                "Dynamically select which Kotlin Multiplatform targets to build via the KMP_TARGETS Gradle property."
+                "Dynamically select which Kotlin Multiplatform targets to build via the kmptargets.targets Gradle property."
             tags.set(listOf("kotlin", "kmp", "multiplatform", "build", "ios", "android"))
         }
     }

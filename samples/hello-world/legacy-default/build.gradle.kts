@@ -1,5 +1,6 @@
 plugins {
-    // Same DSL flow and same KMP_TARGETS as :shared-core, but this module opts OUT of the minimal
+    // Same DSL flow and same kmptargets.targets as :shared-core, but this module opts OUT of the
+    // minimal
     // template. KGP then applies its default hierarchy, so the two iOS leaves get the full
     // redundant
     // chain — `iosMain` + `appleMain` + `nativeMain` — instead of just `iosMain`. This is the
