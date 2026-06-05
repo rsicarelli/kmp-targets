@@ -176,6 +176,45 @@ Available presets:
 
 Unknown tokens fail the build at configuration time with a "did you mean ...?" suggestion — silently dropping a misspelled target in CI is the worst failure mode, so the parser is strict. Bare Apple sub-family names (`ios`, `macos`, `watchos`, `tvos`) are rejected with a hint pointing at the relevant leaf or `appleX` preset.
 
+### Debugging the selection
+
+Every project the plugin is applied to gets a `kmpTargetsInfo` task (group `help`) that answers
+"what did the plugin decide for this module, and why?" — the resolved selection, **which
+[source](#selecting-targets) it came from**, the declared supported set, the registered
+intersection, and the vocabulary the parser accepts:
+
+```console
+$ ./gradlew :shared-core:kmpTargetsInfo -q
+
+kmp-targets — :shared-core
+
+Selection (what to build now)
+  targets:  iosArm64, iosSimulatorArm64, jvm
+  source:   kmp-targets.properties
+
+Supported (what this module can build)
+  declared: yes
+  targets:  androidNativeArm32, ..., watchosX64
+
+Registered (selection ∩ supported)
+  targets:  iosArm64, iosSimulatorArm64, jvm
+
+Vocabulary
+  presets:  all, native, appleMobile, appleDesktop, appleWatch, appleTv, apple, linux, mingw, windows, androidNative, web, jvmFamily, mobile
+  leaves:   androidNativeArm32, ..., watchosX64 (25)
+```
+
+The `source` line names the winning layer of the [precedence chain](#selecting-targets) — e.g.
+`command line (-Pkmptargets.targets)`, `kmp-targets.local.properties`, `local.properties`, or the
+`defaultSelection` / built-in fallbacks. One coarseness, stated in the label itself: values from
+`-Dorg.gradle.project.kmptargets.targets` and `~/.gradle/gradle.properties` are indistinguishable
+from root `gradle.properties`, so all three report as the fused `gradle.properties (...)` layer.
+
+The report is read-only (it never registers targets), explicit about every empty case — a module
+that never declared `supports { … }`, a selection narrowed to nothing, or a genuinely disjoint
+`selection ∩ supported` each get their own explanation — and configuration-cache compatible: the
+second run is a cache hit.
+
 ### Supported targets
 
 Every target Kotlin Multiplatform (KGP 2.3.21) supports, except the deprecated `linuxArm32Hfp`:
