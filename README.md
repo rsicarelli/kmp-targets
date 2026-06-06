@@ -2,7 +2,12 @@
 
 > Dynamically select which Kotlin Multiplatform targets to build.
 
-**Status:** alpha (pre-1.0). Shipped and exercised by the multi-module sample plus a real 3-OS CI matrix: the global selector with [try-import-style layering](#selecting-targets) (dedicated config files, unified `kmptargets.*` keys), the automatic [minimal hierarchy template](#minimal-hierarchy-template), the [`kmpTargetsInfo`](#debugging-the-selection) introspection task, [host-compatibility](#host-compatibility), [deprecated-target](#deprecated-targets), [android-without-AGP](#android-target-without-the-android-gradle-plugin), and [inert-module](#inert-modules) advisories, and opt-in [strict mode](#strict-mode). Roadmap: user-defined hierarchy groups, XCFramework helpers, Maven Central / Plugin Portal publishing.
+[![Build](https://img.shields.io/github/actions/workflow/status/rsicarelli/kmp-targets/ci.yml)](https://github.com/rsicarelli/kmp-targets/actions/workflows/ci.yml)
+[![Maven Central](https://img.shields.io/maven-central/v/com.rsicarelli/kmp-targets-gradle-plugin)](https://central.sonatype.com/artifact/com.rsicarelli/kmp-targets-gradle-plugin)
+[![Docs](https://img.shields.io/badge/docs-rsicarelli.github.io%2Fkmp--targets-blue)](https://rsicarelli.github.io/kmp-targets/)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+
+**Status:** alpha (pre-1.0). Shipped and exercised by the multi-module sample plus a real 3-OS CI matrix: the global selector with [try-import-style layering](#selecting-targets) (dedicated config files, unified `kmptargets.*` keys), the automatic [minimal hierarchy template](#minimal-hierarchy-template), the [`kmpTargetsInfo`](#debugging-the-selection) introspection task, [host-compatibility](#host-compatibility), [deprecated-target](#deprecated-targets), [android-without-AGP](#android-target-without-the-android-gradle-plugin), and [inert-module](#inert-modules) advisories, and opt-in [strict mode](#strict-mode). Roadmap: user-defined hierarchy groups, XCFramework helpers.
 
 `kmp-targets` is a Gradle plugin for Kotlin Multiplatform projects that lets each developer (and each CI runner) choose which KMP targets to build, via a single Gradle property:
 
@@ -672,7 +677,27 @@ regress.
 
 ## Installation
 
-The plugin is not yet published to the Gradle Plugin Portal or Maven Central. Track progress in the issues / releases. Locally:
+The plugin is published to **Maven Central** — group `com.rsicarelli`, artifact
+`kmp-targets-gradle-plugin`, plugin id `com.rsicarelli.kmptargets` (no Gradle Plugin Portal). With
+`mavenCentral()` in `pluginManagement.repositories`:
+
+```kotlin
+// build.gradle.kts
+plugins {
+    kotlin("multiplatform")
+    id("com.rsicarelli.kmptargets") version "0.1.0-SNAPSHOT"
+}
+```
+
+Build-logic referencing the DSL types depends on the artifact directly:
+`com.rsicarelli:kmp-targets-gradle-plugin:0.1.0-SNAPSHOT`.
+
+Snapshots of every `main` push land at the Central Portal snapshots repository
+(`https://central.sonatype.com/repository/maven-snapshots/`). Full instructions — version catalogs,
+snapshot hygiene, prerequisites — live in the docs:
+**[rsicarelli.github.io/kmp-targets](https://rsicarelli.github.io/kmp-targets/get-started/)**.
+
+For working on the plugin itself:
 
 ```bash
 task publish-local           # publishes the plugin to mavenLocal
