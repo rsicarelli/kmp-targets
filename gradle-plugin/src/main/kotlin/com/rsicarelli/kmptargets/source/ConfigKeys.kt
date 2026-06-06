@@ -14,13 +14,20 @@ internal object ConfigKeys {
     const val HIERARCHY_TEMPLATE: String = "kmptargets.hierarchyTemplate"
 
     /**
+     * Global opt-out for the single-child collapse rule (`true`/`false`, default `true` —
+     * issue #50). When `false`, a group materializes with ≥1 present child, so intermediates like
+     * `iosMain` survive a single-leaf selection. No effect when the template itself is disabled.
+     */
+    const val HIERARCHY_COLLAPSE: String = "kmptargets.hierarchyCollapse"
+
+    /**
      * Global opt-in promoting the selection/host advisories to build failures (`true`/`false`,
      * default off — issue #34).
      */
     const val STRICT: String = "kmptargets.strict"
 
     /** Every key the dedicated config files may legally contain (unknown keys fail the build). */
-    val ALL: Set<String> = setOf(TARGETS, HIERARCHY_TEMPLATE, STRICT)
+    val ALL: Set<String> = setOf(TARGETS, HIERARCHY_TEMPLATE, HIERARCHY_COLLAPSE, STRICT)
 
     /** Committed, team-shared config file at the root of the build. */
     const val COMMITTED_FILE: String = "kmp-targets.properties"

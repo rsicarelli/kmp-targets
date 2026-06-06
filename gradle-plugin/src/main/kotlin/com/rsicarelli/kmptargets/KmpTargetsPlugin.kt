@@ -1,6 +1,7 @@
 package com.rsicarelli.kmptargets
 
 import com.rsicarelli.kmptargets.hierarchy.computeHierarchySpec
+import com.rsicarelli.kmptargets.hierarchy.resolveHierarchyCollapseEnabled
 import com.rsicarelli.kmptargets.hierarchy.resolveHierarchyTemplateEnabled
 import com.rsicarelli.kmptargets.hierarchy.toTemplate
 import com.rsicarelli.kmptargets.host.currentHostEnabled
@@ -63,9 +64,12 @@ public class KmpTargetsPlugin : Plugin<Project> {
         // origin either — the report then falls through to the defaultSelection/built-in labels.
         val configOrigin: String? = winner?.takeIf { it.second.isNotBlank() }?.first
 
-        // Global default for the hierarchy template, read once at apply time as a primitive.
+        // Global defaults for the hierarchy template and its collapse rule (issue #50), each read
+        // once at apply time as a primitive.
         val globalHierarchyEnabled: Boolean? =
             hierarchyTemplateEnabledGlobally(target, personal, committed)
+        val globalCollapseEnabled: Boolean? =
+            hierarchyCollapseEnabledGlobally(target, personal, committed)
 
         // Strict mode (#34): opt-in promotion of the selection/host advisories to failures, read
         // once at apply time as a primitive Boolean (default off) so no `Project` is captured.
@@ -80,7 +84,7 @@ public class KmpTargetsPlugin : Plugin<Project> {
         // cache.
         ext.onSupports = {
             target.pluginManager.withPlugin(KGP_ID) {
-                register(target, ext, globalHierarchyEnabled, strict)
+                register(target, ext, globalHierarchyEnabled, globalCollapseEnabled, strict)
             }
         }
 
@@ -225,6 +229,21 @@ public class KmpTargetsPlugin : Plugin<Project> {
             ?.toBooleanStrictOrNull()
 
     /**
+     * Reads the global `kmptargets.hierarchyCollapse` flag (issue #50) through the standard
+     * [configSources] chain, with the same `null` = "not set" semantics as the template flag.
+     */
+    private fun hierarchyCollapseEnabledGlobally(
+        target: Project,
+        personal: Map<String, String>?,
+        committed: Map<String, String>?,
+    ): Boolean? =
+        configSources(target, ConfigKeys.HIERARCHY_COLLAPSE, personal, committed)
+            .read()
+            ?.trim()
+            ?.lowercase()
+            ?.toBooleanStrictOrNull()
+
+    /**
      * Reads the global `kmptargets.strict` flag through the standard [configSources] chain.
      * Deliberately opt-in: unset — or anything other than `true`/`false` (case-insensitive, per
      * `toBooleanStrictOrNull`) — means OFF, the advisory-only behavior.
@@ -298,6 +317,7 @@ public class KmpTargetsPlugin : Plugin<Project> {
         project: Project,
         ext: KmpTargetsExtension,
         globalHierarchyEnabled: Boolean?,
+        globalCollapseEnabled: Boolean?,
         strict: Boolean,
     ) {
         val kotlin = project.extensions.getByType(KotlinMultiplatformExtension::class.java)
@@ -360,7 +380,13 @@ public class KmpTargetsPlugin : Plugin<Project> {
             ext.deprecatedWarned += freshDeprecated
         }
 
-        maybeApplyHierarchyTemplate(project, ext, active, globalHierarchyEnabled)
+        maybeApplyHierarchyTemplate(
+            project,
+            ext,
+            active,
+            globalHierarchyEnabled,
+            globalCollapseEnabled,
+        )
     }
 
     /**
@@ -374,11 +400,16 @@ public class KmpTargetsPlugin : Plugin<Project> {
         ext: KmpTargetsExtension,
         active: KmpTargetSet,
         globalEnabled: Boolean?,
+        globalCollapseEnabled: Boolean?,
     ) {
         if (ext.hierarchyTemplateApplied || active.isEmpty()) return
         if (!resolveHierarchyTemplateEnabled(ext.hierarchyTemplate.orNull, globalEnabled)) return
+        // The collapse knob (issue #50) only matters when the minimal template itself applies —
+        // with the template disabled, KGP's default hierarchy owns the tree.
+        val collapse =
+            resolveHierarchyCollapseEnabled(ext.collapseHierarchy.orNull, globalCollapseEnabled)
         val kotlin = project.extensions.getByType(KotlinMultiplatformExtension::class.java)
-        kotlin.applyHierarchyTemplate(computeHierarchySpec(active).toTemplate())
+        kotlin.applyHierarchyTemplate(computeHierarchySpec(active, collapse).toTemplate())
         ext.hierarchyTemplateApplied = true
     }
 

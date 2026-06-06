@@ -113,6 +113,7 @@ to do, instead of loose keys buried among unrelated daemon/cache settings in `gr
 # kmp-targets.properties — committed, team-shared
 kmptargets.targets=jvm,iosArm64
 kmptargets.hierarchyTemplate=true
+# kmptargets.hierarchyCollapse=false    # opt-out of single-child collapse — see "Minimal hierarchy template"
 # kmptargets.strict=true    # opt-in: advisories become failures — see "Strict mode"
 ```
 
@@ -307,6 +308,40 @@ kmpTargets { hierarchyTemplate.set(false) }
 
 Precedence is **project DSL > global key > built-in default (`true`)**. Opt out when a module
 supplies its own `applyHierarchyTemplate { … }`, so the plugin stays out of the way.
+
+#### Keeping intermediates: no-collapse mode
+
+The collapse rule above is what keeps the tree minimal: a group materializes a source set only when
+it merges **≥2** present children; a single-child group collapses away. That is the right default
+for new code, but established codebases have **load-bearing intermediate source dirs** — dozens of
+modules with `src/iosMain` holding `actual` implementations. For them, narrowing the selection to a
+single iOS leaf (`-Pkmptargets.targets=iosArm64`, the everyday "build for device only" move)
+silently drops `iosMain` from the model and the build breaks with unresolved `expect` declarations.
+
+The opt-out is the **no-collapse** mode: a group materializes whenever it has **≥1** present child,
+so `iosMain` survives a single-iOS-leaf selection. Single-child chains materialize fully
+(`nativeMain → appleMain → iosMain` for one iOS leaf) — the inert empty intermediates are harmless
+(no code, no `expect`/`actual` to resolve). Empty groups are still dropped, and ungrouped leaves
+(jvm/android/web) still never form groups.
+
+```properties
+# kmp-targets.properties — global default (same precedence chain as the other keys)
+kmptargets.hierarchyCollapse=false
+```
+
+```kotlin
+// any module's build.gradle.kts — per-project override; set BEFORE supports { }
+kmpTargets {
+    collapseHierarchy.set(false)
+    supports { appleMobile }
+}
+```
+
+Precedence mirrors `hierarchyTemplate`: **project DSL > global key > built-in default (`true`,
+collapse — the minimal tree)**. The knob never changes **what registers** — only which intermediate
+source sets materialize — and it is a documented no-op when `hierarchyTemplate` resolves to `false`
+(KGP's default template owns the tree then). A possible future extension — force-materializing
+*named* groups only (e.g. just `ios`) to avoid the inert parents — is out of scope for now.
 
 ### Host compatibility
 

@@ -48,6 +48,18 @@ public abstract class KmpTargetsExtension @Inject constructor(objects: ObjectFac
     public abstract val hierarchyTemplate: Property<Boolean>
 
     /**
+     * Per-project opt-out of the single-child collapse rule (issue #50). Unset defers to the global
+     * `kmptargets.hierarchyCollapse` property, which itself defaults to `true` (collapse — the
+     * minimal tree). When `false`, a group materializes whenever it has ≥1 present child, so
+     * intermediates like `iosMain` survive a single-leaf selection — for codebases with
+     * load-bearing `src/iosMain` dirs whose everyday workflow narrows to one iOS leaf. No effect
+     * when [hierarchyTemplate] resolves to `false` (KGP's default template owns the tree then).
+     *
+     * Set it **before** [supports], for the same eager-registration reason as [hierarchyTemplate].
+     */
+    public abstract val collapseHierarchy: Property<Boolean>
+
+    /**
      * What this module can build. Unset means "not declared" → no targets register, and
      * [resolvedSupported] returns [KmpTargetSet.empty]. Written by the [supports] block (or its raw
      * overload), which unions on each call.

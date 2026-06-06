@@ -14,11 +14,16 @@ import com.rsicarelli.kmptargets.model.KmpTargetSet
  *
  * Consequence (the article's point): an iOS-only module yields `iosMain` only — no redundant
  * `appleMain`/`nativeMain` — while iOS + linux yields `nativeMain` over `iosMain` + `linuxMain`.
+ *
+ * [collapse] (default `true`) is the no-collapse knob (issue #50): when `false`, a group
+ * materializes with **≥1** present child instead of ≥2, so intermediates like `iosMain` survive a
+ * single-leaf selection — load-bearing for codebases with established `src/iosMain` dirs. Empty
+ * groups are still dropped, and ungrouped leaves (jvm/android/web) still never form groups.
  */
-internal fun computeHierarchySpec(active: KmpTargetSet): HierarchySpec {
+internal fun computeHierarchySpec(active: KmpTargetSet, collapse: Boolean = true): HierarchySpec {
     // The native subtree, collapsed; plus any leaf that belongs to no group (jvm/android/web),
     // which always attaches directly to `common`.
-    val nativeRoots = contributionOf(HierarchyGroup.NATIVE, active)
+    val nativeRoots = contributionOf(HierarchyGroup.NATIVE, active, collapse)
     val ungrouped =
         active.members
             .filter { mostSpecificGroup(it) == null }
@@ -30,13 +35,18 @@ internal fun computeHierarchySpec(active: KmpTargetSet): HierarchySpec {
 /**
  * The set of nodes [group] contributes to its parent's children, with the collapse rule applied: ≥2
  * present children ⇒ a single [HierarchyNode.Group]; exactly one ⇒ that child bubbles up unchanged
- * (collapse); none ⇒ nothing.
+ * (collapse) — unless [collapse] is off, in which case the group materializes anyway; none ⇒
+ * nothing (in both modes).
  */
-private fun contributionOf(group: HierarchyGroup, active: KmpTargetSet): Set<HierarchyNode> {
+private fun contributionOf(
+    group: HierarchyGroup,
+    active: KmpTargetSet,
+    collapse: Boolean,
+): Set<HierarchyNode> {
     val fromChildGroups: Set<HierarchyNode> =
         HierarchyGroup.entries
             .filter { it.parent == group }
-            .flatMap { contributionOf(it, active) }
+            .flatMap { contributionOf(it, active, collapse) }
             .toSet()
     val directLeaves: Set<HierarchyNode> =
         active.members
@@ -44,9 +54,9 @@ private fun contributionOf(group: HierarchyGroup, active: KmpTargetSet): Set<Hie
             .map { HierarchyNode.Leaf(it) }
             .toSet()
     val presentChildren = fromChildGroups + directLeaves
-    return when (presentChildren.size) {
-        0 -> emptySet()
-        1 -> presentChildren
+    return when {
+        presentChildren.isEmpty() -> emptySet()
+        collapse && presentChildren.size == 1 -> presentChildren
         else -> setOf(HierarchyNode.Group(group, presentChildren))
     }
 }
