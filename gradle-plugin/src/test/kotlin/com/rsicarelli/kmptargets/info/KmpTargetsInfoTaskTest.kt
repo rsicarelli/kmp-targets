@@ -180,6 +180,25 @@ class KmpTargetsInfoTaskTest {
         assertEquals("help", task.group)
     }
 
+    @Test
+    fun `given the plugin without KGP when annotation inputs are read then host data degrades to empty`(
+        @TempDir dir: Path
+    ) {
+        // Graceful degradation AND a classloading guard: without KGP the providers must never
+        // touch HostManager, so the host annotations simply vanish from the report.
+        val task = infoTask(newAppliedProject(dir))
+        assertEquals(emptyList(), task.hostImpossibleIds.get())
+        assertEquals("", task.hostLabel.get())
+    }
+
+    @Test
+    fun `given the info task when deprecated ids are read then they are the pinned registry sorted`(
+        @TempDir dir: Path
+    ) {
+        val task = infoTask(newAppliedProject(dir))
+        assertEquals(listOf("macosX64", "tvosX64", "watchosX64"), task.deprecatedIds.get())
+    }
+
     private fun newAppliedProject(dir: Path): Project {
         val project = ProjectBuilder.builder().withProjectDir(dir.toFile()).build()
         project.pluginManager.apply("com.rsicarelli.kmptargets")

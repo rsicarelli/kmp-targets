@@ -3,6 +3,7 @@ package com.rsicarelli.kmptargets.host
 import com.rsicarelli.kmptargets.model.KmpTarget
 import com.rsicarelli.kmptargets.model.KmpTargetSet
 import com.rsicarelli.kmptargets.warnOrFail
+import org.jetbrains.kotlin.konan.target.HostManager
 import org.jetbrains.kotlin.konan.target.KonanTarget
 
 /**
@@ -94,3 +95,20 @@ internal fun enforceHostCompatibility(
     )
     return fresh
 }
+
+/**
+ * Sorted ids of the [active] leaves the simulated host (its [enabled] set) cannot compile — the
+ * `kmpTargetsInfo` per-leaf annotation source (#44). Same [impossibleOnHost] decision as the
+ * advisory, behind the same injected-enabled-set seam so tests never depend on the running machine.
+ */
+internal fun hostImpossibleIds(active: KmpTargetSet, enabled: Set<KonanTarget>): List<String> =
+    impossibleOnHost(active, enabled).members.map { it.id }.sorted()
+
+/**
+ * The running host's enabled targets and display label, touched ONLY behind a KGP-presence check:
+ * `HostManager` lives in these function bodies so its classes never load when KGP is absent (the
+ * same lazy-resolution pattern eager registration relies on).
+ */
+internal fun currentHostEnabled(): Set<KonanTarget> = HostManager().enabled.toSet()
+
+internal fun currentHostLabel(): String = HostManager.host.name.uppercase()

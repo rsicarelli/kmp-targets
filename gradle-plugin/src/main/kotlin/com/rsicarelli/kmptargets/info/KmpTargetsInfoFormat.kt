@@ -18,6 +18,9 @@ internal fun formatKmpTargetsInfo(
     originLabel: String,
     presetNames: List<String>,
     leafIds: List<String>,
+    hostImpossibleIds: List<String>,
+    hostLabel: String,
+    deprecatedIds: List<String>,
 ): String = buildString {
     appendLine("kmp-targets — $projectPath")
     appendLine()
@@ -36,12 +39,32 @@ internal fun formatKmpTargetsInfo(
     }
     appendLine()
     appendLine("Registered (selection ∩ supported)")
-    appendLine("  targets:  ${registeredOrNone(registeredIds, selectionIds, supportedIds)}")
+    appendLine(
+        "  targets:  " +
+            annotated(registeredOrNone(registeredIds, selectionIds, supportedIds), registeredIds) {
+                id ->
+                if (id in hostImpossibleIds) "(not compilable on this host: $hostLabel)" else null
+            }
+    )
     appendLine()
     appendLine("Vocabulary")
     appendLine("  presets:  ${presetNames.joinToString(", ")}")
-    append("  leaves:   ${leafIds.joinToString(", ")} (${leafIds.size})")
+    append(
+        "  leaves:   " +
+            leafIds.joinToString(", ") { id ->
+                if (id in deprecatedIds) "$id (deprecated)" else id
+            } +
+            " (${leafIds.size})"
+    )
 }
+
+/**
+ * Re-renders [ids] with a per-leaf [marker] suffix when any leaf earns one; falls back to the
+ * pre-rendered [plain] line (which carries the explicit empty-case wording) when none does.
+ */
+private fun annotated(plain: String, ids: List<String>, marker: (String) -> String?): String =
+    if (ids.none { marker(it) != null }) plain
+    else ids.joinToString(", ") { id -> marker(id)?.let { "$id $it" } ?: id }
 
 private fun idsOrNone(ids: List<String>, emptyReason: String): String =
     if (ids.isEmpty()) "(none — $emptyReason)" else ids.joinToString(", ")

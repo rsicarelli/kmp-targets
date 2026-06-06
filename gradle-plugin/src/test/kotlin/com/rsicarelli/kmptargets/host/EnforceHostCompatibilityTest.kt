@@ -105,6 +105,32 @@ class EnforceHostCompatibilityTest {
         assertTrue(warnings.isEmpty(), "expected no warnings, got: $warnings")
     }
 
+    // -- info-task annotation seam (#44) ---------------------------------------------------------
+
+    @Test
+    fun `given iosArm64 active on a simulated linux host when impossible ids are computed then it is the only annotation`() {
+        assertEquals(
+            listOf("iosArm64"),
+            hostImpossibleIds(KmpTargetSet.of(iosArm64, KmpTarget.Jvm.Desktop), linuxEnabled),
+        )
+    }
+
+    @Test
+    fun `given the same active set on a simulated mac host when impossible ids are computed then none are annotated`() {
+        assertEquals(
+            emptyList(),
+            hostImpossibleIds(KmpTargetSet.of(iosArm64, tvosArm64), macEnabled),
+        )
+    }
+
+    @Test
+    fun `given several impossible leaves when impossible ids are computed then they are sorted`() {
+        assertEquals(
+            listOf("iosArm64", "tvosArm64"),
+            hostImpossibleIds(KmpTargetSet.of(tvosArm64, iosArm64), linuxEnabled),
+        )
+    }
+
     private fun enforce(
         active: KmpTargetSet,
         enabled: Set<KonanTarget> = linuxEnabled,
