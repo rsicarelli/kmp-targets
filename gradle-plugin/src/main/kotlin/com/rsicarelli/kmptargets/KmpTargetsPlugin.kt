@@ -145,6 +145,9 @@ public class KmpTargetsPlugin : Plugin<Project> {
                     if (!target.pluginManager.hasPlugin(KGP_ID)) "" else currentHostLabel()
                 }
             )
+            // The rename annotation (issue #49) reads lazily for the same post-body reason as the
+            // selection providers: the body sets `targetName(...)` before `supports { }`.
+            task.jvmRegisteredAs.set(target.provider { ext.jvmTargetName.orNull })
             // The config-layer origin is fixed at apply time, but the fallback labels must read
             // `defaultSelection` lazily — the body may override it after apply.
             task.originLabel.set(
@@ -324,8 +327,11 @@ public class KmpTargetsPlugin : Plugin<Project> {
         val selection = ext.resolvedSelection()
         val supported = ext.resolvedSupported()
         val active = selection intersect supported
+        // Read once per registration pass, as a plain String — config-cache safe (issue #49). The
+        // `targetName` sugar guarantees this was set before the jvm leaf registered.
+        val jvmName: String? = ext.jvmTargetName.orNull
         (active.members - ext.registered).forEach { leaf ->
-            registerTarget(kotlin, leaf)
+            registerTarget(kotlin, leaf, jvmName)
             ext.registered.add(leaf)
         }
 
@@ -413,10 +419,16 @@ public class KmpTargetsPlugin : Plugin<Project> {
         ext.hierarchyTemplateApplied = true
     }
 
-    private fun registerTarget(kotlin: KotlinMultiplatformExtension, target: KmpTarget) {
+    private fun registerTarget(
+        kotlin: KotlinMultiplatformExtension,
+        target: KmpTarget,
+        jvmName: String?,
+    ) {
         when (target) {
             KmpTarget.Jvm.Android -> kotlin.androidTarget()
-            KmpTarget.Jvm.Desktop -> kotlin.jvm()
+            // The only renamable leaf (issue #49): KGP's hierarchy matchers (`withJvm()`) key off
+            // the platform type, so a custom-named jvm target attaches exactly like the default.
+            KmpTarget.Jvm.Desktop -> if (jvmName != null) kotlin.jvm(jvmName) else kotlin.jvm()
             KmpTarget.Native.Apple.Ios.Arm64 -> kotlin.iosArm64()
             KmpTarget.Native.Apple.Ios.SimulatorArm64 -> kotlin.iosSimulatorArm64()
             KmpTarget.Native.Apple.Ios.X64 -> kotlin.iosX64()

@@ -62,3 +62,8 @@ include(":escape-hatch-dsl")
 // build-logic convention (`kmptargets.module`) that declares `supports` then reads `kotlin.targets`
 // synchronously — proves eager registration. `verifyEagerTargets` fails the build if it regresses.
 include(":eager-conventions")
+
+// supports{jvm+iosArm64} with the jvm leaf renamed via `targetName(jvm, "desktop")` → a
+// `desktop` target, `desktopMain`, no `jvmMain`. `verifyRenamedTargets` fails the build if it
+// regresses.
+include(":desktop-named")
