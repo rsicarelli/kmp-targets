@@ -23,6 +23,7 @@ internal fun formatKmpTargetsInfo(
     deprecatedIds: List<String>,
     jvmRegisteredAs: String? = null,
     androidWithoutAgp: Boolean = false,
+    inertModule: Boolean = false,
 ): String = buildString {
     appendLine("kmp-targets — $projectPath")
     appendLine()
@@ -63,6 +64,16 @@ internal fun formatKmpTargetsInfo(
                 markers.takeIf { it.isNotEmpty() }?.joinToString(" ")
             }
     )
+    // The inert line (#71) is its own row, not a per-leaf marker: it describes the whole module
+    // (zero actual registrations → doomed commonMain metadata compilation), and it must also
+    // render when the abstract `selection ∩ supported` line is non-empty but registration skipped
+    // everything (the #51 android case).
+    if (inertModule) {
+        appendLine(
+            "  inert:    zero targets registered — commonMain metadata compilation will fail; " +
+                "gate on registered().isEmpty()"
+        )
+    }
     appendLine()
     appendLine("Vocabulary")
     appendLine("  presets:  ${presetNames.joinToString(", ")}")

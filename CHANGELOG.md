@@ -26,6 +26,18 @@ changes may land in any release.
 
 ### Added
 
+- **Inert-module advisory** ([#71]): when a module that declared `supports { }` ends a
+  registration pass with **zero** targets registered — a disjoint selection, an explicitly-empty
+  selection (`jvm,-jvm`, where the empty-overlap advisory is silent by design), or an android-only
+  overlap skipped by the AGP guard — the plugin logs a one-line advisory naming the consequence:
+  KGP still materializes the commonMain metadata compilation, which fails on a platform-less
+  module, and the recommended build-logic gate is `kmpTargets.registered().isEmpty()`. Signal
+  only, never filtering; promoted to a build failure under `kmptargets.strict=true` with the
+  identical text (the cause advisories — empty-overlap, android-without-AGP — are emitted first
+  and win the strict exception where they apply). Fires at most once per module (a later
+  `supports { }` union that registers a leaf un-inerts it permanently); a module that never calls
+  `supports { }` is deliberately not flagged. `kmpTargetsInfo` renders the same decision as an
+  `inert:` line in its registered section.
 - **Per-module JVM target name override** ([#49]): `kmpTargets { targetName(jvm, "desktop") }`
   registers the jvm leaf under a custom Gradle target name, so legacy `jvm("desktop")` codebases
   keep their `src/desktopMain` dirs, `-desktop` artifact suffixes, and `compileKotlinDesktop` task
@@ -86,3 +98,4 @@ changes may land in any release.
 [#50]: https://github.com/rsicarelli/kmp-targets/issues/50
 [#51]: https://github.com/rsicarelli/kmp-targets/issues/51
 [#52]: https://github.com/rsicarelli/kmp-targets/issues/52
+[#71]: https://github.com/rsicarelli/kmp-targets/issues/71

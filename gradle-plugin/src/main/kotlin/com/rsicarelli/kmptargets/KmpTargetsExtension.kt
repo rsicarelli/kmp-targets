@@ -173,6 +173,13 @@ public abstract class KmpTargetsExtension @Inject constructor(objects: ObjectFac
     internal var androidAgpWarned: Boolean = false
 
     /**
+     * True once the inert-module advisory (#71) fired, so it fires at most once per module. A
+     * boolean (not a set) on purpose: inertness is a whole-module property, and registration is
+     * one-way — once [registered] goes non-empty the module can never turn inert again.
+     */
+    internal var inertWarned: Boolean = false
+
+    /**
      * The resolved supported set: the declared value (unioned across [supports] calls), or
      * [KmpTargetSet.empty] if none was declared. Public so build-logic (and consumers) can read
      * what this module ended up declaring.

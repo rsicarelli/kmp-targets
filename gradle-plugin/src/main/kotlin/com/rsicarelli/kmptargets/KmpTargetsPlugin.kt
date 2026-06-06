@@ -162,6 +162,16 @@ public class KmpTargetsPlugin : Plugin<Project> {
                         )
                 }
             )
+            // Inert annotation (#71): same decision source as the advisory
+            // (`shouldWarnInertModule` over `registered()`), realized lazily post-body and guarded
+            // by the same runtime KGP check as the host data — without KGP no metadata compilation
+            // exists, so there is no trap to report.
+            task.inertModule.set(
+                target.provider {
+                    target.pluginManager.hasPlugin(KGP_ID) &&
+                        shouldWarnInertModule(ext.supportsProperty.isPresent, ext.registered())
+                }
+            )
             // The config-layer origin is fixed at apply time, but the fallback labels must read
             // `defaultSelection` lazily — the body may override it after apply.
             task.originLabel.set(
@@ -426,6 +436,25 @@ public class KmpTargetsPlugin : Plugin<Project> {
             ext.deprecatedWarned += freshDeprecated
         }
 
+        // Inert-module advisory (#71): the pass ended with zero registrations for a module that
+        // declared supports { } — KGP still materializes the commonMain metadata compilation,
+        // which fails on a platform-less module, so the doomed task deserves a signal. Keyed off
+        // registered() — the exact query the message tells build-logic to gate on — so it covers
+        // every cause uniformly: a disjoint overlap, an explicitly-empty selection (where
+        // empty-overlap is silent by design, issue #9), and an android-only overlap skipped by the
+        // #51 guard. Ordered LAST on purpose: under strict the cause advisories above (empty-
+        // overlap, android-without-AGP) win the exception, and inert — the consequence channel —
+        // is the thrown text only where no cause advisory covers the state. Deduped once per
+        // module (registration is one-way, so a module that un-inerts can never re-inert),
+        // recorded AFTER warnOrFail so a strict failure leaves no bookkeeping behind.
+        if (
+            !ext.inertWarned &&
+                shouldWarnInertModule(ext.supportsProperty.isPresent, ext.registered())
+        ) {
+            warnOrFail(strict, inertModuleWarning(project.path)) { project.logger.warn(it) }
+            ext.inertWarned = true
+        }
+
         // Deliberately receives the unfiltered active set even when android was skipped above:
         // android is ungrouped in the hierarchy taxonomy (it attaches straight to common and
         // never affects the native collapse), so filtering would change nothing.
@@ -600,5 +629,33 @@ internal fun deprecatedTargetsWarning(path: String, deprecated: KmpTargetSet): S
     "kmp-targets: '$path' registers ${ids(deprecated)} which Kotlin marks deprecated " +
         "(since Kotlin 2.3.20, see https://kotlinlang.org/docs/native-target-support.html) — " +
         "still registered (selection is unchanged), but consider migrating off them."
+
+/**
+ * Whether to emit [inertModuleWarning] (#71): the module declared `supports { }` yet ended a
+ * registration pass with zero actual registrations. Keyed off [registered] — the
+ * `KmpTargetsExtension.registered()` snapshot, i.e. what truly registered with KGP — rather than
+ * `selection ∩ supported`, so the condition is provably the same one the message tells build-logic
+ * to gate on, and the #51 android skip counts as inert. Deliberately host-free: registration is
+ * host-blind, so a registered-but-uncompilable module is NOT inert on any host. A module that never
+ * declared `supports { }` registers nothing *intentionally* (explicit-selection doctrine) and is
+ * never flagged. Pure over its inputs, so it is unit-testable without Gradle; the same decision
+ * drives the `kmpTargetsInfo` inert line.
+ */
+internal fun shouldWarnInertModule(supportsDeclared: Boolean, registered: KmpTargetSet): Boolean =
+    supportsDeclared && registered.isEmpty()
+
+/**
+ * The inert-module advisory (#71). Mirrors its siblings in shape; serves as both the warning and
+ * the strict-mode failure text through [warnOrFail]. Unlike them it names a *task-level
+ * consequence* — KGP materializes `compileCommonMainKotlinMetadata` for every module applying the
+ * KMP plugin, and that compilation fails when no platform target exists — and the build-logic gate.
+ * Deliberately set-free: the advisory is cause-agnostic (disjoint overlap, explicitly-empty
+ * selection, android-only AGP skip all fire it), so naming the selection or supported sets would
+ * mislead in at least one of those cases; the cause advisories above it name the sets.
+ */
+internal fun inertModuleWarning(path: String): String =
+    "kmp-targets: '$path' declared supports { } but registered zero targets — the module is " +
+        "inert. KGP still materializes the commonMain metadata compilation, which fails with no " +
+        "platform targets. Gate it in build-logic when kmpTargets.registered().isEmpty()."
 
 private fun ids(set: KmpTargetSet): List<String> = set.members.map { it.id }.sorted()

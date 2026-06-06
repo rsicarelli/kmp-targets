@@ -2,7 +2,7 @@
 
 > Dynamically select which Kotlin Multiplatform targets to build.
 
-**Status:** alpha (pre-1.0). Shipped and exercised by the multi-module sample plus a real 3-OS CI matrix: the global selector with [try-import-style layering](#selecting-targets) (dedicated config files, unified `kmptargets.*` keys), the automatic [minimal hierarchy template](#minimal-hierarchy-template), the [`kmpTargetsInfo`](#debugging-the-selection) introspection task, [host-compatibility](#host-compatibility), [deprecated-target](#deprecated-targets), and [android-without-AGP](#android-target-without-the-android-gradle-plugin) advisories, and opt-in [strict mode](#strict-mode). Roadmap: user-defined hierarchy groups, XCFramework helpers, Maven Central / Plugin Portal publishing.
+**Status:** alpha (pre-1.0). Shipped and exercised by the multi-module sample plus a real 3-OS CI matrix: the global selector with [try-import-style layering](#selecting-targets) (dedicated config files, unified `kmptargets.*` keys), the automatic [minimal hierarchy template](#minimal-hierarchy-template), the [`kmpTargetsInfo`](#debugging-the-selection) introspection task, [host-compatibility](#host-compatibility), [deprecated-target](#deprecated-targets), [android-without-AGP](#android-target-without-the-android-gradle-plugin), and [inert-module](#inert-modules) advisories, and opt-in [strict mode](#strict-mode). Roadmap: user-defined hierarchy groups, XCFramework helpers, Maven Central / Plugin Portal publishing.
 
 `kmp-targets` is a Gradle plugin for Kotlin Multiplatform projects that lets each developer (and each CI runner) choose which KMP targets to build, via a single Gradle property:
 
@@ -488,13 +488,57 @@ leaf normally. [`kmpTargetsInfo`](#debugging-the-selection) marks the leaf
 `androidTarget (skipped: no Android plugin applied)` in its registered section while the condition
 holds.
 
+### Inert modules
+
+A module that declared `supports { … }` can still end up registering **zero** targets — that is
+explicit selection working as intended, and it happens three ways: the selection is disjoint from
+the supported set (the everyday narrowed-lane case), the selection is explicitly empty
+(`kmptargets.targets=jvm,-jvm` — the honored "build nothing" of the
+[selection grammar](#selection-grammar)), or the only overlap was an `androidTarget` that the
+[AGP guard](#android-target-without-the-android-gradle-plugin) skipped. The trap: KGP still
+materializes the **commonMain metadata compilation** (`compileCommonMainKotlinMetadata`) for every
+module that applies `kotlin("multiplatform")`, and on a module with no platform targets that
+compilation **fails** — a platform-less commonMain has no legal platform context, so declarations
+relying on `@OptionalExpectation` (and friends) are rejected. Any aggregate invocation (`build`,
+`check`, `publishToMavenLocal`) then trips over every inert module with an opaque compiler error.
+
+So whenever a registration pass leaves such a module with zero registrations, the plugin logs a
+one-line advisory naming the consequence and the gate:
+
+```
+kmp-targets: ':shared' declared supports { } but registered zero targets — the module is inert.
+KGP still materializes the commonMain metadata compilation, which fails with no platform targets.
+Gate it in build-logic when kmpTargets.registered().isEmpty().
+```
+
+Like its siblings (and unlike the AGP guard): **signal only, never filtering** — the plugin does
+not disable any task. The recommended gate lives in your build-logic, right after the module's
+`supports { }` (or in a convention plugin), keyed off the same
+[`registered()`](#querying-what-registered) query the advisory checks:
+
+```kotlin
+// after supports { } — disable the doomed compilations when nothing registered
+if (kmpTargets.registered().isEmpty()) {
+    tasks.withType(KotlinCompilationTask::class.java).configureEach { enabled = false }
+}
+```
+
+A module that **never calls** `supports { }` registers nothing *by definition* and is deliberately
+not flagged — that is the explicit-selection baseline, not the trap. The advisory fires at most
+once per module; a later `supports { }` union that registers a leaf un-inerts the module
+permanently (registration is one-way). It is host-blind like registration itself: a registered
+target the current host [cannot compile](#host-compatibility) still counts as registered.
+[`kmpTargetsInfo`](#debugging-the-selection) renders the same decision as an `inert:` line in its
+registered section while the condition holds.
+
 ### Strict mode
 
-By default all four advisories — the **empty-overlap** warning (a non-empty selection that matches
+By default all five advisories — the **empty-overlap** warning (a non-empty selection that matches
 nothing a module `supports`, so the module registers zero targets), the
 [**android-without-AGP**](#android-target-without-the-android-gradle-plugin) advisory, the
-[**host-impossible**](#host-compatibility) warning, and the
-[**deprecated-target**](#deprecated-targets) advisory — are just that: warnings. Right for local
+[**host-impossible**](#host-compatibility) warning, the
+[**deprecated-target**](#deprecated-targets) advisory, and the
+[**inert-module**](#inert-modules) advisory — are just that: warnings. Right for local
 iteration, easy to miss in CI, where a module silently building nothing is usually a real
 configuration bug.
 
@@ -517,6 +561,13 @@ env:
 > **Heads-up for cross-host CI:** with strict on, a selection that includes targets the agent
 > cannot compile (e.g. iOS leaves on a Linux runner) fails the build by design. Strict CI pairs
 > with per-host selections — see [CI](#ci) for the matrix pattern.
+
+> **Heads-up for explicitly-empty selections:** with strict on, a selection narrowed to nothing
+> (`kmptargets.targets=jvm,-jvm`) makes the [inert-module](#inert-modules) advisory fail **every**
+> module that declares `supports { }` at configuration time, by design — the other advisories stay
+> silent there, but every one of those modules carries a doomed metadata compilation. A
+> build-nothing lane that really wants to configure successfully should not pair the empty
+> selection with strict.
 
 ## CI
 
