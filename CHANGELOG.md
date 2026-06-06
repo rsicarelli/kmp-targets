@@ -49,6 +49,16 @@ changes may land in any release.
   with **≥1** present child instead of ≥2, so intermediates like `iosMain` survive a single-leaf
   selection — for codebases with load-bearing `src/iosMain` dirs. Default unchanged (`true`,
   collapse); never changes what registers; no-op when `kmptargets.hierarchyTemplate=false`.
+- **Registered-targets query surface for build-logic** ([#52]): `registered()` /
+  `registered(slice)` snapshot what the plugin **actually registered** as a `KmpTargetSet`
+  (family-sliceable with the existing presets: `registered(KmpTargetSet.appleMobile)`), and
+  `onRegistered { … }` delivers a `RegisteredTarget` per leaf with `configureEach` semantics
+  (replays for already-registered leaves, fires per delta of later `supports { }` unions) — so
+  per-target wiring like KSP's `ksp<Target>` configurations needs no KGP konan imports:
+  `onRegistered { add("ksp${it.gradleNameCapitalized}", dep) }`. The carrier's `gradleName` is the
+  name registration actually used (a renamed jvm reports `desktop`); `registered()` mirrors real
+  registrations, not the abstract plan — empty without KGP, and the #51-skipped `androidTarget`
+  stays absent.
 - **Android-without-AGP advisory** ([#51]): when a module both selects and supports
   `androidTarget` but no Android Gradle plugin is applied by the time `supports { }` runs, the
   plugin skips registering that leaf — the KGP alternative is the fatal
@@ -75,3 +85,4 @@ changes may land in any release.
 [#49]: https://github.com/rsicarelli/kmp-targets/issues/49
 [#50]: https://github.com/rsicarelli/kmp-targets/issues/50
 [#51]: https://github.com/rsicarelli/kmp-targets/issues/51
+[#52]: https://github.com/rsicarelli/kmp-targets/issues/52

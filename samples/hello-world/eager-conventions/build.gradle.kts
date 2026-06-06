@@ -5,18 +5,16 @@ plugins {
     id("kmptargets.module")
 }
 
-// EAGER PROOF. `kmpModule` declares the supported set and then reads `kotlin.targets`
-// synchronously,
-// wiring one task per registered target. With kmptargets.targets=jvm,iosArm64,iosSimulatorArm64
-// intersected
+// EAGER PROOF. `kmpModule` declares the supported set and wires one task per registered target
+// through the plugin's `onRegistered` hook (issue #52) — each carrier arrives with the actual
+// Gradle name pre-mangled (`gradleNameCapitalized`), the same shape KSP-style `ksp<Target>`
+// configuration wiring needs. With kmptargets.targets=jvm,iosArm64,iosSimulatorArm64 intersected
 // against supports { jvm + iosArm64 }, the convention sees exactly [iosArm64, jvm] — at
-// configuration
-// time, in the same pass. Under the old after-evaluate model this read would have been empty.
-kmpModule(supported = { jvm + iosArm64 }) { targets ->
-    targets.forEach { target ->
-        tasks.register("describe${target.replaceFirstChar(Char::uppercase)}") {
-            doLast { logger.lifecycle("eager-wired target: $target") }
-        }
+// configuration time, in the same pass. (Pre-#52 this read `kotlin.targets.names` by hand.)
+kmpModule(supported = { jvm + iosArm64 }) { target ->
+    tasks.register("describe${target.gradleNameCapitalized}") {
+        val gradleName = target.gradleName
+        doLast { logger.lifecycle("eager-wired target: $gradleName") }
     }
 }
 

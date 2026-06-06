@@ -16,8 +16,11 @@ class KmpModulePlugin : Plugin<Project> {
     override fun apply(project: Project) {
         project.pluginManager.apply("com.rsicarelli.kmptargets")
 
-        // The ordering-immune counterpart to `kmpModule`'s eager read: react to each target as it is
-        // registered. Fires when the consumer's `supports { … }` runs, regardless of order.
+        // KGP-native contrast to `kmpModule`'s `onRegistered` wiring: `targets.configureEach`
+        // reacts to every target in `kotlin.targets`, however it was registered. Prefer
+        // `onRegistered` when wiring off what *kmp-targets* registered (it carries the model leaf
+        // and the actual Gradle name); reach for `configureEach` when you need the KotlinTarget
+        // object itself.
         val log = project.logger
         project.pluginManager.withPlugin("org.jetbrains.kotlin.multiplatform") {
             project.extensions.getByType<KotlinMultiplatformExtension>().targets.configureEach {

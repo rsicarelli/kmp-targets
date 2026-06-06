@@ -139,7 +139,7 @@ class AndroidAgpAdvisoryInProcessTest {
         val project = newProjectWithKgp(dir)
         val extension = ext(project)
         extension.supports { androidTarget + jvm }
-        assertFalse(android in extension.registered)
+        assertFalse(android in extension.registeredLeaves)
     }
 
     @Test

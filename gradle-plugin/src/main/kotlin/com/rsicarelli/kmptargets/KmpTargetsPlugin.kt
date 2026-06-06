@@ -349,14 +349,17 @@ public class KmpTargetsPlugin : Plugin<Project> {
         // Read fresh on every supports{} pass, so AGP applied between two calls counts for the
         // later pass.
         val androidPluginApplied = isAndroidPluginApplied(project)
-        (active.members - ext.registered).forEach { leaf ->
+        (active.members - ext.registeredLeaves).forEach { leaf ->
             // KGP's androidTarget() reports a FATAL diagnostic (AndroidGradlePluginIsMissing,
             // thrown immediately) when no Android Gradle plugin is applied. Skip the leaf instead
             // — the advisory below names the module and the fix — and do NOT record it, so a
             // later supports{} pass after AGP is applied still registers it.
             if (leaf == KmpTarget.Jvm.Android && !androidPluginApplied) return@forEach
-            registerTarget(kotlin, leaf, jvmName)
-            ext.registered.add(leaf)
+            val gradleName = registerTarget(kotlin, leaf, jvmName)
+            // Leaf first, then the carrier+callbacks (issue #52): an onRegistered action that
+            // re-enters register() must already see this leaf as registered.
+            ext.registeredLeaves.add(leaf)
+            ext.recordRegistration(leaf, gradleName)
         }
 
         // The selection is non-empty yet genuinely disjoint from the supported set, so nothing
@@ -459,15 +462,22 @@ public class KmpTargetsPlugin : Plugin<Project> {
         ext.hierarchyTemplateApplied = true
     }
 
+    /**
+     * Registers [target] with KGP and returns the Gradle target name registration actually used —
+     * read off the `KotlinTarget` each KGP factory returns, never re-derived from the leaf, so the
+     * [RegisteredTarget][com.rsicarelli.kmptargets.model.RegisteredTarget] carriers stay truthful
+     * for the renamed jvm leaf (issue #49) and for whatever name KGP picks.
+     */
     private fun registerTarget(
         kotlin: KotlinMultiplatformExtension,
         target: KmpTarget,
         jvmName: String?,
-    ) {
+    ): String =
         when (target) {
             KmpTarget.Jvm.Android -> kotlin.androidTarget()
-            // The only renamable leaf (issue #49): KGP's hierarchy matchers (`withJvm()`) key off
-            // the platform type, so a custom-named jvm target attaches exactly like the default.
+            // The only renamable leaf (issue #49): KGP's hierarchy matchers (`withJvm()`) key
+            // off the platform type, so a custom-named jvm target attaches exactly like the
+            // default.
             KmpTarget.Jvm.Desktop -> if (jvmName != null) kotlin.jvm(jvmName) else kotlin.jvm()
             KmpTarget.Native.Apple.Ios.Arm64 -> kotlin.iosArm64()
             KmpTarget.Native.Apple.Ios.SimulatorArm64 -> kotlin.iosSimulatorArm64()
@@ -500,8 +510,7 @@ public class KmpTargetsPlugin : Plugin<Project> {
                     nodejs()
                 }
             KmpTarget.Web.WasmWasi -> kotlin.wasmWasi { nodejs() }
-        }
-    }
+        }.targetName
 }
 
 /**

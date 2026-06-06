@@ -2,6 +2,7 @@ package com.rsicarelli.kmptargets
 
 import com.rsicarelli.kmptargets.model.KmpTarget
 import com.rsicarelli.kmptargets.model.KmpTargetSet
+import com.rsicarelli.kmptargets.model.RegisteredTarget
 import javax.inject.Inject
 import org.gradle.api.GradleException
 import org.gradle.api.model.ObjectFactory
@@ -98,7 +99,7 @@ public abstract class KmpTargetsExtension @Inject constructor(objects: ObjectFac
         if (name.isBlank()) {
             throw GradleException("kmp-targets: the jvm target name must not be blank.")
         }
-        if (KmpTarget.Jvm.Desktop in registered) {
+        if (KmpTarget.Jvm.Desktop in registeredLeaves) {
             throw GradleException(
                 "kmp-targets: targetName must be called before supports { } — the jvm leaf " +
                     "already registered under its default name and KGP registration is one-way."
@@ -157,7 +158,7 @@ public abstract class KmpTargetsExtension @Inject constructor(objects: ObjectFac
     public fun resolvedSelection(): KmpTargetSet = globalSelection ?: defaultSelection.get()
 
     /** Leaves already registered with KGP, so repeated registration stays idempotent. */
-    internal val registered: MutableSet<KmpTarget> = mutableSetOf()
+    internal val registeredLeaves: MutableSet<KmpTarget> = mutableSetOf()
 
     /** Leaves already named in a host-impossible warning, so each is warned at most once. */
     internal val hostWarned: MutableSet<KmpTarget> = mutableSetOf()
@@ -177,4 +178,77 @@ public abstract class KmpTargetsExtension @Inject constructor(objects: ObjectFac
      * what this module ended up declaring.
      */
     public fun resolvedSupported(): KmpTargetSet = supportsProperty.orNull ?: KmpTargetSet.empty
+
+    /**
+     * Every registration this plugin performed, in order, as [RegisteredTarget] carriers — the
+     * single source for [registered] snapshots and [onRegistered] replay. Appended by
+     * [recordRegistration] from the plugin's registration loop.
+     */
+    internal val registeredLog: MutableList<RegisteredTarget> = mutableListOf()
+
+    /** Actions hooked via [onRegistered], fired for each future [recordRegistration]. */
+    internal val onRegisteredActions: MutableList<(RegisteredTarget) -> Unit> = mutableListOf()
+
+    /**
+     * Records that [leaf] registered with KGP under [gradleName] and fires the [onRegistered]
+     * actions. The log is appended *before* firing and the actions iterate a snapshot, so an action
+     * that re-enters (e.g. by calling [supports]) sees a consistent log and never trips a
+     * concurrent modification — though nested fire ordering is unspecified and re-entering is not a
+     * supported pattern.
+     */
+    internal fun recordRegistration(leaf: KmpTarget, gradleName: String) {
+        val carrier = RegisteredTarget(leaf, gradleName)
+        registeredLog += carrier
+        onRegisteredActions.toList().forEach { it(carrier) }
+    }
+
+    /**
+     * Snapshot of the targets this plugin **actually registered** with KGP so far (issue #52) —
+     * `selection ∩ supported` as of the last [supports] call, minus anything registration skipped.
+     * One call instead of intersecting [resolvedSelection] and [resolvedSupported] by hand, but
+     * deliberately *not* the same thing: this mirrors real registrations, so it is empty when KGP
+     * is not applied, and omits `androidTarget` when no Android Gradle plugin is present (the #51
+     * skip). For the abstract plan regardless of what registered, intersect the two resolved sets
+     * yourself.
+     *
+     * It is a snapshot: a later [supports] call can union in more leaves. Read it *after* the
+     * module's `supports { }` for simple cases, or use [onRegistered] for ordering-immune wiring.
+     */
+    public fun registered(): KmpTargetSet =
+        KmpTargetSet.of(*registeredLog.map { it.leaf }.toTypedArray())
+
+    /**
+     * [registered] narrowed to [slice] via plain set algebra — family slicing without KGP konan
+     * types: `registered(KmpTargetSet.appleMobile)` is exactly the registered iOS leaves.
+     */
+    public fun registered(slice: KmpTargetSet): KmpTargetSet = registered() intersect slice
+
+    /**
+     * Runs [action] for every target this plugin registered: immediately for the ones already
+     * registered (replay), and again for each later registration (a second `supports { }` call
+     * fires only its delta) — `configureEach` semantics, so convention plugins don't care whether
+     * they run before or after the module's `supports { }`. The canonical per-target wiring,
+     * KSP-style, without importing KGP konan types or re-deriving name mangling:
+     * ```kotlin
+     * // Before:
+     * kotlin.targets.withType<KotlinNativeTarget>()
+     *     .matching { it.konanTarget.family == Family.IOS }
+     *     .forEach { add("ksp${it.targetName.replaceFirstChar(Char::titlecase)}", dep) }
+     *
+     * // After:
+     * kmpTargets.onRegistered { add("ksp${it.gradleNameCapitalized}", dep) }
+     * ```
+     *
+     * [RegisteredTarget.gradleName] is what registration actually called — `"desktop"` for a jvm
+     * leaf renamed via [targetName], not a name re-derived from the leaf. Never fires when KGP is
+     * absent (nothing registers), and never for the #51-skipped `androidTarget`.
+     *
+     * [action] runs at configuration time only — mirror the [supports] discipline and never hold it
+     * (or the extension) from a task action; the [RegisteredTarget] it receives is itself
+     * configuration-cache safe (a `data object` leaf plus strings).
+     */
+    public fun onRegistered(action: (RegisteredTarget) -> Unit) {
+        registeredLog.toList().forEach(action)
+        onRegisteredActions += action
+    }
 }

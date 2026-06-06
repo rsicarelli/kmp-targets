@@ -103,6 +103,52 @@ This is how a team centralizes per-module shape vocabulary in their own naming, 
 vocabulary baked into this plugin's artifact. The DSL stays the primitive; convention plugins are an
 optional layer you own.
 
+#### Querying what registered
+
+Conventions routinely need to wire *per-target* things after registration — the canonical case is
+KSP, where each target gets its own configuration (`kspIosArm64`, `kspIosSimulatorArm64`, …).
+Without help, every convention re-derives family matching and name mangling by importing KGP
+internals:
+
+```kotlin
+// Before — KGP konan types plus hand-rolled name mangling:
+kotlin.targets.withType<KotlinNativeTarget>()
+    .matching { it.konanTarget.family == Family.IOS }
+    .forEach { add("ksp${it.targetName.replaceFirstChar(Char::titlecase)}", dep) }
+```
+
+The extension exposes the **registered** set directly (issue #52), so build-logic never touches
+`konanTarget`:
+
+```kotlin
+// After — per-leaf hook with the actual Gradle name, pre-mangled:
+kmpTargets.onRegistered { add("ksp${it.gradleNameCapitalized}", dep) }
+
+// Snapshots, family-sliced with plain set algebra:
+kmpTargets.registered()                          // everything registered so far, as KmpTargetSet
+kmpTargets.registered(KmpTargetSet.appleMobile)  // just the registered iOS leaves
+```
+
+**Callback vs snapshot.** `onRegistered` has `configureEach` semantics: hooked *before* the
+module's `supports { }` it fires as each leaf registers; hooked *after*, it replays for the leaves
+already registered — and a later `supports { }` union fires only its delta. That makes it the
+ordering-immune choice for convention plugins. The `registered()` snapshot is the simple read for
+build-script code that runs after `supports { }`; remember it is a point-in-time value — a later
+`supports { }` call can union in more leaves.
+
+Each `onRegistered` callback receives a `RegisteredTarget`: the model leaf plus the Gradle target
+name registration **actually used** — a jvm leaf renamed via `targetName(jvm, "desktop")` reports
+`gradleName == "desktop"`, so configuration wiring keeps working without the consumer knowing
+about the rename. `registered()` deliberately mirrors real registrations, not the abstract
+`resolvedSelection() ∩ resolvedSupported()` plan: without KGP applied it is empty (and
+`onRegistered` never fires), and an `androidTarget` skipped because no Android Gradle plugin is
+applied stays absent — so KSP wiring can never target a configuration that doesn't exist. Like
+`supports`, the callback is a configuration-time tool: never hold it (or the extension) from a
+task action.
+
+The sample's [`kmpModule` convention](samples/hello-world/build-logic/src/main/kotlin/KmpModule.kt)
+uses `onRegistered` as the canonical pattern.
+
 ### Configuration files
 
 Global `kmp-targets` configuration lives in a **dedicated, committed root config file** —
