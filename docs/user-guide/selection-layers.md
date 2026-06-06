@@ -1,6 +1,58 @@
 # Selection Layers
 
-!!! note "Under construction"
-    This page is part of the initial docs scaffold. Its content lands in [#70](https://github.com/rsicarelli/kmp-targets/issues/70).
+The selection is **global** — one switch narrows the whole build. Its sources form **three layers in increasing priority**, the same model as Bazel's `.bazelrc` + `try-import user.bazelrc`:
 
-Until then, the [README](https://github.com/rsicarelli/kmp-targets#readme) covers everything this page will.
+| Layer | Sources | Who sets it |
+|---|---|---|
+| **Committed default** | `kmp-targets.properties` (and legacy root `gradle.properties`) | the team, in git |
+| **Personal override** | `kmp-targets.local.properties` (and legacy `local.properties`) — git-ignored | each developer, per machine |
+| **Per-invocation** | `-Pkmptargets.targets=…` CLI flag, `ORG_GRADLE_PROJECT_kmptargets.targets` env | this one build — a terminal run, a CI job |
+
+`kmptargets.targets` is the **single canonical key** across every layer — the string you commit, the string you override locally, and the string a [CI matrix](ci-matrix.md) passes per job are the same vocabulary.
+
+## Exact precedence (highest first)
+
+1. `-Pkmptargets.targets=...` on the CLI
+2. `ORG_GRADLE_PROJECT_kmptargets.targets` environment variable
+3. `kmp-targets.local.properties` (per-developer, git-ignored)
+4. `kmp-targets.properties` (committed, team-shared)
+5. the **root** `gradle.properties` (a *subproject's* `gradle.properties` is **not** a source — Gradle only reads root-level project properties)
+6. `local.properties` (per-developer, git-ignored)
+
+When no source provides a value, two **fallbacks** (not overrides — anything above beats them) apply: a project-wide `defaultSelection` set from build-logic, then the plugin default — every target the plugin knows about.
+
+!!! note "Why the dedicated files beat `gradle.properties`"
+    Once a team adopts the consolidation point, a stale key left behind in `gradle.properties` can't silently override it. One nuance: the rarer `-Dorg.gradle.project.kmptargets.targets` and `~/.gradle/gradle.properties` forms resolve at the `gradle.properties` layer, i.e. *below* the dedicated files.
+
+## The config files
+
+```properties
+# kmp-targets.properties — committed, team-shared
+kmptargets.targets=jvm,iosArm64
+kmptargets.hierarchyTemplate=true
+# kmptargets.hierarchyCollapse=false   # see "No-Collapse Mode"
+# kmptargets.strict=true               # see "Advisories & Strict Mode"
+```
+
+`kmp-targets.local.properties` (git-ignored) mirrors `try-import`: absent it's ignored; present, its keys override the committed file's. Both files accept **only** known `kmptargets.*` keys — an unknown key fails the build with a "did you mean …?" suggestion, so a typo can't silently no-op. Both are tracked configuration-cache inputs: editing one invalidates the cache, leaving them untouched keeps cache hits.
+
+## Selection grammar
+
+```properties
+kmptargets.targets=android,iosArm64        # explicit list
+kmptargets.targets=appleMobile             # preset (iosArm64 + iosSimulatorArm64 + iosX64)
+kmptargets.targets=appleMobile,-iosArm64   # preset minus a leaf
+kmptargets.targets=apple,+android          # preset plus an addition
+kmptargets.targets=ANDROID, ios-arm64      # aliases + case-insensitive
+```
+
+Unknown tokens **fail the build at configuration time** with a "did you mean …?" suggestion — silently dropping a misspelled target in CI is the worst failure mode, so the parser is strict. Bare Apple sub-family names (`ios`, `macos`, `watchos`, `tvos`) are rejected with a hint pointing at the relevant leaf or `appleX` preset.
+
+The full preset and leaf vocabulary lives in the [Targets Reference](targets-reference.md).
+
+!!! warning "Breaking rename (pre-1.0)"
+    The selection key used to be `KMP_TARGETS` (env: `ORG_GRADLE_PROJECT_KMP_TARGETS` or bare `KMP_TARGETS`). It is now `kmptargets.targets` — the old key is **not read at all**; a build still setting only `KMP_TARGETS` falls through to `defaultSelection` / the plugin default.
+
+## Diagnosing a surprising selection
+
+[`kmpTargetsInfo`](kmp-targets-info.md) prints the resolved selection **and the winning source by name** — `command line (-Pkmptargets.targets)`, `kmp-targets.local.properties`, etc. One coarseness, stated in the label itself: values from `-Dorg.gradle.project.kmptargets.targets` and `~/.gradle/gradle.properties` are indistinguishable from root `gradle.properties`, so all three report as the fused `gradle.properties (...)` layer.
