@@ -7,7 +7,7 @@ plugins {
     // side-by-side proof of what the feature removes. It still `supports { all }`, like
     // :shared-core.
     kotlin("multiplatform")
-    id("com.rsicarelli.kmptargets") version "0.1.0-SNAPSHOT"
+    alias(libs.plugins.kmpTargets)
 }
 
 kmpTargets {

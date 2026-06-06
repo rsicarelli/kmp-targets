@@ -4,7 +4,7 @@ plugins {
     // under Isolated
     // Projects — proof the plugin applies without reaching across projects.
     kotlin("multiplatform")
-    id("com.rsicarelli.kmptargets") version "0.1.0-SNAPSHOT"
+    alias(libs.plugins.kmpTargets)
     id("com.ncorti.ktfmt.gradle")
 }
 

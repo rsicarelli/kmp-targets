@@ -6,7 +6,7 @@ plugins {
     // redundant `appleMain`/`nativeMain`). Compare with :legacy-default, which opts out and keeps
     // both.
     kotlin("multiplatform")
-    id("com.rsicarelli.kmptargets") version "0.1.0-SNAPSHOT"
+    alias(libs.plugins.kmpTargets)
 }
 
 // Targets are explicit: with no `supports` nothing would register. `supports { all }` is the opt-in

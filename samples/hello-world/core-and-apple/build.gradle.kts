@@ -7,7 +7,7 @@ plugins {
     // set algebra in the block. The template yields jvm at common + a single `iosMain` (no
     // `appleMain`/`nativeMain`).
     kotlin("multiplatform")
-    id("com.rsicarelli.kmptargets") version "0.1.0-SNAPSHOT"
+    alias(libs.plugins.kmpTargets)
 }
 
 kmpTargets { supports { apple + jvm } }
