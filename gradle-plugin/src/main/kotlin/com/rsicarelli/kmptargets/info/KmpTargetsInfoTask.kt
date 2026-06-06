@@ -75,6 +75,16 @@ public abstract class KmpTargetsInfoTask : DefaultTask() {
      */
     @get:Internal public abstract val androidWithoutAgp: Property<Boolean>
 
+    /**
+     * True when this module declared `supports { }` yet registered zero targets (#71) — the inert
+     * state whose commonMain metadata compilation is doomed. Keyed off the same decision as the
+     * inert-module advisory (actual registrations, not `selection ∩ supported`), so the report's
+     * inert line appears exactly when the advisory fired. False when something registered, when
+     * `supports { }` was never declared (intentional, explicit-selection doctrine) — or when KGP is
+     * absent, in which case no metadata compilation exists and there is no trap to report.
+     */
+    @get:Internal public abstract val inertModule: Property<Boolean>
+
     @TaskAction
     public fun report() {
         println(
@@ -92,6 +102,7 @@ public abstract class KmpTargetsInfoTask : DefaultTask() {
                 deprecatedIds = deprecatedIds.get(),
                 jvmRegisteredAs = jvmRegisteredAs.orNull?.takeIf { it.isNotBlank() },
                 androidWithoutAgp = androidWithoutAgp.get(),
+                inertModule = inertModule.get(),
             )
         )
     }

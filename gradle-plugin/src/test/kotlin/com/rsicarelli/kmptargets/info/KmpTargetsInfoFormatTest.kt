@@ -162,6 +162,46 @@ class KmpTargetsInfoFormatTest {
     }
 
     @Test
+    fun `given an inert module when formatted then the registered section carries the inert line`() {
+        // The advisory's consequence rendered where debugging starts (#71): the registered section
+        // explains that the metadata compilation is doomed and names the build-logic gate.
+        val output =
+            format(
+                selectionIds = listOf("wasmJs"),
+                supportedIds = listOf("jvm"),
+                registeredIds = emptyList(),
+                inertModule = true,
+            )
+        assertContains(
+            output,
+            "inert:    zero targets registered — commonMain metadata compilation will fail; " +
+                "gate on registered().isEmpty()",
+        )
+    }
+
+    @Test
+    fun `given a non-inert module when formatted then no inert line appears`() {
+        val output = format(registeredIds = listOf("jvm"))
+        assertFalse("inert:" in output, output)
+    }
+
+    @Test
+    fun `given an android-skip inert module when formatted then the skip marker and the inert line compose`() {
+        // The #51 skip can leave the module with zero actual registrations while the abstract
+        // `selection ∩ supported` line still lists androidTarget — both renderings must coexist.
+        val output =
+            format(
+                selectionIds = listOf("androidTarget"),
+                supportedIds = listOf("androidTarget"),
+                registeredIds = listOf("androidTarget"),
+                androidWithoutAgp = true,
+                inertModule = true,
+            )
+        assertContains(output, "androidTarget (skipped: no Android plugin applied)")
+        assertContains(output, "inert:")
+    }
+
+    @Test
     fun `given the vocabulary when formatted then exactly the deprecated leaves carry the marker`() {
         val output = format(deprecatedIds = listOf("macosX64", "tvosX64", "watchosX64"))
         assertContains(output, "macosX64 (deprecated)")
@@ -182,6 +222,7 @@ class KmpTargetsInfoFormatTest {
         deprecatedIds: List<String> = emptyList(),
         jvmRegisteredAs: String? = null,
         androidWithoutAgp: Boolean = false,
+        inertModule: Boolean = false,
     ): String =
         formatKmpTargetsInfo(
             projectPath = ":shared-core",
@@ -197,5 +238,6 @@ class KmpTargetsInfoFormatTest {
             deprecatedIds = deprecatedIds,
             jvmRegisteredAs = jvmRegisteredAs,
             androidWithoutAgp = androidWithoutAgp,
+            inertModule = inertModule,
         )
 }
