@@ -461,6 +461,25 @@ This repo runs the pattern for real:
 hello-world sample per host — the macOS job is the only place Apple targets get genuinely
 compiled — so the example above can't rot.
 
+## Compatibility
+
+The published jar targets the oldest supported consumer, not the toolchain this repo builds with:
+
+| Consumer surface | Floor |
+|---|---|
+| `kotlin-dsl` build-logic (Gradle-embedded Kotlin) | Gradle 8.11+ / embedded Kotlin **2.0** |
+| Daemon JVM | **JDK 17** |
+| Kotlin Gradle Plugin at runtime | **KGP 2.2+** |
+
+The repo itself builds with the latest mise-pinned JDK and Kotlin — there are **no Gradle
+toolchains** (see [why toolchains are rarely a good
+idea](https://jakewharton.com/gradle-toolchains-are-rarely-a-good-idea/)). Instead the build pins
+the emitted output: Kotlin `languageVersion`/`apiVersion` 2.0 (metadata the embedded 8.x compiler
+can read), `jvmTarget` 17 + `-Xjdk-release=17` / `--release 17` (bytecode JDK 17 daemons can load,
+with accidental-new-API protection), and a `kotlin-stdlib` 2.0.21 POM dependency. A
+`verifyCompatFloors` task inspects the built jar on every `check`, so the floors cannot silently
+regress.
+
 ## Installation
 
 The plugin is not yet published to the Gradle Plugin Portal or Maven Central. Track progress in the issues / releases. Locally:

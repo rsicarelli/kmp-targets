@@ -37,5 +37,16 @@ changes may land in any release.
 - Both dedicated files are tracked configuration-cache inputs: edits invalidate the cache,
   untouched files keep cache hits.
 
+### Fixed
+
+- **Plugin jar is now consumable from Gradle 8.x `kotlin-dsl` build-logic and JDK 17 daemons**
+  ([#48]). The jar previously carried Kotlin 2.3 metadata (rejected by the Gradle-embedded Kotlin
+  2.0.x compiler on Gradle 8.11–8.14) and Java 23 bytecode (unloadable on JDK 17). The build now
+  drops `jvmToolchain(23)` and pins the emitted output instead — `languageVersion`/`apiVersion`
+  2.0, `jvmTarget` 17 + `-Xjdk-release=17` / `--release 17`, and `coreLibrariesVersion` 2.0.21 so
+  the POM stops declaring a toolchain-version stdlib. A new `verifyCompatFloors` task guards the
+  floors on every `check`.
+
 [#30]: https://github.com/rsicarelli/kmp-targets/issues/30
 [#31]: https://github.com/rsicarelli/kmp-targets/issues/31
+[#48]: https://github.com/rsicarelli/kmp-targets/issues/48
