@@ -2,9 +2,12 @@
 kotlin = "2.3.21"
 junit = "6.1.0"
 ktfmt = "0.26.0"
+asm = "9.8"
 
 [libraries]
 kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+kotlin-gradlePluginApi = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin-api", version.ref = "kotlin" }
+asm = { module = "org.ow2.asm:asm", version.ref = "asm" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
 
 [plugins]
