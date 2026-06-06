@@ -147,6 +147,21 @@ class KmpTargetsInfoFormatTest {
     }
 
     @Test
+    fun `given androidTarget registered but skipped for want of an android plugin when formatted then it is marked skipped`() {
+        val output =
+            format(registeredIds = listOf("androidTarget", "jvm"), androidWithoutAgp = true)
+        assertContains(output, "androidTarget (skipped: no Android plugin applied)")
+        assertFalse("jvm (skipped" in output, output)
+    }
+
+    @Test
+    fun `given an android plugin applied when formatted then no skipped annotation appears`() {
+        val output =
+            format(registeredIds = listOf("androidTarget", "jvm"), androidWithoutAgp = false)
+        assertFalse("skipped" in output, output)
+    }
+
+    @Test
     fun `given the vocabulary when formatted then exactly the deprecated leaves carry the marker`() {
         val output = format(deprecatedIds = listOf("macosX64", "tvosX64", "watchosX64"))
         assertContains(output, "macosX64 (deprecated)")
@@ -166,6 +181,7 @@ class KmpTargetsInfoFormatTest {
         hostLabel: String = "",
         deprecatedIds: List<String> = emptyList(),
         jvmRegisteredAs: String? = null,
+        androidWithoutAgp: Boolean = false,
     ): String =
         formatKmpTargetsInfo(
             projectPath = ":shared-core",
@@ -180,5 +196,6 @@ class KmpTargetsInfoFormatTest {
             hostLabel = hostLabel,
             deprecatedIds = deprecatedIds,
             jvmRegisteredAs = jvmRegisteredAs,
+            androidWithoutAgp = androidWithoutAgp,
         )
 }

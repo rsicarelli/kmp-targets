@@ -213,6 +213,17 @@ class KmpTargetsInfoTaskTest {
     }
 
     @Test
+    fun `given the plugin without KGP when the android annotation input is read then it degrades to false`(
+        @TempDir dir: Path
+    ) {
+        // Without KGP nothing registers at all, so there is no skipped android leaf to annotate —
+        // the provider's KGP guard keeps the report quiet (same wiring path as the host data).
+        val project = newAppliedProject(dir)
+        project.extensions.getByType(KmpTargetsExtension::class.java).supports { mobile }
+        assertFalse(infoTask(project).androidWithoutAgp.get())
+    }
+
+    @Test
     fun `given the info task when deprecated ids are read then they are the pinned registry sorted`(
         @TempDir dir: Path
     ) {
