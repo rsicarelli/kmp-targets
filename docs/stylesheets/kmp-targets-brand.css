@@ -1,0 +1,39 @@
+/* kmp-targets Brand Colors for Material Theme
+ *
+ * Placeholder palette (Kotlin-adjacent hues) until a real brand lands:
+ * - Purple (primary): #7F52FF
+ * - Deep Purple: #5C3DBC
+ * - Coral (accent): #FF6F61
+ */
+
+/* ========================================
+   LIGHT THEME (default)
+   ======================================== */
+[data-md-color-scheme="default"] {
+  /* Primary Colors */
+  --md-primary-fg-color: #5C3DBC;              /* Deep purple - header, navigation */
+  --md-primary-fg-color--light: #7F52FF;       /* Lighter purple - hover states */
+  --md-primary-fg-color--dark: #452E91;        /* Darker purple - active states */
+
+  /* Accent Colors */
+  --md-accent-fg-color: #FF6F61;               /* Coral - accents, highlights */
+
+  /* Links */
+  --md-typeset-a-color: #5C3DBC;               /* Link color - deep purple */
+}
+
+/* ========================================
+   DARK THEME (slate)
+   ======================================== */
+[data-md-color-scheme="slate"] {
+  /* Primary Colors - Lighter Purple for Dark Backgrounds */
+  --md-primary-fg-color: #9D7AFF;              /* Lighter purple - better contrast */
+  --md-primary-fg-color--light: #B79AFF;       /* Even lighter - hover states */
+  --md-primary-fg-color--dark: #7F52FF;        /* Original purple - active states */
+
+  /* Accent Colors */
+  --md-accent-fg-color: #FF8A7E;               /* Lighter coral - vibrant on dark */
+
+  /* Links */
+  --md-typeset-a-color: #9D7AFF;               /* Link color - light purple */
+}
