@@ -148,6 +148,20 @@ public class KmpTargetsPlugin : Plugin<Project> {
             // The rename annotation (issue #49) reads lazily for the same post-body reason as the
             // selection providers: the body sets `targetName(...)` before `supports { }`.
             task.jvmRegisteredAs.set(target.provider { ext.jvmTargetName.orNull })
+            // Android-skip annotation (#51): same decision source as the advisory
+            // (`shouldWarnAndroidWithoutAgp`), realized lazily post-body and guarded by the same
+            // runtime KGP check as the host data — without KGP nothing registers, so there is no
+            // skip to report. AGP presence is read at provider realization, so AGP applied
+            // anywhere in the body still counts.
+            task.androidWithoutAgp.set(
+                target.provider {
+                    target.pluginManager.hasPlugin(KGP_ID) &&
+                        shouldWarnAndroidWithoutAgp(
+                            ext.resolvedSelection() intersect ext.resolvedSupported(),
+                            isAndroidPluginApplied(target),
+                        )
+                }
+            )
             // The config-layer origin is fixed at apply time, but the fallback labels must read
             // `defaultSelection` lazily — the body may override it after apply.
             task.originLabel.set(
@@ -311,10 +325,12 @@ public class KmpTargetsPlugin : Plugin<Project> {
      * repeated `supports` calls only register the delta (idempotent), each host warning names a
      * leaf at most once, and the template still applies at most once.
      *
-     * When [strict] is on (#34), both advisories fail the build instead of warning — with the
-     * identical message text. Severity changes; policy does not: `shouldWarnEmptyOverlap` and
-     * `impossibleOnHost` stay the single source of truth for *whether* to flag, and what registers
-     * is never affected.
+     * When [strict] is on (#34), the advisories fail the build instead of warning — with the
+     * identical message text. Severity changes; policy does not: `shouldWarnEmptyOverlap`,
+     * `shouldWarnAndroidWithoutAgp`, `impossibleOnHost`, and `freshDeprecated` stay the single
+     * source of truth for *whether* to flag. What registers is never affected — with one deliberate
+     * exception: `androidTarget` without an Android Gradle plugin is skipped in both modes (#51),
+     * because registering it is a hard KGP failure, not a choice.
      */
     private fun register(
         project: Project,
@@ -330,7 +346,15 @@ public class KmpTargetsPlugin : Plugin<Project> {
         // Read once per registration pass, as a plain String — config-cache safe (issue #49). The
         // `targetName` sugar guarantees this was set before the jvm leaf registered.
         val jvmName: String? = ext.jvmTargetName.orNull
+        // Read fresh on every supports{} pass, so AGP applied between two calls counts for the
+        // later pass.
+        val androidPluginApplied = isAndroidPluginApplied(project)
         (active.members - ext.registered).forEach { leaf ->
+            // KGP's androidTarget() reports a FATAL diagnostic (AndroidGradlePluginIsMissing,
+            // thrown immediately) when no Android Gradle plugin is applied. Skip the leaf instead
+            // — the advisory below names the module and the fix — and do NOT record it, so a
+            // later supports{} pass after AGP is applied still registers it.
+            if (leaf == KmpTarget.Jvm.Android && !androidPluginApplied) return@forEach
             registerTarget(kotlin, leaf, jvmName)
             ext.registered.add(leaf)
         }
@@ -343,6 +367,19 @@ public class KmpTargetsPlugin : Plugin<Project> {
             warnOrFail(strict, emptyOverlapWarning(project.path, selection, supported)) {
                 project.logger.warn(it)
             }
+        }
+
+        // Android-without-AGP advisory (#51): the one family member that filters — androidTarget
+        // genuinely did not register (the loop above skipped it; the alternative is KGP's raw
+        // FATAL), so the message says exactly that. Mutually exclusive with empty-overlap (android
+        // active ⇒ the overlap is non-empty). Ordered before host/deprecated: under strict,
+        // "an asked-for target was NOT registered" beats "registered but uncompilable here" beats
+        // "registered but deprecated". Deduped once per module via the boolean flag (a set would
+        // be overkill for a single leaf), recorded AFTER warnOrFail (mirroring the host step) so
+        // a strict failure leaves no bookkeeping behind.
+        if (!ext.androidAgpWarned && shouldWarnAndroidWithoutAgp(active, androidPluginApplied)) {
+            warnOrFail(strict, androidWithoutAgpWarning(project.path)) { project.logger.warn(it) }
+            ext.androidAgpWarned = true
         }
 
         // Host-awareness (#32): names registered native targets this host cannot compile, never
@@ -386,6 +423,9 @@ public class KmpTargetsPlugin : Plugin<Project> {
             ext.deprecatedWarned += freshDeprecated
         }
 
+        // Deliberately receives the unfiltered active set even when android was skipped above:
+        // android is ungrouped in the hierarchy taxonomy (it attaches straight to common and
+        // never affects the native collapse), so filtering would change nothing.
         maybeApplyHierarchyTemplate(
             project,
             ext,
@@ -489,6 +529,49 @@ internal fun emptyOverlapWarning(
 ): String =
     "kmp-targets: '$path' supports ${ids(supported)} but the selection ${ids(selection)} " +
         "matches none of them — registering no targets for this module."
+
+/**
+ * KGP's own Android-plugin id list (`org.jetbrains.kotlin.gradle.utils.androidPluginIds`), mirrored
+ * verbatim so the registration guard skips `androidTarget` on exactly the modules where KGP's
+ * `androidTarget()` would fail — and never on ones (dynamic-feature, test, …) where it succeeds.
+ * Pinned by a test against narrowing to the two common ids.
+ */
+internal val androidPluginIds: List<String> =
+    listOf(
+        "com.android.application",
+        "com.android.library",
+        "com.android.dynamic-feature",
+        "com.android.test",
+        "com.android.instantapp",
+        "com.android.feature",
+    )
+
+/** Whether any Android Gradle plugin is applied to [project] — a cheap plugin-manager lookup. */
+internal fun isAndroidPluginApplied(project: Project): Boolean = androidPluginIds.any {
+    project.pluginManager.hasPlugin(it)
+}
+
+/**
+ * Whether to emit [androidWithoutAgpWarning]: `androidTarget` is in the active (registering) set
+ * but no Android Gradle plugin is applied, so the leaf cannot register — KGP's `androidTarget()` is
+ * a FATAL diagnostic without AGP. Pure over its inputs, so it is unit-testable without Gradle; the
+ * same decision drives the `kmpTargetsInfo` skipped annotation.
+ */
+internal fun shouldWarnAndroidWithoutAgp(
+    active: KmpTargetSet,
+    androidPluginApplied: Boolean,
+): Boolean = KmpTarget.Jvm.Android in active.members && !androidPluginApplied
+
+/**
+ * The android-without-AGP advisory (#51). Mirrors its siblings in shape; serves as both the warning
+ * and the strict-mode failure text through [warnOrFail]. Unlike them it reports a leaf that was
+ * genuinely NOT registered, and names the fix — the ordering rule that the Android plugin must be
+ * applied before `supports { }` runs.
+ */
+internal fun androidWithoutAgpWarning(path: String): String =
+    "kmp-targets: '$path' selects and supports [androidTarget] but no Android Gradle plugin is " +
+        "applied — the target was not registered. Apply com.android.library or " +
+        "com.android.application before supports { }."
 
 /**
  * The deprecated leaves of [active] not yet flagged for this module — the dedup math of the

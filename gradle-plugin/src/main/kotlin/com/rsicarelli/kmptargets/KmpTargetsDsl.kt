@@ -80,7 +80,8 @@ public object KmpTargetsDsl {
     // --- Leaves --------------------------------------------------------------------------------
 
     /**
-     * Android (the JVM-backed `androidTarget`); registers only when AGP is applied to the module.
+     * Android (the JVM-backed `androidTarget`); registers only when AGP is applied to the module —
+     * without it the leaf is skipped with an advisory naming the fix (#51).
      */
     public val androidTarget: KmpTargetSet = leaf(KmpTarget.Jvm.Android)
 

@@ -2,7 +2,7 @@
 
 > Dynamically select which Kotlin Multiplatform targets to build.
 
-**Status:** alpha (pre-1.0). Shipped and exercised by the multi-module sample plus a real 3-OS CI matrix: the global selector with [try-import-style layering](#selecting-targets) (dedicated config files, unified `kmptargets.*` keys), the automatic [minimal hierarchy template](#minimal-hierarchy-template), the [`kmpTargetsInfo`](#debugging-the-selection) introspection task, [host-compatibility](#host-compatibility) and [deprecated-target](#deprecated-targets) advisories, and opt-in [strict mode](#strict-mode). Roadmap: user-defined hierarchy groups, XCFramework helpers, Maven Central / Plugin Portal publishing.
+**Status:** alpha (pre-1.0). Shipped and exercised by the multi-module sample plus a real 3-OS CI matrix: the global selector with [try-import-style layering](#selecting-targets) (dedicated config files, unified `kmptargets.*` keys), the automatic [minimal hierarchy template](#minimal-hierarchy-template), the [`kmpTargetsInfo`](#debugging-the-selection) introspection task, [host-compatibility](#host-compatibility), [deprecated-target](#deprecated-targets), and [android-without-AGP](#android-target-without-the-android-gradle-plugin) advisories, and opt-in [strict mode](#strict-mode). Roadmap: user-defined hierarchy groups, XCFramework helpers, Maven Central / Plugin Portal publishing.
 
 `kmp-targets` is a Gradle plugin for Kotlin Multiplatform projects that lets each developer (and each CI runner) choose which KMP targets to build, via a single Gradle property:
 
@@ -414,10 +414,39 @@ the advisory fires at most once per leaf per module and only for leaves that act
 listing. (`iosX64` is low-tier but *not* deprecated — it carries no marker.) The set is pinned in
 the plugin against the docs page and updated deliberately with Kotlin upgrades.
 
+### Android target without the Android Gradle plugin
+
+`androidTarget` is the one leaf whose registration needs more than KGP: `kotlin.androidTarget()`
+is a **hard KGP failure** (the FATAL `AndroidGradlePluginIsMissing` diagnostic) unless an Android
+Gradle plugin — `com.android.library` or `com.android.application` (or any other id KGP accepts:
+`dynamic-feature`, `test`, …) — is already applied to the module. So when a module both selects
+and supports `androidTarget` but no Android plugin is applied by the time `supports { }` runs, the
+plugin **skips registering that leaf** and logs a one-line advisory naming the module and the fix:
+
+```
+kmp-targets: ':feature' selects and supports [androidTarget] but no Android Gradle plugin is
+applied — the target was not registered. Apply com.android.library or com.android.application
+before supports { }.
+```
+
+This is the one advisory that **does filter**: unlike its siblings, the flagged leaf genuinely does
+not register — the alternative is KGP's raw crash with no module-level guidance, which during
+build-logic migrations reads as "kmp-targets dropped my target". The skip happens in both modes;
+[strict mode](#strict-mode) only changes the severity of the signal. Everything else in the active
+set registers exactly as selected, and the advisory fires at most once per module.
+
+The fix is an **ordering rule**: apply the Android plugin *before* `supports { }`. A convention
+plugin that applies AGP after `supports { }` has already missed registration — though a later
+`supports { }` union re-checks, so AGP applied between two calls lets the later pass register the
+leaf normally. [`kmpTargetsInfo`](#debugging-the-selection) marks the leaf
+`androidTarget (skipped: no Android plugin applied)` in its registered section while the condition
+holds.
+
 ### Strict mode
 
-By default all three advisories — the **empty-overlap** warning (a non-empty selection that matches
+By default all four advisories — the **empty-overlap** warning (a non-empty selection that matches
 nothing a module `supports`, so the module registers zero targets), the
+[**android-without-AGP**](#android-target-without-the-android-gradle-plugin) advisory, the
 [**host-impossible**](#host-compatibility) warning, and the
 [**deprecated-target**](#deprecated-targets) advisory — are just that: warnings. Right for local
 iteration, easy to miss in CI, where a module silently building nothing is usually a real
@@ -425,8 +454,9 @@ configuration bug.
 
 `kmptargets.strict=true` promotes those advisories to configuration-time **build
 failures** (`GradleException`) with the **identical message text** — severity changes, policy does
-not. It never changes *which* configurations are flagged and never changes *what registers*.
-Default **off**, deliberately. The flag resolves through the same
+not. It never changes *which* configurations are flagged and never changes *what registers* (the
+[android-without-AGP](#android-target-without-the-android-gradle-plugin) skip happens with or
+without strict — the flag only escalates its signal). Default **off**, deliberately. The flag resolves through the same
 [precedence chain](#selecting-targets) as every `kmptargets.*` key; anything other than
 `true`/`false` (case-insensitive) is treated as unset, i.e. off.
 

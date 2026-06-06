@@ -66,6 +66,15 @@ public abstract class KmpTargetsInfoTask : DefaultTask() {
      */
     @get:Internal public abstract val jvmRegisteredAs: Property<String>
 
+    /**
+     * True when `androidTarget` is in the registered intersection but no Android Gradle plugin is
+     * applied, so registration skipped it (#51). The registered line reports `selection ∩
+     * supported` (like the host annotation), so the leaf stays listed and is marked `(skipped: no
+     * Android plugin applied)`. False when AGP is present — or when KGP is absent, in which case
+     * nothing registers and there is no skip to report.
+     */
+    @get:Internal public abstract val androidWithoutAgp: Property<Boolean>
+
     @TaskAction
     public fun report() {
         println(
@@ -82,6 +91,7 @@ public abstract class KmpTargetsInfoTask : DefaultTask() {
                 hostLabel = hostLabel.get(),
                 deprecatedIds = deprecatedIds.get(),
                 jvmRegisteredAs = jvmRegisteredAs.orNull?.takeIf { it.isNotBlank() },
+                androidWithoutAgp = androidWithoutAgp.get(),
             )
         )
     }

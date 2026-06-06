@@ -168,6 +168,9 @@ public abstract class KmpTargetsExtension @Inject constructor(objects: ObjectFac
     /** True once the minimal hierarchy template has been applied, so it is applied at most once. */
     internal var hierarchyTemplateApplied: Boolean = false
 
+    /** True once the android-without-AGP advisory fired, so it fires at most once per module. */
+    internal var androidAgpWarned: Boolean = false
+
     /**
      * The resolved supported set: the declared value (unioned across [supports] calls), or
      * [KmpTargetSet.empty] if none was declared. Public so build-logic (and consumers) can read

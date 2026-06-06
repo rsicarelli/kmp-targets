@@ -22,6 +22,7 @@ internal fun formatKmpTargetsInfo(
     hostLabel: String,
     deprecatedIds: List<String>,
     jvmRegisteredAs: String? = null,
+    androidWithoutAgp: Boolean = false,
 ): String = buildString {
     appendLine("kmp-targets — $projectPath")
     appendLine()
@@ -45,6 +46,11 @@ internal fun formatKmpTargetsInfo(
             annotated(registeredOrNone(registeredIds, selectionIds, supportedIds), registeredIds) {
                 id ->
                 val markers = buildList {
+                    // The skip annotation (#51): the literal keeps this file pure-primitive; it
+                    // is KmpTarget.Jvm.Android.id.
+                    if (id == "androidTarget" && androidWithoutAgp) {
+                        add("(skipped: no Android plugin applied)")
+                    }
                     // The rename (issue #49) annotates the jvm leaf so the report explains why the
                     // build has e.g. `compileKotlinDesktop` tasks but no `jvm`-named target.
                     if (id == "jvm" && jvmRegisteredAs != null) {

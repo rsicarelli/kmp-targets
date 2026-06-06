@@ -49,6 +49,15 @@ changes may land in any release.
   with **≥1** present child instead of ≥2, so intermediates like `iosMain` survive a single-leaf
   selection — for codebases with load-bearing `src/iosMain` dirs. Default unchanged (`true`,
   collapse); never changes what registers; no-op when `kmptargets.hierarchyTemplate=false`.
+- **Android-without-AGP advisory** ([#51]): when a module both selects and supports
+  `androidTarget` but no Android Gradle plugin is applied by the time `supports { }` runs, the
+  plugin skips registering that leaf — the KGP alternative is the fatal
+  `AndroidGradlePluginIsMissing` crash — and logs a one-line advisory naming the module and the
+  fix (apply `com.android.library`/`com.android.application` before `supports { }`), promoted to
+  a build failure under `kmptargets.strict=true` with the identical text. The detection mirrors
+  KGP's full Android plugin id list, the advisory fires at most once per module, and
+  `kmpTargetsInfo` marks the leaf `androidTarget (skipped: no Android plugin applied)` while the
+  condition holds.
 
 ### Fixed
 
@@ -65,3 +74,4 @@ changes may land in any release.
 [#48]: https://github.com/rsicarelli/kmp-targets/issues/48
 [#49]: https://github.com/rsicarelli/kmp-targets/issues/49
 [#50]: https://github.com/rsicarelli/kmp-targets/issues/50
+[#51]: https://github.com/rsicarelli/kmp-targets/issues/51
