@@ -85,6 +85,18 @@ public abstract class KmpTargetsInfoTask : DefaultTask() {
      */
     @get:Internal public abstract val inertModule: Property<Boolean>
 
+    /**
+     * True when this module supports the JVM family yet registered no JVM-family leaf while other
+     * targets registered (#72) — the JVM-less commonMain whose `*KotlinMetadata*` compilations
+     * reject JVM-flavored constructs (`@JvmInline` and friends) while the platform klibs compile.
+     * Keyed off the same decision as the native-only-metadata advisory (actual registrations, not
+     * `selection ∩ supported`), so the report's jvm-less line appears exactly when the advisory
+     * fired. False when a JVM-family leaf registered, when nothing registered at all (that is the
+     * inert trap, #71 — the two are mutually exclusive) — or when KGP is absent, in which case
+     * nothing registers and there is no trap to report.
+     */
+    @get:Internal public abstract val nativeOnlyMetadata: Property<Boolean>
+
     @TaskAction
     public fun report() {
         println(
@@ -103,6 +115,7 @@ public abstract class KmpTargetsInfoTask : DefaultTask() {
                 jvmRegisteredAs = jvmRegisteredAs.orNull?.takeIf { it.isNotBlank() },
                 androidWithoutAgp = androidWithoutAgp.get(),
                 inertModule = inertModule.get(),
+                nativeOnlyMetadata = nativeOnlyMetadata.get(),
             )
         )
     }

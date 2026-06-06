@@ -180,6 +180,14 @@ public abstract class KmpTargetsExtension @Inject constructor(objects: ObjectFac
     internal var inertWarned: Boolean = false
 
     /**
+     * True once the native-only-metadata advisory (#72) fired, so it fires at most once per module.
+     * A boolean (not a set) on purpose: the JVM-less-fragment trap is a whole-module property, and
+     * it resolves permanently once any JVM-family leaf registers (registration is one-way) — the
+     * flag only suppresses repeat firing across [supports] unions while the condition persists.
+     */
+    internal var nativeOnlyMetadataWarned: Boolean = false
+
+    /**
      * The resolved supported set: the declared value (unioned across [supports] calls), or
      * [KmpTargetSet.empty] if none was declared. Public so build-logic (and consumers) can read
      * what this module ended up declaring.

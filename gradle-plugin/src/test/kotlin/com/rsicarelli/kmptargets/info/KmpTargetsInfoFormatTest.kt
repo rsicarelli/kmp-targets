@@ -202,6 +202,31 @@ class KmpTargetsInfoFormatTest {
     }
 
     @Test
+    fun `given a jvm-less module when formatted then the registered section carries the jvm-less line`() {
+        // The advisory's consequence rendered where debugging starts (#72): the registered section
+        // explains why the klibs build but the metadata compilation fails, and names the scoped
+        // build-logic gate.
+        val output =
+            format(
+                selectionIds = listOf("iosArm64"),
+                supportedIds = listOf("iosArm64", "jvm"),
+                registeredIds = listOf("iosArm64"),
+                nativeOnlyMetadata = true,
+            )
+        assertContains(
+            output,
+            "jvm-less: no JVM-family target registered — *KotlinMetadata* compilations reject " +
+                "@JvmInline etc. while the klibs compile; gate on registered(jvmFamily).isEmpty()",
+        )
+    }
+
+    @Test
+    fun `given a module with a registered jvm-family leaf when formatted then no jvm-less line appears`() {
+        val output = format(registeredIds = listOf("jvm"))
+        assertFalse("jvm-less:" in output, output)
+    }
+
+    @Test
     fun `given the vocabulary when formatted then exactly the deprecated leaves carry the marker`() {
         val output = format(deprecatedIds = listOf("macosX64", "tvosX64", "watchosX64"))
         assertContains(output, "macosX64 (deprecated)")
@@ -223,6 +248,7 @@ class KmpTargetsInfoFormatTest {
         jvmRegisteredAs: String? = null,
         androidWithoutAgp: Boolean = false,
         inertModule: Boolean = false,
+        nativeOnlyMetadata: Boolean = false,
     ): String =
         formatKmpTargetsInfo(
             projectPath = ":shared-core",
@@ -239,5 +265,6 @@ class KmpTargetsInfoFormatTest {
             jvmRegisteredAs = jvmRegisteredAs,
             androidWithoutAgp = androidWithoutAgp,
             inertModule = inertModule,
+            nativeOnlyMetadata = nativeOnlyMetadata,
         )
 }
