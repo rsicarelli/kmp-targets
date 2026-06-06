@@ -4,7 +4,7 @@ plugins {
     // whole target vocabulary is in scope as set algebra. (KGP version comes from the root build's
     // `apply false` declaration, so it isn't repeated here.)
     kotlin("multiplatform")
-    id("com.rsicarelli.kmptargets") version "0.1.0-SNAPSHOT"
+    alias(libs.plugins.kmpTargets)
 }
 
 kmpTargets {

@@ -4,7 +4,7 @@ plugins {
     // dependency — a real cross-project edge that Isolated Projects must wire while keeping each
     // project's configuration isolated.
     kotlin("multiplatform")
-    id("com.rsicarelli.kmptargets") version "0.1.0-SNAPSHOT"
+    alias(libs.plugins.kmpTargets)
     id("com.ncorti.ktfmt.gradle")
 }
 
