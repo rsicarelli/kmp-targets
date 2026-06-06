@@ -227,5 +227,20 @@ public sealed interface KmpTarget {
                 Web.WasmJs,
                 Web.WasmWasi,
             )
+
+        /**
+         * Leaves Kotlin itself marks deprecated on the official target-support page
+         * (https://kotlinlang.org/docs/native-target-support.html). Hand-stamped against **Kotlin
+         * 2.3.20** — a Kotlin upgrade that changes the page must update this set (and its pinning
+         * test) deliberately. Deprecation is *signal only*: deprecated leaves stay selectable, stay
+         * in every preset, and register exactly like any other leaf.
+         *
+         * Deliberately a companion registry, NOT a `deprecated` property with a default getter on
+         * the interface: a default member would be a JVM default method, making every leaf's
+         * class-init trigger this interface's `<clinit>` (JLS 12.4.1) — which builds [all] while
+         * the entry-point leaf is still mid-initialization, poisoning the set with nulls.
+         */
+        public val deprecated: Set<KmpTarget> =
+            setOf(Native.Apple.Macos.X64, Native.Apple.Watchos.X64, Native.Apple.Tvos.X64)
     }
 }
