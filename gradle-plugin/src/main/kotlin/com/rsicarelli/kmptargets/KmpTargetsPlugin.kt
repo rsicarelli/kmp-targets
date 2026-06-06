@@ -172,6 +172,16 @@ public class KmpTargetsPlugin : Plugin<Project> {
                         shouldWarnInertModule(ext.supportsProperty.isPresent, ext.registered())
                 }
             )
+            // Native-only-metadata annotation (#72): same decision source as the advisory
+            // (`shouldWarnNativeOnlyMetadata` over `resolvedSupported()`/`registered()`), realized
+            // lazily post-body and guarded by the same runtime KGP check — without KGP nothing
+            // registers, so no JVM-less fragment exists and there is no trap to report.
+            task.nativeOnlyMetadata.set(
+                target.provider {
+                    target.pluginManager.hasPlugin(KGP_ID) &&
+                        shouldWarnNativeOnlyMetadata(ext.resolvedSupported(), ext.registered())
+                }
+            )
             // The config-layer origin is fixed at apply time, but the fallback labels must read
             // `defaultSelection` lazily — the body may override it after apply.
             task.originLabel.set(
@@ -455,6 +465,28 @@ public class KmpTargetsPlugin : Plugin<Project> {
             ext.inertWarned = true
         }
 
+        // Native-only-metadata advisory (#72): the module SUPPORTS the JVM family (androidTarget
+        // and/or jvm) yet this pass ends with no JVM-family leaf registered while OTHER targets
+        // did register. The module is alive — the platform klibs compile — but commonMain
+        // collapses to a JVM-less shared fragment, so the *KotlinMetadata* compilations reject
+        // JVM-flavored constructs (@JvmInline and friends): klibs build, metadata fails. Keyed off
+        // resolvedSupported() (not the active overlap), so an android leaf the #51 guard skipped
+        // still counts as "supports JVM, registered none". The registered-non-empty conjunct makes
+        // this disjoint from inert (#71, registered empty) by construction — exactly one of the
+        // two consequence advisories fires per module state, so their relative order can never
+        // matter under strict; inert stays textually first (whole-module-dead before
+        // fragment-flavor). Like inert, it is a consequence channel evaluated last: under strict
+        // the cause advisories above (empty-overlap, android-without-AGP) win the exception.
+        // Deduped once per module, recorded AFTER warnOrFail so a strict failure leaves no
+        // bookkeeping behind.
+        if (
+            !ext.nativeOnlyMetadataWarned &&
+                shouldWarnNativeOnlyMetadata(ext.resolvedSupported(), ext.registered())
+        ) {
+            warnOrFail(strict, nativeOnlyMetadataWarning(project.path)) { project.logger.warn(it) }
+            ext.nativeOnlyMetadataWarned = true
+        }
+
         // Deliberately receives the unfiltered active set even when android was skipped above:
         // android is ungrouped in the hierarchy taxonomy (it attaches straight to common and
         // never affects the native collapse), so filtering would change nothing.
@@ -657,5 +689,47 @@ internal fun inertModuleWarning(path: String): String =
     "kmp-targets: '$path' declared supports { } but registered zero targets — the module is " +
         "inert. KGP still materializes the commonMain metadata compilation, which fails with no " +
         "platform targets. Gate it in build-logic when kmpTargets.registered().isEmpty()."
+
+/**
+ * Whether to emit [nativeOnlyMetadataWarning] (#72): the module supports the JVM family
+ * ([KmpTargetSet.jvmFamily]) yet registered no JVM-family leaf while registering at least one other
+ * target. Keyed off [supported] — `resolvedSupported()`, not the active overlap — so a
+ * selected-but-skipped android leaf (the #51 guard) still counts as "supports JVM, registered
+ * none"; and off [registered] — the actual registrations — which is leaf-based, so a jvm leaf
+ * renamed via `targetName` (issue #49) still keeps the fragment JVM-flavored. The
+ * registered-non-empty conjunct makes it disjoint from [shouldWarnInertModule] (#71, registered
+ * empty): an inert module is whole-module-dead, this one is alive with a JVM-less commonMain. Any
+ * single JVM-family leaf registered — android-only or jvm-only — defeats the predicate (Android is
+ * a JVM platform). Deliberately host-free: registration is host-blind, and a JVM-less fragment is
+ * JVM-less on every host. Pure over its inputs, so it is unit-testable without Gradle; the same
+ * decision drives the `kmpTargetsInfo` jvm-less line.
+ */
+internal fun shouldWarnNativeOnlyMetadata(
+    supported: KmpTargetSet,
+    registered: KmpTargetSet,
+): Boolean =
+    (supported intersect KmpTargetSet.jvmFamily).isNotEmpty() &&
+        registered.isNotEmpty() &&
+        (registered intersect KmpTargetSet.jvmFamily).isEmpty()
+
+/**
+ * The native-only-metadata advisory (#72). Mirrors its siblings in shape; serves as both the
+ * warning and the strict-mode failure text through [warnOrFail]. Like inert (#71) it names a
+ * *task-level consequence* — here the paradoxical half-failure where every platform klib compiles
+ * but the `*KotlinMetadata*` compilations reject JVM-flavored constructs — and it deliberately
+ * names the greppable symptom (`@JvmInline`) so a user arriving from the raw compiler error finds
+ * it. The gate it points at is the *scoped* sibling of inert's: disable only the metadata
+ * compilations, keep the alive platform ones. Deliberately set-free: the advisory is cause-agnostic
+ * (a narrowed lane and an android-only AGP skip fire it alike), so naming the selection or
+ * supported sets would mislead in at least one of those cases; the cause advisories above it name
+ * the sets.
+ */
+internal fun nativeOnlyMetadataWarning(path: String): String =
+    "kmp-targets: '$path' supports the JVM family but this selection registered no JVM-family " +
+        "target while other targets did — commonMain is now a JVM-less shared fragment. The " +
+        "platform klibs compile, but the *KotlinMetadata* compilations reject JVM-flavored " +
+        "constructs (e.g. @JvmInline): klibs build, metadata fails. Gate it in build-logic when " +
+        "kmpTargets.registered(jvmFamily).isEmpty(), disabling only the *KotlinMetadata* " +
+        "compilations."
 
 private fun ids(set: KmpTargetSet): List<String> = set.members.map { it.id }.sorted()
