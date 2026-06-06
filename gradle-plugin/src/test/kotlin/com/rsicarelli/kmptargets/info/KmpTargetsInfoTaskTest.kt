@@ -1,5 +1,6 @@
 package com.rsicarelli.kmptargets.info
 
+import com.rsicarelli.kmptargets.KmpTargetsDsl
 import com.rsicarelli.kmptargets.KmpTargetsExtension
 import com.rsicarelli.kmptargets.model.KmpTarget
 import com.rsicarelli.kmptargets.model.KmpTargetSet
@@ -189,6 +190,26 @@ class KmpTargetsInfoTaskTest {
         val task = infoTask(newAppliedProject(dir))
         assertEquals(emptyList(), task.hostImpossibleIds.get())
         assertEquals("", task.hostLabel.get())
+    }
+
+    @Test
+    fun `given targetName jvm desktop set after task realization when jvmRegisteredAs is read then it observes the rename`(
+        @TempDir dir: Path
+    ) {
+        val project = newAppliedProject(dir)
+        // Same lazy-wiring contract as the supports-union test: the task realizes BEFORE the body
+        // calls targetName, so the provider must observe the final post-body state.
+        val task = infoTask(project)
+        project.extensions
+            .getByType(KmpTargetsExtension::class.java)
+            .targetName(KmpTargetsDsl.jvm, "desktop")
+        assertEquals("desktop", task.jvmRegisteredAs.get())
+    }
+
+    @Test
+    fun `given no rename when jvmRegisteredAs is read then it is absent`(@TempDir dir: Path) {
+        val task = infoTask(newAppliedProject(dir))
+        assertFalse(task.jvmRegisteredAs.isPresent)
     }
 
     @Test

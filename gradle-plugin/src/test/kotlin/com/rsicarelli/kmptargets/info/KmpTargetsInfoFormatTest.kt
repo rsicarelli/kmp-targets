@@ -117,6 +117,36 @@ class KmpTargetsInfoFormatTest {
     }
 
     @Test
+    fun `given a renamed jvm when formatted then the registered line annotates the custom name`() {
+        // The rename (issue #49) must be visible where confusion starts: the report explains why
+        // the build has `compileKotlinDesktop` tasks but no `jvm`-named target.
+        val output = format(registeredIds = listOf("iosArm64", "jvm"), jvmRegisteredAs = "desktop")
+        assertContains(output, "jvm (registered as: desktop)")
+        assertFalse("iosArm64 (registered as" in output, output)
+    }
+
+    @Test
+    fun `given a renamed jvm that is also host-impossible when formatted then both markers compose`() {
+        val output =
+            format(
+                registeredIds = listOf("jvm"),
+                hostImpossibleIds = listOf("jvm"),
+                hostLabel = "LINUX_X64",
+                jvmRegisteredAs = "desktop",
+            )
+        assertContains(
+            output,
+            "jvm (registered as: desktop) (not compilable on this host: LINUX_X64)",
+        )
+    }
+
+    @Test
+    fun `given no rename when formatted then no registered-as annotation appears`() {
+        val output = format(registeredIds = listOf("iosArm64", "jvm"))
+        assertFalse("registered as" in output, output)
+    }
+
+    @Test
     fun `given the vocabulary when formatted then exactly the deprecated leaves carry the marker`() {
         val output = format(deprecatedIds = listOf("macosX64", "tvosX64", "watchosX64"))
         assertContains(output, "macosX64 (deprecated)")
@@ -135,6 +165,7 @@ class KmpTargetsInfoFormatTest {
         hostImpossibleIds: List<String> = emptyList(),
         hostLabel: String = "",
         deprecatedIds: List<String> = emptyList(),
+        jvmRegisteredAs: String? = null,
     ): String =
         formatKmpTargetsInfo(
             projectPath = ":shared-core",
@@ -148,5 +179,6 @@ class KmpTargetsInfoFormatTest {
             hostImpossibleIds = hostImpossibleIds,
             hostLabel = hostLabel,
             deprecatedIds = deprecatedIds,
+            jvmRegisteredAs = jvmRegisteredAs,
         )
 }

@@ -3,6 +3,7 @@ package com.rsicarelli.kmptargets
 import com.rsicarelli.kmptargets.model.KmpTarget
 import com.rsicarelli.kmptargets.model.KmpTargetSet
 import javax.inject.Inject
+import org.gradle.api.GradleException
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 
@@ -58,6 +59,53 @@ public abstract class KmpTargetsExtension @Inject constructor(objects: ObjectFac
      * Set it **before** [supports], for the same eager-registration reason as [hierarchyTemplate].
      */
     public abstract val collapseHierarchy: Property<Boolean>
+
+    /**
+     * Per-module override of the Gradle target **name** the jvm leaf registers under (issue #49).
+     * Unset means the KGP default (`jvm`). Only the jvm leaf is renamable: `androidTarget`'s name
+     * is fixed by AGP, and native/web names are derived by KGP — renaming them would break
+     * konan/source-set conventions. The selection token is unchanged: a build still selects this
+     * target with `jvm` (or its `desktop` alias); only the registered Gradle target, its source
+     * sets (`desktopMain`), and the published artifact suffix follow the custom name.
+     *
+     * Set it **before** [supports] — the name is read during the eager registration that [supports]
+     * triggers, and KGP target registration is one-way. Prefer the validated [targetName] sugar,
+     * which also fails fast on ordering violations instead of silently never applying.
+     */
+    public abstract val jvmTargetName: Property<String>
+
+    /**
+     * Validated sugar over [jvmTargetName]:
+     * ```kotlin
+     * kmpTargets {
+     *     targetName(KmpTargetsDsl.jvm, "desktop") // BEFORE supports { }
+     *     supports { mobile + jvm }
+     * }
+     * ```
+     *
+     * Fails (instead of silently misbehaving) when [leaf] is not exactly the jvm leaf, when [name]
+     * is blank, or when the jvm leaf already registered — registration is eager and one-way, so a
+     * late rename could never apply.
+     */
+    public fun targetName(leaf: KmpTargetSet, name: String) {
+        if (leaf.members.singleOrNull() != KmpTarget.Jvm.Desktop) {
+            throw GradleException(
+                "kmp-targets: only the jvm target is renamable (androidTarget is named by AGP; " +
+                    "native and web target names are derived by KGP). " +
+                    "Got: ${leaf.members.map { it.id }.sorted()}."
+            )
+        }
+        if (name.isBlank()) {
+            throw GradleException("kmp-targets: the jvm target name must not be blank.")
+        }
+        if (KmpTarget.Jvm.Desktop in registered) {
+            throw GradleException(
+                "kmp-targets: targetName must be called before supports { } — the jvm leaf " +
+                    "already registered under its default name and KGP registration is one-way."
+            )
+        }
+        jvmTargetName.set(name)
+    }
 
     /**
      * What this module can build. Unset means "not declared" → no targets register, and

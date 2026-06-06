@@ -60,6 +60,12 @@ public abstract class KmpTargetsInfoTask : DefaultTask() {
     /** Sorted ids of leaves Kotlin marks deprecated, annotated in the vocabulary listing. */
     @get:Internal public abstract val deprecatedIds: ListProperty<String>
 
+    /**
+     * Custom Gradle name the jvm leaf registers under (issue #49), annotated next to `jvm` in the
+     * registered section. Unset/blank means the default name — no annotation.
+     */
+    @get:Internal public abstract val jvmRegisteredAs: Property<String>
+
     @TaskAction
     public fun report() {
         println(
@@ -75,6 +81,7 @@ public abstract class KmpTargetsInfoTask : DefaultTask() {
                 hostImpossibleIds = hostImpossibleIds.get(),
                 hostLabel = hostLabel.get(),
                 deprecatedIds = deprecatedIds.get(),
+                jvmRegisteredAs = jvmRegisteredAs.orNull?.takeIf { it.isNotBlank() },
             )
         )
     }

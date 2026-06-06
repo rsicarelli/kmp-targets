@@ -21,6 +21,7 @@ internal fun formatKmpTargetsInfo(
     hostImpossibleIds: List<String>,
     hostLabel: String,
     deprecatedIds: List<String>,
+    jvmRegisteredAs: String? = null,
 ): String = buildString {
     appendLine("kmp-targets — $projectPath")
     appendLine()
@@ -43,7 +44,17 @@ internal fun formatKmpTargetsInfo(
         "  targets:  " +
             annotated(registeredOrNone(registeredIds, selectionIds, supportedIds), registeredIds) {
                 id ->
-                if (id in hostImpossibleIds) "(not compilable on this host: $hostLabel)" else null
+                val markers = buildList {
+                    // The rename (issue #49) annotates the jvm leaf so the report explains why the
+                    // build has e.g. `compileKotlinDesktop` tasks but no `jvm`-named target.
+                    if (id == "jvm" && jvmRegisteredAs != null) {
+                        add("(registered as: $jvmRegisteredAs)")
+                    }
+                    if (id in hostImpossibleIds) {
+                        add("(not compilable on this host: $hostLabel)")
+                    }
+                }
+                markers.takeIf { it.isNotEmpty() }?.joinToString(" ")
             }
     )
     appendLine()

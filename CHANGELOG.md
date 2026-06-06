@@ -26,6 +26,14 @@ changes may land in any release.
 
 ### Added
 
+- **Per-module JVM target name override** ([#49]): `kmpTargets { targetName(jvm, "desktop") }`
+  registers the jvm leaf under a custom Gradle target name, so legacy `jvm("desktop")` codebases
+  keep their `src/desktopMain` dirs, `-desktop` artifact suffixes, and `compileKotlinDesktop` task
+  names. jvm leaf only (androidTarget is named by AGP; native/web names are derived by KGP); must
+  be called **before** `supports { }` (eager one-way registration — fails fast otherwise); the
+  selection token stays `jvm`/`desktop`. The hierarchy template needs no change — KGP's `withJvm()`
+  matches by platform type, not name. `kmpTargetsInfo` annotates the registered line:
+  `jvm (registered as: desktop)`.
 - **Dedicated root config files** ([#30]): `kmp-targets.properties` (committed, team-shared) and
   `kmp-targets.local.properties` (git-ignored personal override, Bazel `try-import` semantics) are
   the consolidation point for global configuration. Full precedence chain (highest first): CLI `-P`
@@ -55,4 +63,5 @@ changes may land in any release.
 [#30]: https://github.com/rsicarelli/kmp-targets/issues/30
 [#31]: https://github.com/rsicarelli/kmp-targets/issues/31
 [#48]: https://github.com/rsicarelli/kmp-targets/issues/48
+[#49]: https://github.com/rsicarelli/kmp-targets/issues/49
 [#50]: https://github.com/rsicarelli/kmp-targets/issues/50
