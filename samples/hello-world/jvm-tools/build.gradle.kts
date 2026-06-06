@@ -3,7 +3,7 @@ plugins {
     // dropped
     // and only `jvm` registers.
     kotlin("multiplatform")
-    id("com.rsicarelli.kmptargets") version "0.1.0-SNAPSHOT"
+    alias(libs.plugins.kmpTargets)
 }
 
 kmpTargets { supports { jvm } }

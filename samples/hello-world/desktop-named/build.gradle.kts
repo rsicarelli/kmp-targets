@@ -7,7 +7,7 @@ plugins {
     // artifact suffixes, and CI task names (`compileKotlinDesktop`) keyed off that name. The rename
     // keeps all of those stable while the selection token stays `jvm`.
     kotlin("multiplatform")
-    id("com.rsicarelli.kmptargets") version "0.1.0-SNAPSHOT"
+    alias(libs.plugins.kmpTargets)
 }
 
 kmpTargets {

@@ -12,7 +12,7 @@ plugins {
     //   ./gradlew :feature-mobile:kmpTargetsInfo -Pkmptargets.targets=android
     // (add -Pkmptargets.strict=true to make it fail with the same text)
     kotlin("multiplatform")
-    id("com.rsicarelli.kmptargets") version "0.1.0-SNAPSHOT"
+    alias(libs.plugins.kmpTargets)
 }
 
 kmpTargets { supports { mobile } }

@@ -7,7 +7,7 @@ plugins {
     // `nativeMain` all exist, and they survive a single-leaf selection. The empty parents are
     // inert. What REGISTERS never changes — only which intermediate source sets materialize.
     kotlin("multiplatform")
-    id("com.rsicarelli.kmptargets") version "0.1.0-SNAPSHOT"
+    alias(libs.plugins.kmpTargets)
 }
 
 kmpTargets {
