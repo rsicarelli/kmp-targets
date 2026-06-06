@@ -314,6 +314,28 @@ public class KmpTargetsPlugin : Plugin<Project> {
                 project.logger.warn(it)
             }
 
+        // Deprecation advisory (#43): Kotlin's docs mark leaves deprecated but KGP (2.3.21) emits
+        // no configuration-time signal when they register, so this plugin does. Keyed off the
+        // ACTIVE set — a deprecated leaf the module doesn't support never registers, so it is
+        // never flagged. Signal only, never filtering; deduped per leaf via `deprecatedWarned`,
+        // recorded AFTER warnOrFail (mirroring the host step) so a strict failure leaves no
+        // bookkeeping behind. Ordered after the host advisory: under strict, "this machine can't
+        // build it" beats "the ecosystem is sunsetting it". If a future KGP version emits its own
+        // deprecation warning, delete this advisory.
+        val freshDeprecated = freshDeprecated(active, ext.deprecatedWarned)
+        if (freshDeprecated.isNotEmpty()) {
+            warnOrFail(
+                strict,
+                deprecatedTargetsWarning(
+                    project.path,
+                    KmpTargetSet.of(*freshDeprecated.toTypedArray()),
+                ),
+            ) {
+                project.logger.warn(it)
+            }
+            ext.deprecatedWarned += freshDeprecated
+        }
+
         maybeApplyHierarchyTemplate(project, ext, active, globalHierarchyEnabled)
     }
 
@@ -400,5 +422,24 @@ internal fun emptyOverlapWarning(
 ): String =
     "kmp-targets: '$path' supports ${ids(supported)} but the selection ${ids(selection)} " +
         "matches none of them — registering no targets for this module."
+
+/**
+ * The deprecated leaves of [active] not yet flagged for this module — the dedup math of the
+ * deprecation advisory (#43), pure so it is unit-testable without Gradle. Keyed off the active
+ * (registered) set on purpose: a deprecated leaf the module never registers is nobody's problem.
+ */
+internal fun freshDeprecated(active: KmpTargetSet, alreadyWarned: Set<KmpTarget>): Set<KmpTarget> =
+    active.members.filterTo(mutableSetOf()) { it in KmpTarget.deprecated } - alreadyWarned
+
+/**
+ * Single aggregated deprecation advisory naming the [deprecated] ids (sorted). Mirrors
+ * [emptyOverlapWarning]/`hostImpossibleWarning` in shape; serves as both the warning and the
+ * strict-mode failure text through `warnOrFail`, so the two can never drift apart. The version
+ * stamp must track the `KmpTarget.deprecated` overrides (see the model KDoc).
+ */
+internal fun deprecatedTargetsWarning(path: String, deprecated: KmpTargetSet): String =
+    "kmp-targets: '$path' registers ${ids(deprecated)} which Kotlin marks deprecated " +
+        "(since Kotlin 2.3.20, see https://kotlinlang.org/docs/native-target-support.html) — " +
+        "still registered (selection is unchanged), but consider migrating off them."
 
 private fun ids(set: KmpTargetSet): List<String> = set.members.map { it.id }.sorted()
