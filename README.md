@@ -2,7 +2,7 @@
 
 > Dynamically select which Kotlin Multiplatform targets to build.
 
-**Status:** alpha (pre-1.0). The core selector and the automatic minimal hierarchy template are implemented and exercised by the multi-module sample; further helper APIs (user-defined hierarchy groups, XCFramework) are roadmap items.
+**Status:** alpha (pre-1.0). Shipped and exercised by the multi-module sample plus a real 3-OS CI matrix: the global selector with [try-import-style layering](#selecting-targets) (dedicated config files, unified `kmptargets.*` keys), the automatic [minimal hierarchy template](#minimal-hierarchy-template), the [`kmpTargetsInfo`](#debugging-the-selection) introspection task, [host-compatibility](#host-compatibility) and [deprecated-target](#deprecated-targets) advisories, and opt-in [strict mode](#strict-mode). Roadmap: user-defined hierarchy groups, XCFramework helpers, Maven Central / Plugin Portal publishing.
 
 `kmp-targets` is a Gradle plugin for Kotlin Multiplatform projects that lets each developer (and each CI runner) choose which KMP targets to build, via a single Gradle property:
 
@@ -113,6 +113,7 @@ to do, instead of loose keys buried among unrelated daemon/cache settings in `gr
 # kmp-targets.properties — committed, team-shared
 kmptargets.targets=jvm,iosArm64
 kmptargets.hierarchyTemplate=true
+# kmptargets.strict=true    # opt-in: advisories become failures — see "Strict mode"
 ```
 
 An optional **personal override file** — `kmp-targets.local.properties`, git-ignored — mirrors
@@ -125,8 +126,19 @@ leaving them untouched keeps cache hits.
 
 ### Selecting targets
 
-The selection is **global** — one switch narrows the whole build. Set it via any of these sources
-(priority order, highest first):
+The selection is **global** — one switch narrows the whole build. Its sources form **three layers
+in increasing priority**, the same model as Bazel's `.bazelrc` + `try-import user.bazelrc`: a
+committed team default, a git-ignored personal override, and a per-invocation flag.
+
+| Layer | Sources | Who sets it |
+|---|---|---|
+| **Committed default** | `kmp-targets.properties` (and legacy root `gradle.properties`) | the team, in git |
+| **Personal override** | `kmp-targets.local.properties` (and legacy `local.properties`) — git-ignored | each developer, per machine |
+| **Per-invocation** | `-Pkmptargets.targets=…` CLI flag, `ORG_GRADLE_PROJECT_kmptargets.targets` env | this one build — a terminal run, a CI job |
+
+`kmptargets.targets` is the **single canonical key** across every layer — the string you commit, the
+string you override locally, and the string a [CI matrix](#ci) passes per job are the same
+vocabulary. The exact resolution order within those layers (highest first):
 
 1. `-Pkmptargets.targets=...` on the CLI
 2. `ORG_GRADLE_PROJECT_kmptargets.targets` environment variable
@@ -135,8 +147,10 @@ The selection is **global** — one switch narrows the whole build. Set it via a
 5. the **root** `gradle.properties` (a *subproject's* `gradle.properties` is **not** a source —
    Gradle only reads root-level project properties)
 6. `local.properties` (per-developer, gitignored)
-7. a project-wide `defaultSelection` set from build-logic (overridden by all of the above)
-8. Plugin default — every target the plugin currently knows about
+
+When no source provides a value, two **fallbacks** (not overrides — anything above beats them)
+apply: a project-wide `defaultSelection` set from build-logic, then the plugin default — every
+target the plugin knows about.
 
 The dedicated files beat `gradle.properties` deliberately: once a team adopts the consolidation
 point, a stale key left behind in `gradle.properties` can't silently override it. One nuance: the
@@ -152,7 +166,7 @@ the `gradle.properties` layer, i.e. below the dedicated files.
 
 ```properties
 kmptargets.targets=android,iosArm64        # explicit list
-kmptargets.targets=appleMobile             # preset (iosArm64 + iosSimulatorArm64)
+kmptargets.targets=appleMobile             # preset (iosArm64 + iosSimulatorArm64 + iosX64)
 kmptargets.targets=appleMobile,-iosArm64   # preset minus a leaf
 kmptargets.targets=apple,+android          # preset plus an addition
 kmptargets.targets=ANDROID, ios-arm64      # aliases + case-insensitive
@@ -175,6 +189,26 @@ Available presets:
 | `mobile` | `androidTarget` + all iOS |
 
 Unknown tokens fail the build at configuration time with a "did you mean ...?" suggestion — silently dropping a misspelled target in CI is the worst failure mode, so the parser is strict. Bare Apple sub-family names (`ios`, `macos`, `watchos`, `tvos`) are rejected with a hint pointing at the relevant leaf or `appleX` preset.
+
+### Selection change cost
+
+Changing the selection changes which targets register, which changes what the configuration phase
+produces. The price is exact and **expected**: switching to a new `kmptargets.targets` value costs
+**one configuration-cache miss + one Gradle sync**. Each distinct value is its own
+configuration-cache entry and the entries coexist, so switching *back* to a value you used before is
+a cache **hit** again — alternating between two working sets re-configures nothing after the first
+time each was seen.
+
+There is **no file-watch workaround**, by design on both sides: Gradle has no mechanism that re-runs
+the *configuration* phase on a file change — nothing can "hot reload" a selection change — and this
+plugin will not fake one. The miss is the price of *not registering unused targets*, the same
+trade-off that makes the plugin worthwhile: you pay one re-configuration when you narrow, and every
+sync and build after that is smaller because the unused targets' tasks no longer exist. With the
+configuration cache on (Gradle 9.5 runs it by default; this repo also pins it in
+`gradle.properties`) the cost is bounded to exactly that one re-configuration per new value.
+
+If a selection change seems to behave unexpectedly, run [`kmpTargetsInfo`](#debugging-the-selection)
+— it prints what resolved and which source won, at configuration-cache-hit speed.
 
 ### Debugging the selection
 
@@ -279,7 +313,9 @@ supplies its own `applyHierarchyTemplate { … }`, so the plugin stays out of th
 The registered target set is **host-blind by design**: selecting `iosArm64` registers `iosArm64` on
 macOS, Linux, and Windows alike, so configuration-cache keys, task graphs, and published metadata
 stay identical across CI agents. But not every host can *compile* every native target — `iosArm64`
-needs a macOS host.
+needs a macOS host (the full host → target matrix lives on Kotlin's
+[native target support](https://kotlinlang.org/docs/native-target-support.html) page; the plugin
+reads KGP's own encoding of it, so the advisory below tracks your Kotlin version automatically).
 
 When the selection includes a native target the current host cannot compile, the plugin logs a
 configuration-time **warning** naming the target(s) and the host (e.g. `LINUX_X64`) — and **still
@@ -295,14 +331,36 @@ be skipped here.
 The warning is purely advisory and fires at most once per target per module. JVM and Web targets
 (`androidTarget`, `jvm`, `js`, `wasmJs`, `wasmWasi`) are host-agnostic and never warned.
 
+### Deprecated targets
+
+Kotlin's [target-support page](https://kotlinlang.org/docs/native-target-support.html) marks
+`macosX64`, `watchosX64`, and `tvosX64` **deprecated** (since Kotlin 2.3.20) — but KGP itself emits
+no configuration-time signal when they register. This plugin does: registering a deprecated leaf
+logs a one-line advisory naming it —
+
+```
+kmp-targets: ':shared' registers [macosX64] which Kotlin marks deprecated (since Kotlin 2.3.20,
+see https://kotlinlang.org/docs/native-target-support.html) — still registered (selection is
+unchanged), but consider migrating off them.
+```
+
+Like the host advisory: **signal only, never filtering**. Deprecated leaves stay selectable, stay in
+every preset (`appleDesktop` still expands to both macOS leaves), and register exactly as selected;
+the advisory fires at most once per leaf per module and only for leaves that actually register.
+[`kmpTargetsInfo`](#debugging-the-selection) marks the same leaves `(deprecated)` in its vocabulary
+listing. (`iosX64` is low-tier but *not* deprecated — it carries no marker.) The set is pinned in
+the plugin against the docs page and updated deliberately with Kotlin upgrades.
+
 ### Strict mode
 
-By default both advisories — the **empty-overlap** warning (a non-empty selection that matches
-nothing a module `supports`, so the module registers zero targets) and the **host-impossible**
-warning above — are just that: warnings. Right for local iteration, easy to miss in CI, where a
-module silently building nothing is usually a real configuration bug.
+By default all three advisories — the **empty-overlap** warning (a non-empty selection that matches
+nothing a module `supports`, so the module registers zero targets), the
+[**host-impossible**](#host-compatibility) warning, and the
+[**deprecated-target**](#deprecated-targets) advisory — are just that: warnings. Right for local
+iteration, easy to miss in CI, where a module silently building nothing is usually a real
+configuration bug.
 
-`kmptargets.strict=true` promotes exactly those two advisories to configuration-time **build
+`kmptargets.strict=true` promotes those advisories to configuration-time **build
 failures** (`GradleException`) with the **identical message text** — severity changes, policy does
 not. It never changes *which* configurations are flagged and never changes *what registers*.
 Default **off**, deliberately. The flag resolves through the same
@@ -392,7 +450,8 @@ Notes:
   the host can fully compile — a misconfigured module then fails the job instead of silently
   building nothing.
 - **Configuration cache.** Each distinct selection is a distinct configuration-cache key; matrix
-  jobs with different selections won't share an entry. Expected, not a regression.
+  jobs with different selections won't share an entry. Expected, not a regression — the same
+  bounded cost documented in [Selection change cost](#selection-change-cost).
 - **Toolchain parity.** JDK via `setup-java` (Temurin 23) matches the repo's mise pin
   (`.mise.toml`); Gradle comes from the committed wrapper (9.5.1) in both places — don't pin a
   different version in CI.
