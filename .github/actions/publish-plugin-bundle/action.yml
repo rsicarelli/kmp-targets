@@ -1,0 +1,28 @@
+name: Publish Plugin Bundle
+description: Build the kmp-targets plugin, publish to Maven Local, and upload the artifacts as a workflow artifact for downstream sample jobs
+
+inputs:
+  artifact-name:
+    description: Name of the workflow artifact that holds the published Maven Local subtree
+    required: false
+    default: kmp-targets-plugin-maven-local
+
+runs:
+  using: composite
+  steps:
+    - name: Publish kmp-targets plugin to Maven Local
+      shell: bash
+      env:
+        ORG_GRADLE_PROJECT_SKIP_SIGNING: true
+      run: ./gradlew publishToMavenLocal
+
+    # The whole com/rsicarelli subtree: it holds both the plugin artifact
+    # (com/rsicarelli/kmp-targets-gradle-plugin) and its marker
+    # (com/rsicarelli/kmptargets/com.rsicarelli.kmptargets.gradle.plugin).
+    - name: Upload plugin Maven Local subtree
+      uses: actions/upload-artifact@v7
+      with:
+        name: ${{ inputs.artifact-name }}
+        path: ~/.m2/repository/com/rsicarelli/
+        retention-days: 1
+        if-no-files-found: error

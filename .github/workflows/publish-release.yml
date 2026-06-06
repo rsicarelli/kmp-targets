@@ -1,0 +1,232 @@
+name: Publish Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        required: true
+        type: choice
+        description: 'Version bump type'
+        default: 'minor'
+        options:
+          - major
+          - minor
+          - patch
+      release_type:
+        required: true
+        type: choice
+        description: 'Release type'
+        default: 'alpha'
+        options:
+          - alpha
+          - beta
+          - stable
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  IS_CI: true
+  ORG_GRADLE_PROJECT_RELEASE_MODE: true
+
+jobs:
+  guard-release:
+    name: Guard Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if branch is not main
+        if: github.ref != 'refs/heads/main'
+        run: |
+          echo "This workflow should only be triggered from the main branch"
+          exit 1
+
+  validate-tests:
+    name: Validate Tests
+    needs: [guard-release]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+
+      - name: Execute Tests
+        uses: ./.github/actions/run-tests
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results-gradle-plugin
+          path: |
+            **/build/test-results/**/TEST-*.xml
+            !samples/**/build/test-results/**
+          retention-days: 1
+
+  publish-plugin-bundle:
+    name: Publish Plugin Bundle
+    needs: [guard-release]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+
+      - name: Publish Plugin Bundle
+        uses: ./.github/actions/publish-plugin-bundle
+
+  validate-samples:
+    name: Sample (${{ matrix.os }})
+    needs: [guard-release, publish-plugin-bundle]
+    strategy:
+      # Same per-host selection vocabulary as sample-matrix.yml — a Windows konan hiccup must
+      # not cancel the macOS job (the one with real Apple compilation coverage).
+      fail-fast: false
+      matrix:
+        include:
+          # Real Linux-native compilation; iosArm64 is gate-only on this host.
+          - os: ubuntu-latest
+            targets: jvm,iosArm64,linuxX64,linuxArm64
+          # The only host that can compile/link Apple targets.
+          - os: macos-latest
+            targets: appleMobile,jvm
+          # The only host for MinGW. iosArm64 is gate-only, as on ubuntu.
+          - os: windows-latest
+            targets: windows,jvm,iosArm64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+
+      # The samples consume the plugin from mavenLocal — restore the bundle built once by
+      # publish-plugin-bundle instead of republishing per matrix job.
+      - name: Restore Plugin Bundle
+        uses: ./.github/actions/restore-plugin-bundle
+
+      # The -P flag is quoted because PowerShell (windows-latest) splits unquoted commas into
+      # an array — the quotes are harmless on bash.
+      - name: Show resolved targets (kmpTargetsInfo)
+        run: ./gradlew -p samples/hello-world :shared-core:kmpTargetsInfo -q "-Pkmptargets.targets=${{ matrix.targets }}"
+
+      - name: Build sample with host-appropriate selection
+        run: ./gradlew -p samples/hello-world build "-Pkmptargets.targets=${{ matrix.targets }}"
+
+  validation-summary:
+    name: Validation Summary
+    if: always()
+    runs-on: ubuntu-latest
+    needs:
+      - guard-release
+      - validate-tests
+      - publish-plugin-bundle
+      - validate-samples
+    steps:
+      - name: Check validation status
+        run: |
+          if [[ "${{ contains(needs.*.result, 'failure') }}" == "true" ]]; then
+            echo "❌ Some validation jobs failed"
+            exit 1
+          fi
+
+          if [[ "${{ contains(needs.*.result, 'cancelled') }}" == "true" ]]; then
+            echo "⚠️  Some validation jobs were cancelled"
+            exit 1
+          fi
+
+          if [[ "${{ contains(needs.*.result, 'skipped') }}" == "true" ]]; then
+            echo "⚠️  Some validation jobs were skipped (upstream guard likely failed)"
+            exit 1
+          fi
+
+          echo "✅ All validation jobs passed successfully"
+          exit 0
+
+  publish:
+    name: Publish to Maven Central
+    runs-on: ubuntu-latest
+    needs: validation-summary
+    outputs:
+      version_published: ${{ steps.bump.outputs.version_new }}
+    steps:
+      - name: Create GitHub App Token
+        uses: actions/create-github-app-token@v3
+        id: app-token
+        with:
+          app-id: ${{ secrets.GH_APP_ID }}
+          private-key: ${{ secrets.GH_APP_PRIVATE_KEY }}
+
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+
+      - name: Configure Release Bot
+        uses: ./.github/actions/configure-release-bot
+        with:
+          bot-name: ${{ vars.RELEASE_BOT_NAME }}
+          bot-app-id: ${{ vars.RELEASE_BOT_APP_ID }}
+
+      # gradle.properties carries the dev version (e.g. 0.1.0-SNAPSHOT); the release version is
+      # produced in-place on the runner (no commit) — e.g. `patch alpha` → 0.1.0-alpha01.
+      - name: Bump to release version
+        id: bump
+        run: |
+          kotlin .github/scripts/bump-version.main.kts \
+            "${{ github.event.inputs.bump }}" \
+            "${{ github.event.inputs.release_type }}"
+          echo "📦 Publishing version: $(grep 'version=' gradle.properties | cut -d'=' -f2)"
+
+      - name: Publish to Maven Central
+        run: |
+          ./gradlew publishAndReleaseToMavenCentral --no-daemon
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_SIGNING_PASSWORD }}
+
+      - name: Create Tag for Published Version
+        run: |
+          git tag "${{ steps.bump.outputs.tag }}"
+          git push origin "${{ steps.bump.outputs.tag }}"
+
+      - name: Create GitHub Release
+        uses: ./.github/actions/create-github-release
+        with:
+          tag: ${{ steps.bump.outputs.tag }}
+          github-token: ${{ steps.app-token.outputs.token }}
+          is-prerelease: ${{ github.event.inputs.release_type != 'stable' }}
+
+      - name: Prepare for Next Version
+        id: prepare
+        run: |
+          bash .github/scripts/prepare-next-release.sh \
+            "${{ steps.bump.outputs.version_new }}" \
+            "${{ github.event.inputs.bump }}" \
+            "${{ github.event.inputs.release_type }}"
+
+      - name: Push Changes
+        run: git push origin HEAD
+
+  deploy-docs:
+    name: Deploy Release Documentation
+    needs: publish
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy-docs.yml
+    with:
+      version: ${{ needs.publish.outputs.version_published }}
+      alias: 'latest'
+      set-default: true
