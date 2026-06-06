@@ -44,7 +44,13 @@ class KmpTargetsDeprecationAdvisoryTest {
         dir.resolve("gradle.properties")
             .writeText("kmptargets.targets=macosX64,jvm\nkmptargets.strict=true\n")
         val project = newProjectWithKgp(dir)
-        val ex = assertFailsWith<GradleException> { ext(project).supports { appleDesktop + jvm } }
+        val extension = ext(project)
+        // Machine-independence: every deprecated leaf is an Apple target, so on a non-mac host the
+        // HOST advisory would throw first under strict (deliberate ordering — "this machine can't
+        // build it" beats "the ecosystem is sunsetting it"). Pre-seeding the host dedup set leaves
+        // the deprecation advisory as the only thrower on every host.
+        extension.hostWarned += macosX64
+        val ex = assertFailsWith<GradleException> { extension.supports { appleDesktop + jvm } }
         assertEquals(deprecatedTargetsWarning(project.path, KmpTargetSet.of(macosX64)), ex.message)
     }
 
