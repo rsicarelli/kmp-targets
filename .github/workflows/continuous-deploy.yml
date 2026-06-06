@@ -1,0 +1,91 @@
+name: Continuous Deploy
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+      - '.claude/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  IS_CI: true
+  ORG_GRADLE_PROJECT_RELEASE_MODE: false
+
+jobs:
+  publish-snapshot:
+    name: Publish SNAPSHOT
+    runs-on: ubuntu-latest
+    outputs:
+      snapshot_version: ${{ steps.version.outputs.snapshot_version }}
+    steps:
+      - name: Skip if commit message contains [skip ci]
+        if: contains(github.event.head_commit.message, '[skip ci]')
+        run: |
+          echo "Skipping CI due to [skip ci] in commit message"
+          exit 0
+
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Environment
+        uses: ./.github/actions/setup-environment
+
+      - name: Convert version to SNAPSHOT
+        run: |
+          # Read current version (e.g., 0.1.0-alpha01)
+          CURRENT_VERSION=$(grep "version=" gradle.properties | cut -d'=' -f2)
+          echo "📦 Original version: $CURRENT_VERSION"
+
+          # Convert to SNAPSHOT in-place on the runner (no commit)
+          kotlin .github/scripts/bump-version.main.kts snapshot
+
+          # Verify SNAPSHOT was added
+          SNAPSHOT_VERSION=$(grep "version=" gradle.properties | cut -d'=' -f2)
+          echo "🔄 SNAPSHOT version: $SNAPSHOT_VERSION"
+
+          if [[ ! "$SNAPSHOT_VERSION" =~ -SNAPSHOT$ ]]; then
+            echo "❌ ERROR: Failed to add SNAPSHOT suffix"
+            exit 1
+          fi
+          echo "✅ Ready to publish SNAPSHOT version: $SNAPSHOT_VERSION"
+
+      - name: Publish SNAPSHOT to Maven Central
+        run: |
+          ./gradlew publishAllPublicationsToMavenCentralRepository --no-daemon
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_CENTRAL_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_CENTRAL_PASSWORD }}
+          # GPG signing variables (not required for SNAPSHOT but keeping for safety)
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.GPG_SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.GPG_SIGNING_PASSWORD }}
+
+      - name: Report success
+        run: |
+          VERSION=$(grep "version=" gradle.properties | cut -d'=' -f2)
+          echo "🚀 Successfully published $VERSION to the Central Portal snapshots repository"
+          echo "Consumers resolve it from https://central.sonatype.com/repository/maven-snapshots/"
+          echo "No GitHub Release created for SNAPSHOT versions"
+
+      - name: Extract SNAPSHOT version
+        id: version
+        run: |
+          SNAPSHOT_VERSION=$(grep "version=" gradle.properties | cut -d'=' -f2)
+          echo "snapshot_version=$SNAPSHOT_VERSION" >> "$GITHUB_OUTPUT"
+          echo "📚 Will deploy docs for version: $SNAPSHOT_VERSION"
+
+  deploy-docs:
+    name: Deploy SNAPSHOT Documentation
+    needs: publish-snapshot
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/deploy-docs.yml
+    with:
+      version: 'snapshot'
+      set-default: false
