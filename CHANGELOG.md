@@ -36,6 +36,11 @@ changes may land in any release.
   configuration time with a "did you mean …?" suggestion.
 - Both dedicated files are tracked configuration-cache inputs: edits invalidate the cache,
   untouched files keep cache hits.
+- **Opt-in no-collapse hierarchy mode** ([#50]): `kmptargets.hierarchyCollapse=false` (global key)
+  or `kmpTargets { collapseHierarchy.set(false) }` (per-module, wins) makes a group materialize
+  with **≥1** present child instead of ≥2, so intermediates like `iosMain` survive a single-leaf
+  selection — for codebases with load-bearing `src/iosMain` dirs. Default unchanged (`true`,
+  collapse); never changes what registers; no-op when `kmptargets.hierarchyTemplate=false`.
 
 ### Fixed
 
@@ -50,3 +55,4 @@ changes may land in any release.
 [#30]: https://github.com/rsicarelli/kmp-targets/issues/30
 [#31]: https://github.com/rsicarelli/kmp-targets/issues/31
 [#48]: https://github.com/rsicarelli/kmp-targets/issues/48
+[#50]: https://github.com/rsicarelli/kmp-targets/issues/50

@@ -251,6 +251,25 @@ class KmpTargetsPluginTest {
     }
 
     @Test
+    fun `given committed config file with a hierarchyCollapse typo when plugin applied then the build fails with a suggestion`(
+        @TempDir dir: Path
+    ) {
+        // The collapse knob (issue #50) lives in the same validated key registry as the others.
+        dir.resolve("kmp-targets.properties").writeText("kmptargets.hierachyCollapse=false\n")
+        val project = newProject(dir)
+        val ex =
+            assertFailsWith<Exception> { project.pluginManager.apply("com.rsicarelli.kmptargets") }
+        val rootCause =
+            generateSequence(ex as Throwable?) { it.cause }
+                .firstOrNull { it.message?.contains("kmp-targets.properties") == true }
+        assertNotNull(rootCause, "expected file-tagged cause in chain, root: ${ex.message}")
+        assertTrue(
+            rootCause.message!!.contains("did you mean 'kmptargets.hierarchyCollapse'?"),
+            "expected suggestion, got: ${rootCause.message}",
+        )
+    }
+
+    @Test
     fun `given the legacy placeholder task name when listed then it does not exist`(
         @TempDir dir: Path
     ) {

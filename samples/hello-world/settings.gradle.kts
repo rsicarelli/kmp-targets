@@ -48,6 +48,11 @@ include(":core-and-apple")
 // supports{all}, opts OUT → KGP default: iosMain + appleMain + nativeMain
 include(":legacy-default")
 
+// supports{appleMobile}, collapse OFF → iosMain + appleMain + nativeMain all materialize, so
+// `iosMain` survives even a single-leaf selection. `verifyPinnedIntermediates` fails the build if
+// the pinned chain ever collapses again.
+include(":pinned-intermediates")
+
 // no kmp-targets at all → KGP default, untouched (non-interference)
 include(":plain-kmp")
 

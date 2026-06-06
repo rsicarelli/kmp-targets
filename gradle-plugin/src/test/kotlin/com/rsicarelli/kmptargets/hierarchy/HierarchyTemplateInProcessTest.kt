@@ -125,6 +125,101 @@ class HierarchyTemplateInProcessTest {
     }
 
     @Test
+    fun `given single iosArm64 and global collapse false when applied then iosMain materializes`(
+        @TempDir dir: Path
+    ) {
+        // The no-collapse mode (issue #50): codebases with load-bearing src/iosMain must keep the
+        // intermediate when the selection narrows to one iOS leaf.
+        val sourceSets =
+            sourceSetsOf(dir, "iosArm64", extraProps = "kmptargets.hierarchyCollapse=false\n")
+        assertTrue("iosMain" in sourceSets, sourceSets.toString())
+    }
+
+    @Test
+    fun `given single iosArm64 and collapse false in committed config file when applied then iosMain materializes`(
+        @TempDir dir: Path
+    ) {
+        dir.resolve("kmp-targets.properties").writeText("kmptargets.hierarchyCollapse=false\n")
+        val sourceSets = sourceSetsOf(dir, "iosArm64")
+        assertTrue("iosMain" in sourceSets, sourceSets.toString())
+    }
+
+    @Test
+    fun `given collapse false in committed but true in personal file when applied then the single-leaf chain collapses`(
+        @TempDir dir: Path
+    ) {
+        // The collapse key reads through the same precedence chain as every other global (#30).
+        dir.resolve("kmp-targets.properties").writeText("kmptargets.hierarchyCollapse=false\n")
+        dir.resolve("kmp-targets.local.properties").writeText("kmptargets.hierarchyCollapse=true\n")
+        val sourceSets = sourceSetsOf(dir, "iosArm64")
+        assertFalse("iosMain" in sourceSets, "personal file should win: $sourceSets")
+    }
+
+    @Test
+    fun `given a non-boolean collapse value when applied then it is treated as unset and the chain collapses`(
+        @TempDir dir: Path
+    ) {
+        // `no` is not a strict boolean → unset → built-in default (collapse on), same parsing
+        // contract as the template and strict flags.
+        val sourceSets =
+            sourceSetsOf(dir, "iosArm64", extraProps = "kmptargets.hierarchyCollapse=no\n")
+        assertFalse("iosMain" in sourceSets, "non-boolean must mean unset: $sourceSets")
+    }
+
+    @Test
+    fun `given global collapse false but project override true when applied then the single-leaf chain collapses`(
+        @TempDir dir: Path
+    ) {
+        val sourceSets =
+            sourceSetsOf(dir, "iosArm64", extraProps = "kmptargets.hierarchyCollapse=false\n") {
+                it.extensions.getByType(KmpTargetsExtension::class.java).collapseHierarchy.set(true)
+            }
+        assertFalse("iosMain" in sourceSets, "project override should win: $sourceSets")
+    }
+
+    @Test
+    fun `given hierarchy template false and collapse false when applied then collapse is a no-op and KGP default applies`(
+        @TempDir dir: Path
+    ) {
+        // The documented interaction (issue #50): with the template disabled, KGP's default
+        // hierarchy owns the tree, so the collapse knob changes nothing.
+        val sourceSets =
+            sourceSetsOf(
+                dir,
+                "iosArm64,iosX64,iosSimulatorArm64",
+                extraProps =
+                    "kmptargets.hierarchyTemplate=false\nkmptargets.hierarchyCollapse=false\n",
+            )
+        assertTrue("appleMain" in sourceSets, "KGP default should own the tree: $sourceSets")
+        assertTrue("nativeMain" in sourceSets, sourceSets.toString())
+    }
+
+    @Test
+    fun `given two ios leaves and collapse false when applied then commonMain edges survive through the full chain`(
+        @TempDir dir: Path
+    ) {
+        // The full materialized chain must stay connected: leaf → ios → apple → native → common.
+        dir.resolve("gradle.properties")
+            .writeText(
+                "kmptargets.targets=iosArm64,iosSimulatorArm64\nkmptargets.hierarchyCollapse=false\n"
+            )
+        val project = ProjectBuilder.builder().withProjectDir(dir.toFile()).build()
+        project.pluginManager.apply("com.rsicarelli.kmptargets")
+        project.pluginManager.apply("org.jetbrains.kotlin.multiplatform")
+        project.extensions.getByType(KmpTargetsExtension::class.java).supports(KmpTargetSet.all)
+        (project as ProjectInternal).evaluate()
+        val kotlin = project.extensions.getByType(KotlinMultiplatformExtension::class.java)
+        val sourceSets = kotlin.sourceSets.names.toSet()
+        assertTrue("iosMain" in sourceSets, sourceSets.toString())
+        assertTrue("appleMain" in sourceSets, sourceSets.toString())
+        assertTrue("nativeMain" in sourceSets, sourceSets.toString())
+        val iosDependsOn = kotlin.sourceSets.getByName("iosMain").dependsOn.map { it.name }
+        assertTrue("appleMain" in iosDependsOn, iosDependsOn.toString())
+        val nativeDependsOn = kotlin.sourceSets.getByName("nativeMain").dependsOn.map { it.name }
+        assertTrue("commonMain" in nativeDependsOn, nativeDependsOn.toString())
+    }
+
+    @Test
     fun `given a plain Kotlin Multiplatform module without kmp-targets when applied then KGP default is untouched`(
         @TempDir dir: Path
     ) {
