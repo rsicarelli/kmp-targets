@@ -1,0 +1,76 @@
+# Per-host KMP target matrix over the hello-world sample (issue #35): each runner builds only the
+# subset of targets it can host, selected via the SAME `kmptargets.targets` vocabulary developers
+# use locally — see the README "CI" section, which this workflow is the living, exercised example
+# for. Additive to ci.yml (the fast lane stays a single ubuntu `check` + samples job).
+#
+# Every job's selection must include BOTH `jvm` and `iosArm64`: the sample's
+# :eager-conventions:verifyEagerTargets regression gate asserts exactly [iosArm64, jvm] registers
+# for that module, and :feature-mobile supports only `mobile` (sample has no AGP, so an iOS leaf is
+# its only selectable shape). Registration is host-blind by design — selecting iosArm64 on
+# Linux/Windows registers it with an advisory and KGP disables its compile tasks there.
+#
+# Gradle comes from the committed wrapper (9.5.1) — no `gradle-version` override — and the JDK
+# matches .mise.toml (Temurin 23), so CI and local toolchains stay aligned.
+
+name: Sample matrix
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: sample-matrix-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  sample:
+    name: sample (${{ matrix.os }})
+    strategy:
+      # A Windows konan hiccup must not cancel the macOS job — the one paying for real Apple
+      # compilation coverage that ci.yml's ubuntu fast lane can never have.
+      fail-fast: false
+      matrix:
+        include:
+          # Real Linux-native compilation. Web targets are deliberately left to the ubuntu job in
+          # ci.yml's `check` (kotlinNpmInstall's Node download is a flake vector with no
+          # host-specific signal). iosArm64 is gate-only here: registered, advisory-warned,
+          # compile tasks disabled on this host.
+          - os: ubuntu-latest
+            targets: jvm,iosArm64,linuxX64,linuxArm64
+          # The only host that can compile/link Apple targets — the job this workflow exists for.
+          - os: macos-latest
+            targets: appleMobile,jvm
+          # The only host for MinGW. iosArm64 is gate-only, as on ubuntu.
+          - os: windows-latest
+            targets: windows,jvm,iosArm64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up JDK 23
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '23'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      # The samples are standalone builds that consume the plugin from mavenLocal.
+      - name: Publish plugin to Maven Local
+        run: ./gradlew publishToMavenLocal
+
+      # Diagnostic showcase: print what the plugin resolved for this host's selection.
+      # The -P flag is quoted because PowerShell (windows-latest) splits unquoted commas into
+      # an array — the quotes are harmless on bash.
+      - name: Show resolved targets (kmpTargetsInfo)
+        run: ./gradlew -p samples/hello-world :shared-core:kmpTargetsInfo -q "-Pkmptargets.targets=${{ matrix.targets }}"
+
+      - name: Build sample with host-appropriate selection
+        run: ./gradlew -p samples/hello-world build "-Pkmptargets.targets=${{ matrix.targets }}"
