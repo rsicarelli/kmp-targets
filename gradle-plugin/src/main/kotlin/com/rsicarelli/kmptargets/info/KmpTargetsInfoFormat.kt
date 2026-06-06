@@ -24,6 +24,7 @@ internal fun formatKmpTargetsInfo(
     jvmRegisteredAs: String? = null,
     androidWithoutAgp: Boolean = false,
     inertModule: Boolean = false,
+    nativeOnlyMetadata: Boolean = false,
 ): String = buildString {
     appendLine("kmp-targets — $projectPath")
     appendLine()
@@ -72,6 +73,16 @@ internal fun formatKmpTargetsInfo(
         appendLine(
             "  inert:    zero targets registered — commonMain metadata compilation will fail; " +
                 "gate on registered().isEmpty()"
+        )
+    }
+    // The jvm-less line (#72) is likewise a whole-module row, mutually exclusive with inert by
+    // construction (it requires registrations, inert requires none): targets registered, but no
+    // JVM-family leaf among them, so the metadata compilations reject JVM-flavored constructs
+    // while the platform klibs compile.
+    if (nativeOnlyMetadata) {
+        appendLine(
+            "  jvm-less: no JVM-family target registered — *KotlinMetadata* compilations reject " +
+                "@JvmInline etc. while the klibs compile; gate on registered(jvmFamily).isEmpty()"
         )
     }
     appendLine()

@@ -7,7 +7,7 @@
 [![Docs](https://img.shields.io/badge/docs-rsicarelli.github.io%2Fkmp--targets-blue)](https://rsicarelli.github.io/kmp-targets/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-**Status:** alpha (pre-1.0). Shipped and exercised by the multi-module sample plus a real 3-OS CI matrix: the global selector with [try-import-style layering](#selecting-targets) (dedicated config files, unified `kmptargets.*` keys), the automatic [minimal hierarchy template](#minimal-hierarchy-template), the [`kmpTargetsInfo`](#debugging-the-selection) introspection task, [host-compatibility](#host-compatibility), [deprecated-target](#deprecated-targets), [android-without-AGP](#android-target-without-the-android-gradle-plugin), and [inert-module](#inert-modules) advisories, and opt-in [strict mode](#strict-mode). Roadmap: user-defined hierarchy groups, XCFramework helpers.
+**Status:** alpha (pre-1.0). Shipped and exercised by the multi-module sample plus a real 3-OS CI matrix: the global selector with [try-import-style layering](#selecting-targets) (dedicated config files, unified `kmptargets.*` keys), the automatic [minimal hierarchy template](#minimal-hierarchy-template), the [`kmpTargetsInfo`](#debugging-the-selection) introspection task, [host-compatibility](#host-compatibility), [deprecated-target](#deprecated-targets), [android-without-AGP](#android-target-without-the-android-gradle-plugin), [inert-module](#inert-modules), and [native-only-metadata](#native-only-metadata-jvm-less-commonmain) advisories, and opt-in [strict mode](#strict-mode). Roadmap: user-defined hierarchy groups, XCFramework helpers.
 
 `kmp-targets` is a Gradle plugin for Kotlin Multiplatform projects that lets each developer (and each CI runner) choose which KMP targets to build, via a single Gradle property:
 
@@ -536,14 +536,72 @@ target the current host [cannot compile](#host-compatibility) still counts as re
 [`kmpTargetsInfo`](#debugging-the-selection) renders the same decision as an `inert:` line in its
 registered section while the condition holds.
 
+### Native-only metadata (JVM-less commonMain)
+
+The [inert trap](#inert-modules) has a subtler sibling: a module that supports the JVM family
+(`androidTarget`, `jvm`) **plus** native targets, under a selection that drops every JVM-family
+leaf (an ios-only lane, say). The module is very much *alive* — the native leaves register and
+their platform klibs compile cleanly — but commonMain is now a **JVM-less shared fragment**, and
+the metadata compiler applies shared-fragment rules to code that was written assuming a JVM
+platform exists: `@JvmInline` and similar JVM-flavored constructs are rejected — but **only** in
+the `*KotlinMetadata*` compilations. The platform compilations succeed, which makes the failure
+look paradoxical ("the klibs build, why does metadata fail?"). The same holds when only web leaves
+register: the predicate is "no JVM-providing leaf", not "natives registered".
+
+So whenever a registration pass leaves such a module with targets registered but none of them
+JVM-family — while the supported set says the JVM family belongs here — the plugin logs a one-line
+advisory naming the symptom and the scoped gate:
+
+```
+kmp-targets: ':shared' supports the JVM family but this selection registered no JVM-family target
+while other targets did — commonMain is now a JVM-less shared fragment. The platform klibs
+compile, but the *KotlinMetadata* compilations reject JVM-flavored constructs (e.g. @JvmInline):
+klibs build, metadata fails. Gate it in build-logic when kmpTargets.registered(jvmFamily).isEmpty(),
+disabling only the *KotlinMetadata* compilations.
+```
+
+Like its siblings: **signal only, never filtering** — the plugin does not disable any task. The
+recommended gate is the *scoped* sibling of the [inert recipe](#inert-modules): where an inert
+module disables everything, this module keeps its alive platform compilations and drops only the
+doomed metadata ones, keyed off the same
+[`registered(slice)`](#querying-what-registered) query the advisory checks:
+
+```kotlin
+// after supports { } — drop the doomed metadata compilations, keep the platform klibs
+if (kmpTargets.registered().isNotEmpty() && kmpTargets.registered(jvmFamily).isEmpty()) {
+    tasks.withType(KotlinCompilationTask::class.java)
+        .matching { it.name.contains("KotlinMetadata") }
+        .configureEach { enabled = false }
+}
+```
+
+The predicate is precise on both sides. *Supported* means `resolvedSupported()` — so an
+`androidTarget` that was selected but [skipped for want of AGP](#android-target-without-the-android-gradle-plugin)
+still counts as "supports JVM, registered none", and in that composition both advisories fire:
+the AGP guard names the cause, this one names the consequence (under
+[strict](#strict-mode), the cause wins the exception). *Registered* means actual registrations,
+leaf-based — any single JVM-family leaf defeats the predicate (an android-only registration keeps
+the fragment JVM-flavored; Android is a JVM platform), and a jvm leaf
+[renamed](#renaming-the-jvm-target) via `targetName` still counts. A module whose `supports { }`
+never names a JVM-family leaf made no JVM promise and is never flagged; a module that registered
+**zero** targets is the [inert](#inert-modules) case — the two advisories are mutually exclusive
+by construction, so exactly one fires per module state.
+
+The advisory fires at most once per module; a later `supports { }` union that registers a
+JVM-family leaf resolves the trap permanently (registration is one-way). It is host-blind like
+registration itself. [`kmpTargetsInfo`](#debugging-the-selection) renders the same decision as a
+`jvm-less:` line in its registered section while the condition holds.
+
 ### Strict mode
 
-By default all five advisories — the **empty-overlap** warning (a non-empty selection that matches
+By default all six advisories — the **empty-overlap** warning (a non-empty selection that matches
 nothing a module `supports`, so the module registers zero targets), the
 [**android-without-AGP**](#android-target-without-the-android-gradle-plugin) advisory, the
 [**host-impossible**](#host-compatibility) warning, the
-[**deprecated-target**](#deprecated-targets) advisory, and the
-[**inert-module**](#inert-modules) advisory — are just that: warnings. Right for local
+[**deprecated-target**](#deprecated-targets) advisory, the
+[**inert-module**](#inert-modules) advisory, and the
+[**native-only-metadata**](#native-only-metadata-jvm-less-commonmain) advisory — are just that:
+warnings. Right for local
 iteration, easy to miss in CI, where a module silently building nothing is usually a real
 configuration bug.
 

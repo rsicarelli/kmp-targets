@@ -26,6 +26,23 @@ changes may land in any release.
 
 ### Added
 
+- **Native-only-metadata advisory** ([#72]): when a module **supports** the JVM family
+  (`androidTarget`/`jvm`) yet a registration pass ends with **no** JVM-family target registered
+  while other targets did register, the plugin logs a one-line advisory. The module is alive — the
+  platform klibs compile — but commonMain collapses to a JVM-less shared fragment, so the
+  `*KotlinMetadata*` compilations reject JVM-flavored constructs (`@JvmInline` and friends): the
+  paradoxical "klibs build, metadata fails". Disjoint from the inert-module advisory by
+  construction (inert = zero registrations; this fires only when something *did* register —
+  exactly one of the two per module state). Signal only, never filtering; promoted to a build
+  failure under `kmptargets.strict=true` with the identical text (the cause advisories —
+  empty-overlap, android-without-AGP — are emitted first and win the strict exception where they
+  apply; an android leaf skipped by the AGP guard still counts as supported-but-unregistered, so
+  both fire in warn mode). The recommended build-logic gate disables only the metadata
+  compilations, keyed off `kmpTargets.registered(jvmFamily).isEmpty()`. Any single JVM-family leaf
+  registered defeats the predicate (android-only included; the renamed jvm leaf counts — the
+  predicate is leaf-based); fires at most once per module, and a later `supports { }` union that
+  registers a JVM-family leaf resolves it permanently. `kmpTargetsInfo` renders the same decision
+  as a `jvm-less:` line in its registered section.
 - **Inert-module advisory** ([#71]): when a module that declared `supports { }` ends a
   registration pass with **zero** targets registered — a disjoint selection, an explicitly-empty
   selection (`jvm,-jvm`, where the empty-overlap advisory is silent by design), or an android-only
@@ -99,3 +116,4 @@ changes may land in any release.
 [#51]: https://github.com/rsicarelli/kmp-targets/issues/51
 [#52]: https://github.com/rsicarelli/kmp-targets/issues/52
 [#71]: https://github.com/rsicarelli/kmp-targets/issues/71
+[#72]: https://github.com/rsicarelli/kmp-targets/issues/72
