@@ -1,0 +1,11 @@
+name: Run Tests
+description: Execute the full verification suite (compile, tests, ktfmt, compat floors)
+
+runs:
+  using: 'composite'
+  steps:
+    # `check` aggregates everything across modules: unit tests, ktfmtCheck, and the
+    # compat-floors verification on the built jar.
+    - name: Run all checks
+      shell: bash
+      run: ./gradlew check
