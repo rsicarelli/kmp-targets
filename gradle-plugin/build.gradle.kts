@@ -1,8 +1,8 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.ktfmt)
+    alias(libs.plugins.mavenPublish)
     `java-gradle-plugin`
-    `maven-publish`
 }
 
 // No toolchain on purpose: build with the locally installed (mise-pinned) JDK, target the oldest
@@ -61,12 +61,38 @@ gradlePlugin {
     }
 }
 
-publishing {
-    publications.withType<MavenPublication>().configureEach {
-        if (name == "pluginMaven") {
-            artifactId = "kmp-targets-gradle-plugin"
-        }
+// Maven Central publishing (Central Portal via vanniktech maven-publish). The plugin publishes the
+// artifact under the coordinates below plus the `com.rsicarelli.kmptargets.gradle.plugin` marker —
+// vanniktech leaves marker publications' coordinates untouched, which is exactly what Gradle's
+// plugin resolution requires.
+//
+// RELEASE_MODE=true  → automatic release to Maven Central (release/hotfix workflows)
+// RELEASE_MODE=false → staged/SNAPSHOT publishing only (continuous-deploy workflow)
+val isReleaseMode = findProperty("RELEASE_MODE")?.toString()?.toBoolean() ?: false
+val isSnapshot = version.toString().endsWith("-SNAPSHOT")
+val skipSigning = findProperty("SKIP_SIGNING")?.toString()?.toBoolean() ?: false
+val isCI = System.getenv("IS_CI")?.toBoolean() ?: false
+
+mavenPublishing {
+    publishToMavenCentral(automaticRelease = isReleaseMode)
+
+    // Signing logic:
+    // - If IS_CI is absent (false) → skip signing (local development)
+    // - If SKIP_SIGNING flag is set → skip signing
+    // - If IS_CI is true AND not skipped AND not snapshot → sign
+    // This avoids requiring GPG credentials for local publishToMavenLocal.
+    if (isCI && !skipSigning && !isSnapshot) {
+        signAllPublications()
     }
+
+    // POM metadata (name, description, url, licenses, developers, scm) comes from the POM_* keys
+    // in gradle.properties — the vanniktech plugin maps them automatically. Declaring them here
+    // too would duplicate the <license>/<developer> list entries in the published POM.
+    coordinates(
+        groupId = group.toString(),
+        artifactId = "kmp-targets-gradle-plugin",
+        version = version.toString(),
+    )
 }
 
 tasks.test { useJUnitPlatform() }
