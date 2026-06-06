@@ -3,7 +3,10 @@ package com.rsicarelli.kmptargets
 import com.rsicarelli.kmptargets.hierarchy.computeHierarchySpec
 import com.rsicarelli.kmptargets.hierarchy.resolveHierarchyTemplateEnabled
 import com.rsicarelli.kmptargets.hierarchy.toTemplate
+import com.rsicarelli.kmptargets.host.currentHostEnabled
+import com.rsicarelli.kmptargets.host.currentHostLabel
 import com.rsicarelli.kmptargets.host.enforceHostCompatibility
+import com.rsicarelli.kmptargets.host.hostImpossibleIds
 import com.rsicarelli.kmptargets.info.KmpTargetsInfoTask
 import com.rsicarelli.kmptargets.info.OriginLabels
 import com.rsicarelli.kmptargets.model.KmpTarget
@@ -111,11 +114,32 @@ public class KmpTargetsPlugin : Plugin<Project> {
             task.projectPath.set(projectPath)
             task.presetNames.set(presetNames)
             task.leafIds.set(KmpTarget.all.map { it.id }.sorted())
+            task.deprecatedIds.set(KmpTarget.deprecated.map { it.id }.sorted())
             task.selectionIds.set(target.provider { ids(ext.resolvedSelection()) })
             task.supportedIds.set(target.provider { ids(ext.resolvedSupported()) })
             task.supportsDeclared.set(target.provider { ext.supportsProperty.isPresent })
             task.registeredIds.set(
                 target.provider { ids(ext.resolvedSelection() intersect ext.resolvedSupported()) }
+            )
+            // Host annotations (#44): same decision source as the host advisory, but guarded by a
+            // runtime KGP check INSIDE the provider — one wiring path that degrades to empty
+            // without KGP, and `HostManager` (touched only in host/HostCompatibility.kt bodies)
+            // never classloads on that branch. `hasPlugin` is read at provider realization
+            // (task-graph calc, post-body), so KGP applied after this plugin still counts.
+            task.hostImpossibleIds.set(
+                target.provider {
+                    if (!target.pluginManager.hasPlugin(KGP_ID)) emptyList()
+                    else
+                        hostImpossibleIds(
+                            ext.resolvedSelection() intersect ext.resolvedSupported(),
+                            currentHostEnabled(),
+                        )
+                }
+            )
+            task.hostLabel.set(
+                target.provider {
+                    if (!target.pluginManager.hasPlugin(KGP_ID)) "" else currentHostLabel()
+                }
             )
             // The config-layer origin is fixed at apply time, but the fallback labels must read
             // `defaultSelection` lazily — the body may override it after apply.

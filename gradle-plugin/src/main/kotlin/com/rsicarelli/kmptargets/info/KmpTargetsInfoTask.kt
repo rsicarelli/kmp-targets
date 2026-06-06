@@ -47,6 +47,19 @@ public abstract class KmpTargetsInfoTask : DefaultTask() {
     /** Sorted canonical leaf ids the parser accepts. */
     @get:Internal public abstract val leafIds: ListProperty<String>
 
+    /**
+     * Sorted ids of registered leaves the current host cannot compile, annotated per leaf in the
+     * registered section. Empty when everything compiles here — or when KGP is absent, in which
+     * case there is no host data to report and the annotation simply vanishes.
+     */
+    @get:Internal public abstract val hostImpossibleIds: ListProperty<String>
+
+    /** The current host's display name (e.g. `MACOS_ARM64`); empty when KGP is absent. */
+    @get:Internal public abstract val hostLabel: Property<String>
+
+    /** Sorted ids of leaves Kotlin marks deprecated, annotated in the vocabulary listing. */
+    @get:Internal public abstract val deprecatedIds: ListProperty<String>
+
     @TaskAction
     public fun report() {
         println(
@@ -59,6 +72,9 @@ public abstract class KmpTargetsInfoTask : DefaultTask() {
                 originLabel = originLabel.get(),
                 presetNames = presetNames.get(),
                 leafIds = leafIds.get(),
+                hostImpossibleIds = hostImpossibleIds.get(),
+                hostLabel = hostLabel.get(),
+                deprecatedIds = deprecatedIds.get(),
             )
         )
     }

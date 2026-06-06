@@ -92,12 +92,49 @@ class KmpTargetsInfoFormatTest {
         assertTrue(format() == format())
     }
 
+    @Test
+    fun `given registered leaves the host cannot compile when formatted then each is marked with the host name`() {
+        val output =
+            format(
+                registeredIds = listOf("iosArm64", "jvm", "linuxX64"),
+                hostImpossibleIds = listOf("iosArm64"),
+                hostLabel = "LINUX_X64",
+            )
+        assertContains(output, "iosArm64 (not compilable on this host: LINUX_X64)")
+        assertFalse("jvm (not compilable" in output, output)
+        assertFalse("linuxX64 (not compilable" in output, output)
+    }
+
+    @Test
+    fun `given all registered leaves compilable when formatted then no host annotation appears`() {
+        val output =
+            format(
+                registeredIds = listOf("iosArm64", "jvm"),
+                hostImpossibleIds = emptyList(),
+                hostLabel = "MACOS_ARM64",
+            )
+        assertFalse("not compilable" in output, output)
+    }
+
+    @Test
+    fun `given the vocabulary when formatted then exactly the deprecated leaves carry the marker`() {
+        val output = format(deprecatedIds = listOf("macosX64", "tvosX64", "watchosX64"))
+        assertContains(output, "macosX64 (deprecated)")
+        assertContains(output, "tvosX64 (deprecated)")
+        assertContains(output, "watchosX64 (deprecated)")
+        // iosX64 is tier-3 but NOT deprecated — it must stay unmarked.
+        assertFalse("iosX64 (deprecated)" in output, output)
+    }
+
     private fun format(
         selectionIds: List<String> = listOf("jvm"),
         supportedIds: List<String> = listOf("jvm"),
         supportsDeclared: Boolean = true,
         registeredIds: List<String> = listOf("jvm"),
         originLabel: String = "built-in default (all)",
+        hostImpossibleIds: List<String> = emptyList(),
+        hostLabel: String = "",
+        deprecatedIds: List<String> = emptyList(),
     ): String =
         formatKmpTargetsInfo(
             projectPath = ":shared-core",
@@ -108,5 +145,8 @@ class KmpTargetsInfoFormatTest {
             originLabel = originLabel,
             presetNames = presetNames,
             leafIds = KmpTarget.all.map { it.id }.sorted(),
+            hostImpossibleIds = hostImpossibleIds,
+            hostLabel = hostLabel,
+            deprecatedIds = deprecatedIds,
         )
 }

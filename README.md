@@ -201,7 +201,7 @@ Registered (selection ∩ supported)
 
 Vocabulary
   presets:  all, native, appleMobile, appleDesktop, appleWatch, appleTv, apple, linux, mingw, windows, androidNative, web, jvmFamily, mobile
-  leaves:   androidNativeArm32, ..., watchosX64 (25)
+  leaves:   androidNativeArm32, ..., macosX64 (deprecated), ..., watchosX64 (deprecated) (25)
 ```
 
 The `source` line names the winning layer of the [precedence chain](#selecting-targets) — e.g.
@@ -214,6 +214,12 @@ The report is read-only (it never registers targets), explicit about every empty
 that never declared `supports { … }`, a selection narrowed to nothing, or a genuinely disjoint
 `selection ∩ supported` each get their own explanation — and configuration-cache compatible: the
 second run is a cache hit.
+
+Two per-leaf annotations surface what the lists alone can't say: registered leaves the **current
+host cannot compile** are marked `iosArm64 (not compilable on this host: LINUX_X64)` (same decision
+source as the [host compatibility](#host-compatibility) advisory), and vocabulary leaves Kotlin
+[marks deprecated](https://kotlinlang.org/docs/native-target-support.html) carry `(deprecated)` —
+so the copy-paste surface itself tells you what to avoid adopting.
 
 ### Supported targets
 
