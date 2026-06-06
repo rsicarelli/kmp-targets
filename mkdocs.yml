@@ -1,0 +1,103 @@
+# kmp-targets Documentation Site
+# To serve locally: task docs:serve
+# Deployed by .github/workflows/deploy-docs.yml (mike, versioned on gh-pages)
+
+site_name: kmp-targets
+repo_name: kmp-targets
+repo_url: https://github.com/rsicarelli/kmp-targets
+site_url: https://rsicarelli.github.io/kmp-targets/
+site_description: "Dynamically select which Kotlin Multiplatform targets to build via the kmptargets.targets Gradle property"
+site_author: Rodrigo Sicarelli
+remote_branch: gh-pages
+
+copyright: 'Copyright &copy; 2026 Rodrigo Sicarelli'
+
+theme:
+  name: 'material'
+  palette:
+    - media: '(prefers-color-scheme: light)'
+      scheme: default
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - media: '(prefers-color-scheme: dark)'
+      scheme: slate
+      primary: custom
+      accent: custom
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  font:
+    text: 'Inter'
+    code: 'Fira Code'
+  features:
+    - content.code.copy
+    - content.code.select
+    - search.suggest
+    - search.highlight
+    - content.tabs.link
+
+plugins:
+  - search
+  - mike
+  - callouts
+
+markdown_extensions:
+  - smarty
+  - codehilite:
+      guess_lang: false
+  - footnotes
+  - meta
+  - toc:
+      permalink: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.inlinehilite
+  - pymdownx.magiclink
+  - pymdownx.smartsymbols
+  - pymdownx.superfences
+  - pymdownx.emoji
+  - pymdownx.details
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - tables
+  - admonition
+  - attr_list
+  - md_in_html
+  - nl2br
+
+extra_css:
+  - stylesheets/kmp-targets-brand.css
+
+extra:
+  version:
+    provider: mike
+
+nav:
+  - 'Home': index.md
+  - 'Why kmp-targets?': why-kmp-targets.md
+  - 'Get Started':
+      - 'Installation': get-started/index.md
+      - 'Quick Start': get-started/quick-start.md
+  - 'User Guide':
+      - 'Selection DSL': user-guide/selection-dsl.md
+      - 'Selection Layers': user-guide/selection-layers.md
+      - 'Targets Reference': user-guide/targets-reference.md
+      - 'Hierarchy Template': user-guide/hierarchy-template.md
+      - 'No-Collapse Mode': user-guide/no-collapse-mode.md
+      - 'Build-Logic Conventions': user-guide/build-logic.md
+      - 'Recipes': user-guide/recipes.md
+      - 'Advisories & Strict Mode': user-guide/advisories.md
+      - 'Inspecting with kmpTargetsInfo': user-guide/kmp-targets-info.md
+      - 'CI Matrix': user-guide/ci-matrix.md
+      - 'Renaming the JVM Target': user-guide/jvm-rename.md
+  - 'Samples': samples/index.md
+  - 'Compatibility': compatibility.md
+  - 'Help':
+      - 'FAQ': help/faq.md
+      - 'Troubleshooting': help/troubleshooting.md

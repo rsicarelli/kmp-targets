@@ -74,6 +74,11 @@ tasks:
       - git config --unset core.hooksPath
       - echo "✓ git hooks disabled (back to .git/hooks/)."
 
+  docs:serve:
+    desc: Serve the docs site locally (needs `pip install -r .github/workflows/mkdocs-requirements.txt`)
+    cmds:
+      - mkdocs serve
+
   clean:
     desc: Clean root build + sample build artifacts
     cmds:
