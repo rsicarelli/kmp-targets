@@ -55,7 +55,7 @@ class AndroidAgpAdvisoryTest {
     }
 
     @Test
-    fun `given a module path when the warning is built then it names the leaf the skip and the fix`() {
+    fun `given a module path when the warning is built then it names the leaf the skip the fix and the recipe`() {
         val message = androidWithoutAgpWarning(":feature")
         assertContains(message, ":feature")
         assertContains(message, "[androidTarget]")
@@ -63,6 +63,13 @@ class AndroidAgpAdvisoryTest {
         assertContains(message, "com.android.library")
         assertContains(message, "com.android.application")
         assertContains(message, "before supports { }")
+        // #76: the message doubles as the discovery vehicle for the selection-gated idiom — it
+        // names the gate and links the recipe that covers the exemption and downstream-read traps.
+        assertContains(message, "gate it on the selection")
+        assertContains(
+            message,
+            "https://rsicarelli.github.io/kmp-targets/user-guide/recipes/#selection-gated-eager-agp-application",
+        )
     }
 
     @Test

@@ -44,16 +44,45 @@ kmpTargets.onRegistered { add("ksp${it.gradleNameCapitalized}", processorDep) }
 
 ## Selection-gated eager AGP application
 
-`androidTarget` needs AGP applied **before** `supports { }` ([the ordering rule](advisories.md#android-target-without-agp)). A convention can apply AGP only when Android is actually selected, avoiding AGP's configuration cost in non-Android lanes:
+`androidTarget` needs an Android Gradle plugin applied **before** `supports { }` ([the ordering rule](advisories.md#android-target-without-agp)) — `kotlin.androidTarget()` is a hard KGP FATAL without one. Applying AGP to *every* module is expensive (config-time cost plus a swarm of Android tasks/configurations that are meaningless under android-less lanes), so a **library** convention applies it only when Android is actually selected, read straight off [`resolvedSelection()`](build-logic.md):
 
 ```kotlin
-// in the convention plugin, before configuring kmpTargets
-val selectsAndroid = /* read kmptargets.targets via providers and check for android/jvmFamily/mobile */
-if (selectsAndroid) {
+// in the LIBRARY convention plugin, BEFORE the supports { } block
+val androidSelected = KmpTarget.Jvm.Android in kmpTargets.resolvedSelection()
+if (androidSelected) {
     pluginManager.apply("com.android.library")
+    // configure AGP here, between apply and supports { } — also gated (see below)
+    extensions.configure<com.android.build.api.dsl.LibraryExtension> {
+        namespace = "com.example.${project.name}"
+    }
 }
-// note: com.android.application modules apply AGP unconditionally — the app module IS Android
+
+kmpTargets.supports {
+    androidTarget + jvm    // androidTarget registers iff AGP was applied above
+}
 ```
+
+The gate is `KmpTarget.Jvm.Android in resolvedSelection()`, not a preset membership test: `resolvedSelection()` is the same value registration intersects against, so the gate and the eventual registration never disagree.
+
+!!! warning "Apply AGP before `supports { }`, never after"
+    Registration is eager: `supports { }` checks for AGP *at that instant* and [skips `androidTarget`](advisories.md#android-target-without-agp) if it is absent. AGP applied **after** `supports { }` — or in a separate `afterEvaluate` — silently misses registration, and android never appears with no error outside [strict mode](advisories.md#strict-mode). Keep the `apply` above the block. (A later `supports { }` union re-checks, so AGP applied *between* two calls lets the later pass register the leaf — but the one-block form above is the rule.)
+
+!!! warning "Gate downstream AGP reads with the SAME predicate"
+    Any code that reads AGP-owned configuration — `android { namespace = … }`, `compileSdk`/manifest wiring, a `LibraryExtension` lookup — **crashes under a non-Android selection** if it runs unconditionally, because AGP was never applied in that lane. It must sit inside the same `if (androidSelected)` (as above) or be keyed off the same `resolvedSelection()` check. The half-gated state — AGP application gated, but a downstream `android { }` read left ungated — is where real-world partial-selection crashes come from. The gate is not just for the `apply` call; it is for everything that assumes AGP is present.
+
+!!! note "`com.android.application` modules are exempt — do not gate them"
+    An app module **is** Android by definition: AGP arrives from the app's own plugin block (or a `*.application` convention), not from this library gate. Do not apply `com.android.library` to it (double-applying AGP / half-configuring an app module breaks it), and do not put its AGP application behind the selection gate — the app always wants Android. This recipe is for **library** modules whose Android-ness is conditional on the lane.
+
+!!! note "Companion plugins react via `pluginManager.withPlugin`"
+    A plugin that must run only when AGP is present (the Gradle cache-fix plugin is the canonical case) should **react** to AGP rather than re-test the selection — it then stays correct whether AGP came from this gate or from an app's own block:
+
+    ```kotlin
+    pluginManager.withPlugin("com.android.library") {
+        pluginManager.apply("org.gradle.android.cache-fix")
+    }
+    ```
+
+Confirm per lane with [`kmpTargetsInfo`](kmp-targets-info.md): under a non-Android selection it shows no `androidTarget` and AGP is never applied; under an Android lane it shows `androidTarget` registered. There is deliberately **no plugin hook** for this — eager-gating AGP is a one-line `if` over `resolvedSelection()` (the primitive already exists), and the application-vs-library exemption is a build-logic decision the plugin cannot make for you ([#76](https://github.com/rsicarelli/kmp-targets/issues/76)).
 
 ## Lane-agnostic CI invocations
 

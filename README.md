@@ -496,7 +496,8 @@ plugin **skips registering that leaf** and logs a one-line advisory naming the m
 ```
 kmp-targets: ':feature' selects and supports [androidTarget] but no Android Gradle plugin is
 applied — the target was not registered. Apply com.android.library or com.android.application
-before supports { }.
+before supports { } — gate it on the selection (see
+https://rsicarelli.github.io/kmp-targets/user-guide/recipes/#selection-gated-eager-agp-application).
 ```
 
 This is the one advisory that **does filter**: unlike its siblings, the flagged leaf genuinely does
@@ -511,6 +512,12 @@ plugin that applies AGP after `supports { }` has already missed registration —
 leaf normally. [`kmpTargetsInfo`](#debugging-the-selection) marks the leaf
 `androidTarget (skipped: no Android plugin applied)` in its registered section while the condition
 holds.
+
+To apply AGP only when Android is selected — without paying its configuration cost in every lane —
+gate it on `KmpTarget.Jvm.Android in kmpTargets.resolvedSelection()`, apply **before** `supports { }`,
+exempt `com.android.application` modules (an app is always Android), and guard any downstream
+`android { namespace = … }` read with the same predicate. Full pattern:
+[Selection-gated eager AGP application](https://rsicarelli.github.io/kmp-targets/user-guide/recipes/#selection-gated-eager-agp-application).
 
 ### Inert modules
 

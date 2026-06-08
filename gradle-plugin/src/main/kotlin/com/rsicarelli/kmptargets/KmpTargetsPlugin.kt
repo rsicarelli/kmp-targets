@@ -761,12 +761,15 @@ internal fun shouldWarnAndroidWithoutAgp(
  * The android-without-AGP advisory (#51). Mirrors its siblings in shape; serves as both the warning
  * and the strict-mode failure text through [warnOrFail]. Unlike them it reports a leaf that was
  * genuinely NOT registered, and names the fix — the ordering rule that the Android plugin must be
- * applied before `supports { }` runs.
+ * applied before `supports { }` runs. The closing clause (#76) makes it the discovery vehicle for
+ * the selection-gated idiom: apply AGP only when android is selected, and link the recipe that
+ * covers the `com.android.application` exemption and the downstream-read traps the gate must guard.
  */
 internal fun androidWithoutAgpWarning(path: String): String =
     "kmp-targets: '$path' selects and supports [androidTarget] but no Android Gradle plugin is " +
         "applied — the target was not registered. Apply com.android.library or " +
-        "com.android.application before supports { }."
+        "com.android.application before supports { } — gate it on the selection " +
+        "(see https://rsicarelli.github.io/kmp-targets/user-guide/recipes/#selection-gated-eager-agp-application)."
 
 /**
  * The deprecated leaves of [active] not yet flagged for this module — the dedup math of the
