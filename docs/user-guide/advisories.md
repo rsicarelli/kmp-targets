@@ -2,6 +2,9 @@
 
 The plugin emits six configuration-time advisories. Five are **signal only — never filtering**; one (android-without-AGP) genuinely skips a leaf because the alternative is a raw KGP crash. [Strict mode](#strict-mode) promotes all six to build failures with identical message text.
 
+!!! tip "See the same findings explained, with fixes"
+    [`kmpTargetsDoctor`](doctor-mode.md) renders each advisory below as a `[!]` finding (cause → effect → fix) plus a project-edge closure check — the triage surface for when a build broke and you want *why*.
+
 ## Host compatibility
 
 The registered set is **host-blind by design**: selecting `iosArm64` registers it on macOS, Linux, and Windows alike, so configuration-cache keys, task graphs, and published metadata stay identical across CI agents. But not every host can *compile* every native target. When the selection includes a native target the current host can't compile, the plugin warns — and **still registers it**:

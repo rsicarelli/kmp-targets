@@ -26,6 +26,20 @@ changes may land in any release.
 
 ### Added
 
+- **Doctor mode — `kmpTargetsDoctor`** ([#82], closes [#80]): a per-module *triage* report (group
+  `help`) that complements the neutral `kmpTargetsInfo` state dump. It renders one `[!]` block per
+  active advisory — cause → effect → fix — for inert ([#71]), JVM-less metadata ([#72]),
+  android-without-AGP ([#51]), host-impossible ([#32]), deprecated ([#43]) and empty-overlap
+  ([#10]); a clean bill when healthy; and an intentional-silence note for a module that never called
+  `supports { }`. **Doctor renders, it does not own predicates**: every finding is wired from the
+  same decision function the advisory uses, so it can never re-detect or drift. It also flags
+  **project-edge closure gaps** ([#80]) — a `project(...)` dependency that registers none of the
+  leaves this module needs — via a companion `kmpTargetsDoctorData` emitter whose file dependents
+  consume through a lenient artifact view (file-only, never a peer `Project` read, so it is
+  configuration-cache- and **Isolated Projects**-safe). Two honest, permanent limits, printed
+  inline: no external-dependency coverage, and an approximate android→jvm fallback — best-effort
+  project-edge diagnostics, not a correctness guarantee. See
+  [Doctor mode](https://rsicarelli.github.io/kmp-targets/user-guide/doctor-mode/).
 - **Umbrella lifecycle tasks `kmpCompileAll` / `kmpTestAll`** ([#77]): one stable task name per
   module that depends on the compile (resp. test) tasks of **exactly the registered intersection** —
   selection-agnostic and rename-proof, the cure for hardcoded CI task lists that 404 under a narrowed
@@ -180,8 +194,11 @@ changes may land in any release.
   the POM stops declaring a toolchain-version stdlib. A new `verifyCompatFloors` task guards the
   floors on every `check`.
 
+[#10]: https://github.com/rsicarelli/kmp-targets/issues/10
 [#30]: https://github.com/rsicarelli/kmp-targets/issues/30
 [#31]: https://github.com/rsicarelli/kmp-targets/issues/31
+[#32]: https://github.com/rsicarelli/kmp-targets/issues/32
+[#43]: https://github.com/rsicarelli/kmp-targets/issues/43
 [#48]: https://github.com/rsicarelli/kmp-targets/issues/48
 [#49]: https://github.com/rsicarelli/kmp-targets/issues/49
 [#50]: https://github.com/rsicarelli/kmp-targets/issues/50

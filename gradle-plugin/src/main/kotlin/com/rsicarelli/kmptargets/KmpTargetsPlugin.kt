@@ -1,5 +1,7 @@
 package com.rsicarelli.kmptargets
 
+import com.rsicarelli.kmptargets.doctor.KmpTargetsDoctorDataTask
+import com.rsicarelli.kmptargets.doctor.KmpTargetsDoctorTask
 import com.rsicarelli.kmptargets.hierarchy.computeHierarchySpec
 import com.rsicarelli.kmptargets.hierarchy.resolveHierarchyCollapseEnabled
 import com.rsicarelli.kmptargets.hierarchy.resolveHierarchyTemplateEnabled
@@ -27,6 +29,9 @@ import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.attributes.Attribute
 import org.gradle.api.tasks.TaskProvider
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
@@ -94,6 +99,7 @@ public class KmpTargetsPlugin : Plugin<Project> {
         }
 
         registerInfoTask(target, ext, configOrigin)
+        registerDoctorTask(target, ext)
 
         // Umbrella lifecycle tasks (#77): OPT-IN via `kmptargets.umbrellaTasks` (default off), read
         // once at apply time as a primitive. Off by default because the umbrellas add dependency
@@ -207,69 +213,22 @@ public class KmpTargetsPlugin : Plugin<Project> {
             task.presetNames.set(presetNames)
             task.leafIds.set(KmpTarget.all.map { it.id }.sorted())
             task.deprecatedIds.set(KmpTarget.deprecated.map { it.id }.sorted())
-            task.selectionIds.set(target.provider { ids(ext.resolvedSelection()) })
-            task.supportedIds.set(target.provider { ids(ext.resolvedSupported()) })
-            task.supportsDeclared.set(target.provider { ext.supportsProperty.isPresent })
-            task.registeredIds.set(
-                target.provider { ids(ext.resolvedSelection() intersect ext.resolvedSupported()) }
-            )
-            // Host annotations (#44): same decision source as the host advisory, but guarded by a
-            // runtime KGP check INSIDE the provider — one wiring path that degrades to empty
-            // without KGP, and `HostManager` (touched only in host/HostCompatibility.kt bodies)
-            // never classloads on that branch. `hasPlugin` is read at provider realization
-            // (task-graph calc, post-body), so KGP applied after this plugin still counts.
-            task.hostImpossibleIds.set(
-                target.provider {
-                    if (!target.pluginManager.hasPlugin(KGP_ID)) emptyList()
-                    else
-                        hostImpossibleIds(
-                            ext.resolvedSelection() intersect ext.resolvedSupported(),
-                            currentHostEnabled(),
-                        )
-                }
-            )
-            task.hostLabel.set(
-                target.provider {
-                    if (!target.pluginManager.hasPlugin(KGP_ID)) "" else currentHostLabel()
-                }
-            )
-            // The rename annotation (issue #49) reads lazily for the same post-body reason as the
-            // selection providers: the body sets `targetName(...)` before `supports { }`.
-            task.jvmRegisteredAs.set(target.provider { ext.jvmTargetName.orNull })
-            // Android-skip annotation (#51): same decision source as the advisory
-            // (`shouldWarnAndroidWithoutAgp`), realized lazily post-body and guarded by the same
-            // runtime KGP check as the host data — without KGP nothing registers, so there is no
-            // skip to report. AGP presence is read at provider realization, so AGP applied
-            // anywhere in the body still counts.
-            task.androidWithoutAgp.set(
-                target.provider {
-                    target.pluginManager.hasPlugin(KGP_ID) &&
-                        shouldWarnAndroidWithoutAgp(
-                            ext.resolvedSelection() intersect ext.resolvedSupported(),
-                            isAndroidPluginApplied(target),
-                        )
-                }
-            )
-            // Inert annotation (#71): same decision source as the advisory
-            // (`shouldWarnInertModule` over `registered()`), realized lazily post-body and guarded
-            // by the same runtime KGP check as the host data — without KGP no metadata compilation
-            // exists, so there is no trap to report.
-            task.inertModule.set(
-                target.provider {
-                    target.pluginManager.hasPlugin(KGP_ID) &&
-                        shouldWarnInertModule(ext.supportsProperty.isPresent, ext.registered())
-                }
-            )
-            // Native-only-metadata annotation (#72): same decision source as the advisory
-            // (`shouldWarnNativeOnlyMetadata` over `resolvedSupported()`/`registered()`), realized
-            // lazily post-body and guarded by the same runtime KGP check — without KGP nothing
-            // registers, so no JVM-less fragment exists and there is no trap to report.
-            task.nativeOnlyMetadata.set(
-                target.provider {
-                    target.pluginManager.hasPlugin(KGP_ID) &&
-                        shouldWarnNativeOnlyMetadata(ext.resolvedSupported(), ext.registered())
-                }
-            )
+            // Every diagnostic primitive comes from the shared builders below `registerDoctorTask`,
+            // wired IDENTICALLY into this neutral state dump and the doctor triage report — same
+            // decision functions (`shouldWarnInertModule` etc.), same KGP guards realized at
+            // provider time (post-body). One source means the two surfaces can never drift, and
+            // neither re-detects. The registered line here is the abstract `selection ∩ supported`;
+            // doctor renders the concrete `registered()`.
+            task.selectionIds.set(selectionIdsProvider(target, ext))
+            task.supportedIds.set(supportedIdsProvider(target, ext))
+            task.supportsDeclared.set(supportsDeclaredProvider(target, ext))
+            task.registeredIds.set(intersectionIdsProvider(target, ext))
+            task.hostImpossibleIds.set(hostImpossibleIdsProvider(target, ext))
+            task.hostLabel.set(hostLabelProvider(target))
+            task.jvmRegisteredAs.set(jvmRegisteredAsProvider(target, ext))
+            task.androidWithoutAgp.set(androidWithoutAgpProvider(target, ext))
+            task.inertModule.set(inertModuleProvider(target, ext))
+            task.nativeOnlyMetadata.set(nativeOnlyMetadataProvider(target, ext))
             // The config-layer origin is fixed at apply time, but the fallback labels must read
             // `defaultSelection` lazily — the body may override it after apply.
             task.originLabel.set(
@@ -285,8 +244,199 @@ public class KmpTargetsPlugin : Plugin<Project> {
         }
     }
 
+    /**
+     * Registers the doctor surfaces (#82): `kmpTargetsDoctor` — the per-project triage report that
+     * *explains* why a module is inert or had targets disabled and flags project-edge closure gaps
+     * — plus `kmpTargetsDoctorData`, the per-project emitter whose file dependent modules consume
+     * for that closure check.
+     *
+     * Doctor renders, it does not own predicates: every single-module property is wired from the
+     * same shared `…Provider` builders `kmpTargetsInfo` uses, so it can never re-detect or drift.
+     *
+     * The closure half (#80) is the only cross-module piece, and it crosses the boundary by FILE,
+     * never by peer `Project` model — the IP-legal construction #80 specified. The producer emits
+     * its own primitives and exposes them as an outgoing artifact on a dedicated consumable
+     * configuration (a unique custom attribute keeps it clear of KGP's variants); the consumer
+     * resolves the doctor-data of its own declared `project(...)` dependencies through a lenient
+     * ArtifactView. Both permanent limits are honest and documented: external (non-`project(...)`)
+     * dependencies are invisible, and the android→jvm fallback only approximates Gradle's attribute
+     * matching.
+     */
+    private fun registerDoctorTask(target: Project, ext: KmpTargetsExtension) {
+        val projectPath = target.path
+        val dataFile = target.layout.buildDirectory.file("kmp-targets/doctor-data.properties")
+
+        // Producer: emit this project's own (path, registered) primitives to a file and expose it
+        // as
+        // an outgoing artifact. The artifact's builtBy gives a dependent's doctor automatic
+        // ordering
+        // on this emit task — no cross-project task wiring at configuration time.
+        val dataTask =
+            target.tasks.register(DOCTOR_DATA_TASK, KmpTargetsDoctorDataTask::class.java) { task ->
+                task.group = "help"
+                task.description =
+                    "Emits this project's kmp-targets doctor-data (path + registered leaves), " +
+                        "consumed by dependent modules' kmpTargetsDoctor closure check."
+                task.projectPath.set(projectPath)
+                task.registeredIds.set(registeredIdsProvider(target, ext))
+                task.outputFile.set(dataFile)
+            }
+        val elements =
+            target.configurations.consumable(DOCTOR_DATA_ELEMENTS) {
+                it.attributes.attribute(DOCTOR_DATA_ATTRIBUTE, DOCTOR_DATA_ATTRIBUTE_VALUE)
+            }
+        target.artifacts.add(elements.name, dataFile) { it.builtBy(dataTask) }
+
+        // Consumer: a resolvable configuration extending a bucket we live-mirror this project's own
+        // declared project(...) dependencies into (config-time, own-project coordinates only — no
+        // afterEvaluate, no peer Project read). The lenient ArtifactView then resolves only the
+        // deps
+        // that expose the doctor-data variant; external and plugin-less deps vanish (limit #1).
+        val closureDeps = target.configurations.dependencyScope(DOCTOR_CLOSURE_DEPS).get()
+        val closure =
+            target.configurations
+                .resolvable(DOCTOR_CLOSURE) {
+                    it.extendsFrom(closureDeps)
+                    it.attributes.attribute(DOCTOR_DATA_ATTRIBUTE, DOCTOR_DATA_ATTRIBUTE_VALUE)
+                }
+                .get()
+        mirrorProjectDependencies(target, closureDeps)
+        val dependencyDataFiles = closure.incoming.artifactView { it.lenient(true) }.files
+
+        target.tasks.register(DOCTOR_TASK, KmpTargetsDoctorTask::class.java) { task ->
+            task.group = "help"
+            task.description =
+                "Explains why this module is inert or had targets disabled, and flags project-edge " +
+                    "closure gaps — the kmp-targets diagnostic report."
+            task.projectPath.set(projectPath)
+            task.supportsDeclared.set(supportsDeclaredProvider(target, ext))
+            task.selectionIds.set(selectionIdsProvider(target, ext))
+            task.supportedIds.set(supportedIdsProvider(target, ext))
+            task.registeredIds.set(registeredIdsProvider(target, ext))
+            task.emptyOverlap.set(emptyOverlapProvider(target, ext))
+            task.inertModule.set(inertModuleProvider(target, ext))
+            task.nativeOnlyMetadata.set(nativeOnlyMetadataProvider(target, ext))
+            task.androidWithoutAgp.set(androidWithoutAgpProvider(target, ext))
+            task.hostImpossibleIds.set(hostImpossibleIdsProvider(target, ext))
+            task.hostLabel.set(hostLabelProvider(target))
+            task.registeredDeprecatedIds.set(registeredDeprecatedIdsProvider(target, ext))
+            task.jvmRegisteredAs.set(jvmRegisteredAsProvider(target, ext))
+            task.dependencyData.from(dependencyDataFiles)
+        }
+    }
+
+    /**
+     * Live-mirrors every `project(...)` dependency this project declares (now or later in the body)
+     * into [closureDeps] as a plain coordinate, so the closure configuration resolves those
+     * dependencies' doctor-data without an `afterEvaluate` and without reading any peer `Project`
+     * model. Deduped by path; our own configurations are skipped so the mirror never feeds itself.
+     */
+    private fun mirrorProjectDependencies(target: Project, closureDeps: Configuration) {
+        val seen = mutableSetOf<String>()
+        target.configurations.all { configuration ->
+            if (configuration.name.startsWith("kmpTargetsDoctor")) return@all
+            configuration.dependencies.all { dependency ->
+                if (dependency is ProjectDependency && seen.add(dependency.path)) {
+                    closureDeps.dependencies.add(
+                        target.dependencies.project(mapOf("path" to dependency.path))
+                    )
+                }
+            }
+        }
+    }
+
+    // ---- Shared diagnostic provider builders (renders, not owns) --------------------------------
+    // One source for each diagnostic primitive, wired identically into kmpTargetsInfo and
+    // kmpTargetsDoctor. Each KGP-guarded provider calls the SAME decision function as its advisory,
+    // realized at provider time (task-graph calc, post-body) so it observes the final state.
+
+    private fun hasKgp(target: Project): Boolean = target.pluginManager.hasPlugin(KGP_ID)
+
+    private fun selectionIdsProvider(target: Project, ext: KmpTargetsExtension) = target.provider {
+        ids(ext.resolvedSelection())
+    }
+
+    private fun supportedIdsProvider(target: Project, ext: KmpTargetsExtension) = target.provider {
+        ids(ext.resolvedSupported())
+    }
+
+    private fun supportsDeclaredProvider(target: Project, ext: KmpTargetsExtension) =
+        target.provider {
+            ext.supportsProperty.isPresent
+        }
+
+    /** The abstract `selection ∩ supported` (what `kmpTargetsInfo` reports). */
+    private fun intersectionIdsProvider(target: Project, ext: KmpTargetsExtension) =
+        target.provider {
+            ids(ext.resolvedSelection() intersect ext.resolvedSupported())
+        }
+
+    /** The concrete `registered()` (what doctor reports and the closure check needs). */
+    private fun registeredIdsProvider(target: Project, ext: KmpTargetsExtension) = target.provider {
+        ids(ext.registered())
+    }
+
+    private fun hostImpossibleIdsProvider(target: Project, ext: KmpTargetsExtension) =
+        target.provider {
+            if (!hasKgp(target)) emptyList()
+            else
+                hostImpossibleIds(
+                    ext.resolvedSelection() intersect ext.resolvedSupported(),
+                    currentHostEnabled(),
+                )
+        }
+
+    private fun hostLabelProvider(target: Project) = target.provider {
+        if (!hasKgp(target)) "" else currentHostLabel()
+    }
+
+    private fun jvmRegisteredAsProvider(target: Project, ext: KmpTargetsExtension) =
+        target.provider {
+            ext.jvmTargetName.orNull
+        }
+
+    private fun androidWithoutAgpProvider(target: Project, ext: KmpTargetsExtension) =
+        target.provider {
+            hasKgp(target) &&
+                shouldWarnAndroidWithoutAgp(
+                    ext.resolvedSelection() intersect ext.resolvedSupported(),
+                    isAndroidPluginApplied(target),
+                )
+        }
+
+    private fun inertModuleProvider(target: Project, ext: KmpTargetsExtension) = target.provider {
+        hasKgp(target) && shouldWarnInertModule(ext.supportsProperty.isPresent, ext.registered())
+    }
+
+    private fun nativeOnlyMetadataProvider(target: Project, ext: KmpTargetsExtension) =
+        target.provider {
+            hasKgp(target) &&
+                shouldWarnNativeOnlyMetadata(ext.resolvedSupported(), ext.registered())
+        }
+
+    private fun emptyOverlapProvider(target: Project, ext: KmpTargetsExtension) = target.provider {
+        hasKgp(target) && shouldWarnEmptyOverlap(ext.resolvedSelection(), ext.resolvedSupported())
+    }
+
+    private fun registeredDeprecatedIdsProvider(target: Project, ext: KmpTargetsExtension) =
+        target.provider {
+            ids(ext.registered() intersect deprecatedSet)
+        }
+
     internal companion object {
         const val KGP_ID: String = "org.jetbrains.kotlin.multiplatform"
+
+        const val DOCTOR_TASK: String = "kmpTargetsDoctor"
+        const val DOCTOR_DATA_TASK: String = "kmpTargetsDoctorData"
+        const val DOCTOR_DATA_ELEMENTS: String = "kmpTargetsDoctorDataElements"
+        const val DOCTOR_CLOSURE_DEPS: String = "kmpTargetsDoctorClosureDeps"
+        const val DOCTOR_CLOSURE: String = "kmpTargetsDoctorClosure"
+
+        /** Unique attribute the doctor-data variant carries, so it never collides with KGP's. */
+        val DOCTOR_DATA_ATTRIBUTE: Attribute<String> =
+            Attribute.of("com.rsicarelli.kmptargets.doctordata", String::class.java)
+
+        const val DOCTOR_DATA_ATTRIBUTE_VALUE: String = "doctor-data"
 
         const val COMPILE_ALL_TASK: String = "kmpCompileAll"
         const val TEST_ALL_TASK: String = "kmpTestAll"
@@ -861,3 +1011,6 @@ internal fun nativeOnlyMetadataWarning(path: String): String =
         "compilations."
 
 private fun ids(set: KmpTargetSet): List<String> = set.members.map { it.id }.sorted()
+
+/** The deprecated leaves as a set, for doctor's `registered() ∩ deprecated` finding (#43). */
+private val deprecatedSet: KmpTargetSet = KmpTargetSet.of(*KmpTarget.deprecated.toTypedArray())

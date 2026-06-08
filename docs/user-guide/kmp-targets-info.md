@@ -55,3 +55,7 @@ The lists carry markers the plain names can't:
 
 !!! tip
     `kmpTargetsInfo` is the first move whenever a selection surprises you — it answers both "what won?" and "why is this module empty?" in one cached run.
+
+## See also: doctor mode
+
+`kmpTargetsInfo` is the neutral state dump. When a build actually *broke* and you want the cause, consequence, and fix in one place — plus a project-edge closure check across `project(...)` dependencies — reach for [`kmpTargetsDoctor`](doctor-mode.md).
