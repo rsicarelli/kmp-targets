@@ -114,8 +114,8 @@ kmptargets.targets=android,jvm
 
 (or any preset that includes both). The jvm variant the android modules fall back to then still registers on every producer, and the edges resolve again. For a large android repo this is usually what you actually want: `android,jvm`, not bare `android`.
 
-!!! note "The plugin cannot detect this for you"
-    Selection is resolved one module at a time, so this conflict is **invisible to the plugin by construction** — and it usually originates in **external published libraries** (the `jvm`-only producers), which the plugin cannot model at all. `kmpTargetsInfo` on a producer confirms it lost its `jvm` leaf under the current selection, but you reason about the closure across the graph yourself. A future [doctor mode](https://github.com/rsicarelli/kmp-targets/issues/82) may surface project-edge closure gaps; it can never see external-dependency variants, so co-selecting `jvm` remains the rule.
+!!! note "What the plugin can and cannot detect for you"
+    Selection is resolved one module at a time, and this conflict usually originates in **external published libraries** (the `jvm`-only producers), which the plugin cannot model at all. [Doctor mode](doctor-mode.md#project-edge-closure) surfaces the **`project(...)`-edge** form of this gap — a sibling module that stopped registering a leaf its dependents need — but by construction it can never see external-dependency variants, so co-selecting `jvm` remains the rule. `kmpTargetsInfo` on a producer confirms it lost its `jvm` leaf under the current selection.
 
 ## Binary-compatibility validator + selection
 

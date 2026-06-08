@@ -7,7 +7,7 @@
 [![Docs](https://img.shields.io/badge/docs-rsicarelli.github.io%2Fkmp--targets-blue)](https://rsicarelli.github.io/kmp-targets/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
-**Status:** alpha (pre-1.0). Shipped and exercised by the multi-module sample plus a real 3-OS CI matrix: the global selector with [try-import-style layering](#selecting-targets) (dedicated config files, unified `kmptargets.*` keys), the automatic [minimal hierarchy template](#minimal-hierarchy-template), the [`kmpTargetsInfo`](#debugging-the-selection) introspection task, [host-compatibility](#host-compatibility), [deprecated-target](#deprecated-targets), [android-without-AGP](#android-target-without-the-android-gradle-plugin), [inert-module](#inert-modules), and [native-only-metadata](#native-only-metadata-jvm-less-commonmain) advisories, and opt-in [strict mode](#strict-mode). Roadmap: user-defined hierarchy groups, XCFramework helpers.
+**Status:** alpha (pre-1.0). Shipped and exercised by the multi-module sample plus a real 3-OS CI matrix: the global selector with [try-import-style layering](#selecting-targets) (dedicated config files, unified `kmptargets.*` keys), the automatic [minimal hierarchy template](#minimal-hierarchy-template), the [`kmpTargetsInfo`](#debugging-the-selection) introspection task, [`kmpTargetsDoctor`](#doctor-mode) diagnostics, [host-compatibility](#host-compatibility), [deprecated-target](#deprecated-targets), [android-without-AGP](#android-target-without-the-android-gradle-plugin), [inert-module](#inert-modules), and [native-only-metadata](#native-only-metadata-jvm-less-commonmain) advisories, and opt-in [strict mode](#strict-mode). Roadmap: user-defined hierarchy groups, XCFramework helpers.
 
 `kmp-targets` is a Gradle plugin for Kotlin Multiplatform projects that lets each developer (and each CI runner) choose which KMP targets to build, via a single Gradle property:
 
@@ -325,6 +325,37 @@ host cannot compile** are marked `iosArm64 (not compilable on this host: LINUX_X
 source as the [host compatibility](#host-compatibility) advisory), and vocabulary leaves Kotlin
 [marks deprecated](https://kotlinlang.org/docs/native-target-support.html) carry `(deprecated)` —
 so the copy-paste surface itself tells you what to avoid adopting.
+
+### Doctor mode
+
+Where `kmpTargetsInfo` is the neutral state dump, `kmpTargetsDoctor` (group `help`) is the **triage**
+surface — "what's wrong, why, and how do I fix it?". It renders one `[!]` block per active advisory
+(cause → effect → fix), a clean bill when healthy, and a **project-edge closure** check across
+`project(...)` dependencies:
+
+```console
+$ ./gradlew :feature-mobile:kmpTargetsDoctor -q
+
+kmp-targets doctor — :feature-mobile
+
+[!] inert module
+    why:    declared supports { } but registered zero targets
+    effect: KGP still materializes the commonMain metadata compilation, which fails with no platform targets
+    fix:    gate on registered().isEmpty() in build-logic
+
+Project-edge closure (project dependencies only)
+[!] :feature-mobile → :core-jvm
+    missing: iosArm64 — the dependency registers none of these leaves this module needs
+    fix:     widen :core-jvm's supports { } (or the selection) to register them
+  limits: external (non-project) dependencies are invisible; the android→jvm fallback is approximate
+```
+
+Doctor **renders, it does not own predicates** — every finding is keyed off the same decision the
+advisory uses, so it can never drift. The closure check crosses the project boundary by **file,
+never a peer `Project` read** (a per-module `kmpTargetsDoctorData` emitter the dependents consume),
+so it stays configuration-cache- and **Isolated Projects**-safe. Two honest, permanent limits,
+printed inline: no external-dependency coverage, and an approximate android→jvm fallback — see the
+[Doctor mode guide](https://rsicarelli.github.io/kmp-targets/user-guide/doctor-mode/).
 
 ### Supported targets
 
