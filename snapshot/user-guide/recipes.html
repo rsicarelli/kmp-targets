@@ -1070,16 +1070,21 @@
 if (kmpTargets.registered().isEmpty()) {
     tasks.withType(KotlinCompilationTask::class.java).configureEach { enabled = false }
 }</code></p>
-<p>This is the gate the inert-module advisory names. Variant: a metadata-only predicate for modules whose <em>native</em> fragment is the risky part — gate on <code>kmpTargets.registered(KmpTargetSet.native).isEmpty()</code> instead.</p>
+<p>This is the gate the inert-module advisory names. Variant: when only a <em>native</em>-wired codegen processor is at risk rather than the whole module, gate on the narrower <code>kmpTargets.registered(KmpTargetSet.native).isEmpty()</code> — see <a href="#commonmain-ksp-needs-a-native-target">commonMain KSP needs a native target</a>.</p>
 <h2 id="commonmain-ksp-needs-a-native-target">commonMain KSP needs a native target<a class="headerlink" href="#commonmain-ksp-needs-a-native-target" title="Permanent link">&para;</a></h2>
-<p>KSP processing of <code>commonMain</code> runs on a platform compilation. If your processor is wired to a native target, a selection without any native leaf silently skips generation — downstream code then fails with missing symbols. Gate and warn explicitly:</p>
+<p>A processor that generates into <code>commonMain</code> runs on the shared <strong>commonMain metadata compilation</strong> (<code>kspCommonMainKotlinMetadata</code>). KSP&rsquo;s multiplatform wiring only creates that task when the selection registers a <strong>native</strong> target — so a native-less lane (<code>jvm</code>, <code>android,jvm</code>) silently skips generation, and the failure ranges from unresolved-reference errors to a green build that ships missing codegen. There is <strong>no per-platform workaround</strong>: K2&rsquo;s strict fragment resolution forbids <code>commonMain</code> from referencing platform-generated symbols, so generating per-platform instead does not help. Gate the module — warn <em>and</em> disable the doomed compilations — right after <code>supports { }</code>:</p>
 <p><code>kotlin
 if (kmpTargets.registered(KmpTargetSet.native).isEmpty()) {
     logger.warn(
-        "ksp: ':${project.name}' has no native target registered — " +
-        "commonMain symbol processing is skipped for this selection."
+        "ksp: ':${project.name}' generates commonMain code but no native target is " +
+        "registered — symbol processing is skipped for this selection."
     )
+    tasks.withType(KotlinCompilationTask::class.java).configureEach { enabled = false }
 }</code></p>
+<div class="admonition note">
+<p class="admonition-title">Why the gate is <code>native</code>, not the metadata compilation itself</p>
+<p>KGP&rsquo;s <code>compileCommonMainKotlinMetadata</code> tracks a <em>shared</em> commonMain (two or more platform targets), <strong>not</strong> native presence — <code>jvm + js</code> has it with zero native targets, a lone <code>iosArm64</code> does not. The <strong>native</strong> gate above is specific to the KSP commonMain-metadata <em>route</em>; it is the conservative predicate for a native-wired processor, not a claim about the compilation itself. <a href="kmp-targets-info.html"><code>kmpTargetsInfo</code></a> shows what registered, per lane.</p>
+</div>
 <h2 id="per-target-configuration-wiring">Per-target configuration wiring<a class="headerlink" href="#per-target-configuration-wiring" title="Permanent link">&para;</a></h2>
 <p>The canonical <code>onRegistered</code> use: per-target configurations (KSP, custom attributes), with the Gradle name pre-mangled — and rename-proof, because <code>gradleNameCapitalized</code> follows <a href="jvm-rename.html"><code>targetName</code></a>:</p>
 <p><code>kotlin
