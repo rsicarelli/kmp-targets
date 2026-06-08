@@ -35,6 +35,7 @@ First move for anything selection-shaped: **[`kmpTargetsInfo`](../user-guide/kmp
 | Symptom | Cause | Fix |
 |---|---|---|
 | Variant-resolution wall of text on an inter-module dependency | dependency's supported set doesn't cover a target the dependent builds | check both modules with `kmpTargetsInfo`; widen the dependency's `supports { }` ([recipe](../user-guide/recipes.md#selection-vs-the-dependency-graph)) |
+| Variant-resolution wall of text on a `compileDependencyFiles` config after narrowing to `android`-only | android consumers were resolving against producers' **jvm fallback** variant; a pure-`android` selection dropped it | co-select `jvm` with `android` (`kmptargets.targets=android,jvm`) ([recipe](../user-guide/recipes.md#the-asymmetric-case-android-and-the-jvm-fallback)) |
 | Unresolved `expect` after narrowing to one iOS leaf | minimal template collapsed the single-child `iosMain` your sources live in | [no-collapse mode](../user-guide/no-collapse-mode.md) |
 | iOS compile/link fails on a Linux/Windows runner | host can't compile the registered Apple target — registration is host-blind | per-host selections ([CI matrix](../user-guide/ci-matrix.md)); the [host advisory](../user-guide/advisories.md#host-compatibility) names the mismatch |
 | CI job fails at configuration with an advisory's text | [strict mode](../user-guide/advisories.md#strict-mode) promotes advisories to failures | that's the point — fix the flagged configuration, or scope strict to lanes the host can fully compile |

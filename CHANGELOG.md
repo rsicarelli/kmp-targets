@@ -123,6 +123,22 @@ changes may land in any release.
 
 ### Documentation
 
+- **Selection vs the dependency graph — the android→jvm fallback rule** ([#80]). Selection is
+  resolved per module, but its *validity* can depend on the cross-module dependency graph: an
+  android-leaning module that consumes a `jvm`+native-only library resolves against that library's
+  **jvm fallback** variant, so a pure-`android` selection — which strips `jvm` from every producer —
+  removes the variant the android modules were resolving against. The failure surfaces as Gradle's
+  raw attribute-resolution wall of text on a `compileDependencyFiles` configuration, with no hint
+  the selection is the cause; the fix is to keep `jvm` **co-selected** (`kmptargets.targets=android,jvm`).
+  **No new API, by feasibility, not omission**: an accurate in-code closure check would have to read
+  peer projects' registered sets at configuration time — forbidden by the plugin's
+  configuration-cache and Isolated-Projects guarantees — and the canonical trigger is *external*
+  published libraries the plugin cannot model one-module-at-a-time. So the deliverable is docs: the
+  [recipe](docs/user-guide/recipes.md) gains the asymmetric android→jvm case,
+  [troubleshooting](docs/help/troubleshooting.md) gains a `compileDependencyFiles` row, and the
+  closure analysis is deferred to a future doctor mode ([#82]). Adjacent hygiene: the
+  [advisories](docs/user-guide/advisories.md) page now documents the **native-only-metadata**
+  advisory ([#72]) and counts six advisories, not five.
 - **commonMain-KSP-needs-a-native-target recipe, hardened** ([#73]). A processor that generates
   into `commonMain` runs on the shared commonMain metadata route (`kspCommonMainKotlinMetadata`),
   which KSP only wires when the selection registers a **native** target — so a native-less lane
@@ -159,3 +175,5 @@ changes may land in any release.
 [#73]: https://github.com/rsicarelli/kmp-targets/issues/73
 [#74]: https://github.com/rsicarelli/kmp-targets/issues/74
 [#77]: https://github.com/rsicarelli/kmp-targets/issues/77
+[#80]: https://github.com/rsicarelli/kmp-targets/issues/80
+[#82]: https://github.com/rsicarelli/kmp-targets/issues/82

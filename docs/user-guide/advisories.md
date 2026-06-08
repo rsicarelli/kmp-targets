@@ -1,6 +1,6 @@
 # Advisories & Strict Mode
 
-The plugin emits five configuration-time advisories. Four are **signal only — never filtering**; one (android-without-AGP) genuinely skips a leaf because the alternative is a raw KGP crash. [Strict mode](#strict-mode) promotes all five to build failures with identical message text.
+The plugin emits six configuration-time advisories. Five are **signal only — never filtering**; one (android-without-AGP) genuinely skips a leaf because the alternative is a raw KGP crash. [Strict mode](#strict-mode) promotes all six to build failures with identical message text.
 
 ## Host compatibility
 
@@ -62,9 +62,23 @@ if (kmpTargets.registered().isEmpty()) {
 
 A module that **never calls** `supports { }` registers nothing *by definition* and is deliberately not flagged — that's the explicit-selection baseline, not the trap. A later `supports { }` union that registers a leaf un-inerts the module permanently.
 
+## Native-only metadata
+
+The consequence sibling of the inert trap, for a module that is *alive* but lopsided. A module that **supports** the JVM family yet, under this selection, registers no JVM-family leaf while registering at least one other target gets a JVM-less shared `commonMain`:
+
+```
+kmp-targets: ':shared' supports the JVM family but this selection registered no JVM-family
+target while other targets did — commonMain is now a JVM-less shared fragment. The platform
+klibs compile, but the *KotlinMetadata* compilations reject JVM-flavored constructs (e.g.
+@JvmInline): klibs build, metadata fails. Gate it in build-logic when
+kmpTargets.registered(jvmFamily).isEmpty(), disabling only the *KotlinMetadata* compilations.
+```
+
+The failure is paradoxical: every platform klib compiles, but the `*KotlinMetadata*` compilations reject JVM-flavored constructs (`@JvmInline` is the greppable token — named so a user arriving from the raw compiler error finds this advisory). Signal only, and **cause-agnostic**: a narrowed lane and an android-only [AGP skip](#android-target-without-agp) fire it alike, so it deliberately names neither the selection nor the supported set. It is **disjoint** from the inert advisory — inert means *registered empty*, this means *registered non-empty but no JVM-family leaf*; at most one fires per module. Any single JVM-family leaf (`jvm` **or** `androidTarget` — Android is a JVM platform) defeats it. The gate it points at is the *scoped* sibling of inert's: disable only the metadata compilations, keep the live platform ones. See [Gate compilation on inert modules](recipes.md#gate-compilation-on-inert-modules) for the build-logic shape.
+
 ## Strict mode
 
-By default all five advisories are warnings — right for local iteration, easy to miss in CI, where a module silently building nothing is usually a real configuration bug.
+By default all six advisories are warnings — right for local iteration, easy to miss in CI, where a module silently building nothing is usually a real configuration bug.
 
 `kmptargets.strict=true` promotes them to configuration-time **build failures** (`GradleException`) with the **identical message text** — severity changes, policy does not. It never changes *which* configurations are flagged and never changes *what registers* (the AGP skip happens with or without strict). Default **off**, deliberately. The flag resolves through the same [precedence chain](selection-layers.md) as every `kmptargets.*` key; anything other than `true`/`false` (case-insensitive) is treated as unset.
 
