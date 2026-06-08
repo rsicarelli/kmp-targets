@@ -134,6 +134,24 @@ kmpTargets.registered()                          // everything registered so far
 kmpTargets.registered(KmpTargetSet.appleMobile)  // just the registered iOS leaves
 ```
 
+**Configuration-name helpers (issue #74).** Even the `"ksp${it.gradleNameCapitalized}"` form above
+is a string to get wrong — and the test compilation's `kspJvmTest` is the one that bites: hardcode
+it and it throws *Configuration 'kspJvmTest' not found* the moment a `targetName(jvm, "desktop")`
+rename turns it into `kspDesktopTest`. `RegisteredTarget` owns that grammar so you never hand-roll
+it:
+
+```kotlin
+kmpTargets.onRegistered {
+    add(it.configurationName("ksp"), processor)      // kspJvm / kspIosArm64 / kspDesktop (renamed)
+    add(it.testConfigurationName("ksp"), processor)  // kspJvmTest / … / kspDesktopTest (renamed)
+}
+```
+
+Both are tool-generic — the prefix is any tool's convention (`it.configurationName("kapt")`); the
+plugin blesses no single processor. Always wire through `onRegistered`, never an eager
+`kotlin.targets` snapshot taken in the build script: that snapshot is ordering-sensitive (empty if
+read before `supports { }`), whereas the callback's `configureEach` semantics are not.
+
 **Callback vs snapshot.** `onRegistered` has `configureEach` semantics: hooked *before* the
 module's `supports { }` it fires as each leaf registers; hooked *after*, it replays for the leaves
 already registered — and a later `supports { }` union fires only its delta. That makes it the
