@@ -108,6 +108,22 @@ changes may land in any release.
   `kmpTargetsInfo` marks the leaf `androidTarget (skipped: no Android plugin applied)` while the
   condition holds.
 
+### Documentation
+
+- **commonMain-KSP-needs-a-native-target recipe, hardened** ([#73]). A processor that generates
+  into `commonMain` runs on the shared commonMain metadata route (`kspCommonMainKotlinMetadata`),
+  which KSP only wires when the selection registers a **native** target — so a native-less lane
+  silently skips generation (worst case: a green build shipping missing codegen). **No new API**:
+  the trap's distinguishing fact ("this module runs a commonMain metadata-route processor") is one
+  the plugin cannot observe, so per the mechanism-vs-conventions split it stays in build-logic,
+  which gates on the existing `registered(KmpTargetSet.native)` primitive ([#52]). The user-guide
+  recipe now warns **and** disables the doomed compilations, notes that K2's strict fragment
+  resolution rules out a per-platform workaround, and is backed by two tests: one pinning the gate
+  predicate, one pinning the actual KGP 2.3.21 rule for `compileCommonMainKotlinMetadata` — which
+  tracks a *shared* commonMain (≥2 platform targets), **not** native presence (`jvm + js` has it
+  with zero native targets; a lone `iosArm64` does not). That invariant test is a tripwire: a KGP
+  bump that shifts the rule fails it loudly.
+
 ### Fixed
 
 - **Plugin jar is now consumable from Gradle 8.x `kotlin-dsl` build-logic and JDK 17 daemons**
@@ -127,4 +143,5 @@ changes may land in any release.
 [#52]: https://github.com/rsicarelli/kmp-targets/issues/52
 [#71]: https://github.com/rsicarelli/kmp-targets/issues/71
 [#72]: https://github.com/rsicarelli/kmp-targets/issues/72
+[#73]: https://github.com/rsicarelli/kmp-targets/issues/73
 [#74]: https://github.com/rsicarelli/kmp-targets/issues/74
