@@ -699,6 +699,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#native-only-metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      Native-only metadata
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#strict-mode" class="md-nav__link">
     <span class="md-ellipsis">
       Strict mode
@@ -999,6 +1008,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#native-only-metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      Native-only metadata
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#strict-mode" class="md-nav__link">
     <span class="md-ellipsis">
       Strict mode
@@ -1027,7 +1045,7 @@
 
 
 <h1 id="advisories-strict-mode">Advisories &amp; Strict Mode<a class="headerlink" href="#advisories-strict-mode" title="Permanent link">&para;</a></h1>
-<p>The plugin emits five configuration-time advisories. Four are <strong>signal only — never filtering</strong>; one (android-without-AGP) genuinely skips a leaf because the alternative is a raw KGP crash. <a href="#strict-mode">Strict mode</a> promotes all five to build failures with identical message text.</p>
+<p>The plugin emits six configuration-time advisories. Five are <strong>signal only — never filtering</strong>; one (android-without-AGP) genuinely skips a leaf because the alternative is a raw KGP crash. <a href="#strict-mode">Strict mode</a> promotes all six to build failures with identical message text.</p>
 <h2 id="host-compatibility">Host compatibility<a class="headerlink" href="#host-compatibility" title="Permanent link">&para;</a></h2>
 <p>The registered set is <strong>host-blind by design</strong>: selecting <code>iosArm64</code> registers it on macOS, Linux, and Windows alike, so configuration-cache keys, task graphs, and published metadata stay identical across CI agents. But not every host can <em>compile</em> every native target. When the selection includes a native target the current host can&rsquo;t compile, the plugin warns — and <strong>still registers it</strong>:</p>
 <p><code>kmp-targets: ':shared' selects [iosArm64] which cannot be compiled on this host (LINUX_X64) —
@@ -1044,8 +1062,10 @@ unchanged), but consider migrating off them.</code></p>
 <p><code>androidTarget</code> is the one leaf whose registration needs more than KGP: <code>kotlin.androidTarget()</code> is a <strong>hard KGP failure</strong> (the FATAL <code>AndroidGradlePluginIsMissing</code> diagnostic) unless an Android Gradle plugin — <code>com.android.library</code>, <code>com.android.application</code>, or any other id KGP accepts — is already applied. So when a module both selects and supports <code>androidTarget</code> but no Android plugin is applied by the time <code>supports { }</code> runs, the plugin <strong>skips registering that leaf</strong> and says so:</p>
 <p><code>kmp-targets: ':feature' selects and supports [androidTarget] but no Android Gradle plugin is
 applied — the target was not registered. Apply com.android.library or com.android.application
-before supports { }.</code></p>
+before supports { } — gate it on the selection (see
+https://rsicarelli.github.io/kmp-targets/user-guide/recipes/#selection-gated-eager-agp-application).</code></p>
 <p>This is the one advisory that <strong>does filter</strong> — the alternative is KGP&rsquo;s raw crash with no module-level guidance, which during build-logic migrations reads as &ldquo;kmp-targets dropped my target&rdquo;. The fix is an <strong>ordering rule</strong>: apply the Android plugin <em>before</em> <code>supports { }</code>. A later <code>supports { }</code> union re-checks, so AGP applied between two calls lets the later pass register the leaf normally. Everything else registers exactly as selected.</p>
+<p>To apply AGP only on Android lanes — without paying its configuration cost in every lane — gate it on the resolved selection: see <a href="recipes.html#selection-gated-eager-agp-application">Selection-gated eager AGP application</a>, which spells out the <code>KmpTarget.Jvm.Android in resolvedSelection()</code> gate, the <code>com.android.application</code> exemption, and the downstream-read gating the same predicate must guard.</p>
 <h2 id="empty-overlap">Empty overlap<a class="headerlink" href="#empty-overlap" title="Permanent link">&para;</a></h2>
 <p>A non-empty selection that matches nothing a module <code>supports</code> (so the module registers zero targets) gets its own warning — the everyday symptom of a typo&rsquo;d lane or an over-narrow selection.</p>
 <h2 id="inert-modules">Inert modules<a class="headerlink" href="#inert-modules" title="Permanent link">&para;</a></h2>
@@ -1059,8 +1079,16 @@ if (kmpTargets.registered().isEmpty()) {
     tasks.withType(KotlinCompilationTask::class.java).configureEach { enabled = false }
 }</code></p>
 <p>A module that <strong>never calls</strong> <code>supports { }</code> registers nothing <em>by definition</em> and is deliberately not flagged — that&rsquo;s the explicit-selection baseline, not the trap. A later <code>supports { }</code> union that registers a leaf un-inerts the module permanently.</p>
+<h2 id="native-only-metadata">Native-only metadata<a class="headerlink" href="#native-only-metadata" title="Permanent link">&para;</a></h2>
+<p>The consequence sibling of the inert trap, for a module that is <em>alive</em> but lopsided. A module that <strong>supports</strong> the JVM family yet, under this selection, registers no JVM-family leaf while registering at least one other target gets a JVM-less shared <code>commonMain</code>:</p>
+<p><code>kmp-targets: ':shared' supports the JVM family but this selection registered no JVM-family
+target while other targets did — commonMain is now a JVM-less shared fragment. The platform
+klibs compile, but the *KotlinMetadata* compilations reject JVM-flavored constructs (e.g.
+@JvmInline): klibs build, metadata fails. Gate it in build-logic when
+kmpTargets.registered(jvmFamily).isEmpty(), disabling only the *KotlinMetadata* compilations.</code></p>
+<p>The failure is paradoxical: every platform klib compiles, but the <code>*KotlinMetadata*</code> compilations reject JVM-flavored constructs (<code>@JvmInline</code> is the greppable token — named so a user arriving from the raw compiler error finds this advisory). Signal only, and <strong>cause-agnostic</strong>: a narrowed lane and an android-only <a href="#android-target-without-agp">AGP skip</a> fire it alike, so it deliberately names neither the selection nor the supported set. It is <strong>disjoint</strong> from the inert advisory — inert means <em>registered empty</em>, this means <em>registered non-empty but no JVM-family leaf</em>; at most one fires per module. Any single JVM-family leaf (<code>jvm</code> <strong>or</strong> <code>androidTarget</code> — Android is a JVM platform) defeats it. The gate it points at is the <em>scoped</em> sibling of inert&rsquo;s: disable only the metadata compilations, keep the live platform ones. See <a href="recipes.html#gate-compilation-on-inert-modules">Gate compilation on inert modules</a> for the build-logic shape.</p>
 <h2 id="strict-mode">Strict mode<a class="headerlink" href="#strict-mode" title="Permanent link">&para;</a></h2>
-<p>By default all five advisories are warnings — right for local iteration, easy to miss in CI, where a module silently building nothing is usually a real configuration bug.</p>
+<p>By default all six advisories are warnings — right for local iteration, easy to miss in CI, where a module silently building nothing is usually a real configuration bug.</p>
 <p><code>kmptargets.strict=true</code> promotes them to configuration-time <strong>build failures</strong> (<code>GradleException</code>) with the <strong>identical message text</strong> — severity changes, policy does not. It never changes <em>which</em> configurations are flagged and never changes <em>what registers</em> (the AGP skip happens with or without strict). Default <strong>off</strong>, deliberately. The flag resolves through the same <a href="selection-layers.html">precedence chain</a> as every <code>kmptargets.*</code> key; anything other than <code>true</code>/<code>false</code> (case-insensitive) is treated as unset.</p>
 <p>The recommended setup keeps local builds advisory and turns CI strict:</p>
 <p>```yaml</p>

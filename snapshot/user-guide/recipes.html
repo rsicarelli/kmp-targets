@@ -682,6 +682,21 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Selection vs the dependency graph">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-asymmetric-case-android-and-the-jvm-fallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      The asymmetric case: android and the jvm fallback
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1023,6 +1038,21 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="Selection vs the dependency graph">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-asymmetric-case-android-and-the-jvm-fallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      The asymmetric case: android and the jvm fallback
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -1094,14 +1124,43 @@ kmpTargets.onRegistered { add("ksp${it.gradleNameCapitalized}", processorDep) }<
 <p><code>kotlin.targets.forEach { … }</code> in a convention plugin sees only what registered <em>before that line ran</em> — ordering-sensitive and silently incomplete. <code>onRegistered</code> replays past registrations and fires for future ones.</p>
 </div>
 <h2 id="selection-gated-eager-agp-application">Selection-gated eager AGP application<a class="headerlink" href="#selection-gated-eager-agp-application" title="Permanent link">&para;</a></h2>
-<p><code>androidTarget</code> needs AGP applied <strong>before</strong> <code>supports { }</code> (<a href="advisories.html#android-target-without-agp">the ordering rule</a>). A convention can apply AGP only when Android is actually selected, avoiding AGP&rsquo;s configuration cost in non-Android lanes:</p>
+<p><code>androidTarget</code> needs an Android Gradle plugin applied <strong>before</strong> <code>supports { }</code> (<a href="advisories.html#android-target-without-agp">the ordering rule</a>) — <code>kotlin.androidTarget()</code> is a hard KGP FATAL without one. Applying AGP to <em>every</em> module is expensive (config-time cost plus a swarm of Android tasks/configurations that are meaningless under android-less lanes), so a <strong>library</strong> convention applies it only when Android is actually selected, read straight off <a href="build-logic.html"><code>resolvedSelection()</code></a>:</p>
+<p>```kotlin<br />
+// in the LIBRARY convention plugin, BEFORE the supports { } block<br />
+val androidSelected = KmpTarget.Jvm.Android in kmpTargets.resolvedSelection()<br />
+if (androidSelected) {<br />
+    pluginManager.apply(&ldquo;com.android.library&rdquo;)<br />
+    // configure AGP here, between apply and supports { } — also gated (see below)<br />
+    extensions.configure<com.android.build.api.dsl.LibraryExtension> {<br />
+        namespace = &ldquo;com.example.${project.name}&rdquo;<br />
+    }<br />
+}</p>
+<p>kmpTargets.supports {<br />
+    androidTarget + jvm    // androidTarget registers iff AGP was applied above<br />
+}<br />
+```</p>
+<p>The gate is <code>KmpTarget.Jvm.Android in resolvedSelection()</code>, not a preset membership test: <code>resolvedSelection()</code> is the same value registration intersects against, so the gate and the eventual registration never disagree.</p>
+<div class="admonition warning">
+<p class="admonition-title">Apply AGP before <code>supports { }</code>, never after</p>
+<p>Registration is eager: <code>supports { }</code> checks for AGP <em>at that instant</em> and <a href="advisories.html#android-target-without-agp">skips <code>androidTarget</code></a> if it is absent. AGP applied <strong>after</strong> <code>supports { }</code> — or in a separate <code>afterEvaluate</code> — silently misses registration, and android never appears with no error outside <a href="advisories.html#strict-mode">strict mode</a>. Keep the <code>apply</code> above the block. (A later <code>supports { }</code> union re-checks, so AGP applied <em>between</em> two calls lets the later pass register the leaf — but the one-block form above is the rule.)</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Gate downstream AGP reads with the SAME predicate</p>
+<p>Any code that reads AGP-owned configuration — <code>android { namespace = … }</code>, <code>compileSdk</code>/manifest wiring, a <code>LibraryExtension</code> lookup — <strong>crashes under a non-Android selection</strong> if it runs unconditionally, because AGP was never applied in that lane. It must sit inside the same <code>if (androidSelected)</code> (as above) or be keyed off the same <code>resolvedSelection()</code> check. The half-gated state — AGP application gated, but a downstream <code>android { }</code> read left ungated — is where real-world partial-selection crashes come from. The gate is not just for the <code>apply</code> call; it is for everything that assumes AGP is present.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title"><code>com.android.application</code> modules are exempt — do not gate them</p>
+<p>An app module <strong>is</strong> Android by definition: AGP arrives from the app&rsquo;s own plugin block (or a <code>*.application</code> convention), not from this library gate. Do not apply <code>com.android.library</code> to it (double-applying AGP / half-configuring an app module breaks it), and do not put its AGP application behind the selection gate — the app always wants Android. This recipe is for <strong>library</strong> modules whose Android-ness is conditional on the lane.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Companion plugins react via <code>pluginManager.withPlugin</code></p>
+<p>A plugin that must run only when AGP is present (the Gradle cache-fix plugin is the canonical case) should <strong>react</strong> to AGP rather than re-test the selection — it then stays correct whether AGP came from this gate or from an app&rsquo;s own block:</p>
 <p><code>kotlin
-// in the convention plugin, before configuring kmpTargets
-val selectsAndroid = /* read kmptargets.targets via providers and check for android/jvmFamily/mobile */
-if (selectsAndroid) {
-    pluginManager.apply("com.android.library")
-}
-// note: com.android.application modules apply AGP unconditionally — the app module IS Android</code></p>
+pluginManager.withPlugin("com.android.library") {
+    pluginManager.apply("org.gradle.android.cache-fix")
+}</code></p>
+</div>
+<p>Confirm per lane with <a href="kmp-targets-info.html"><code>kmpTargetsInfo</code></a>: under a non-Android selection it shows no <code>androidTarget</code> and AGP is never applied; under an Android lane it shows <code>androidTarget</code> registered. There is deliberately <strong>no plugin hook</strong> for this — eager-gating AGP is a one-line <code>if</code> over <code>resolvedSelection()</code> (the primitive already exists), and the application-vs-library exemption is a build-logic decision the plugin cannot make for you (<a href="https://github.com/rsicarelli/kmp-targets/issues/76">#76</a>).</p>
 <h2 id="lane-agnostic-ci-invocations">Lane-agnostic CI invocations<a class="headerlink" href="#lane-agnostic-ci-invocations" title="Permanent link">&para;</a></h2>
 <p>Aggregate tasks (<code>build</code>, <code>check</code>) only cover registered targets, so the <strong>same Gradle invocation works in every lane</strong> — the selection does the narrowing, not the task list:</p>
 <p><code>bash
@@ -1109,6 +1168,20 @@ if (selectsAndroid) {
 <p>Avoid hardcoding per-target task names (<code>:m:iosArm64Test</code>) in CI scripts: they break under renames and lane changes. If you must derive test tasks, derive them from <code>registered()</code> in a small task-listing helper, not from string conventions.</p>
 <h2 id="selection-vs-the-dependency-graph">Selection vs the dependency graph<a class="headerlink" href="#selection-vs-the-dependency-graph" title="Permanent link">&para;</a></h2>
 <p>Selection is <strong>per-module</strong>, intersected per-module. If <code>:app</code> supports <code>jvm + iosArm64</code> and depends on <code>:lib</code> that only supports <code>jvm</code>, an <code>iosArm64</code> build of <code>:app</code> fails at <em>variant resolution</em> — <code>:lib</code> has no iOS variant to offer. The error is KGP&rsquo;s wall of text, but the cause is set arithmetic: <strong>a module&rsquo;s supported set must cover every target its dependents build</strong>. Check both sides with <code>kmpTargetsInfo</code> and widen <code>:lib</code>&rsquo;s <code>supports { }</code> (or narrow <code>:app</code>&rsquo;s).</p>
+<h3 id="the-asymmetric-case-android-and-the-jvm-fallback">The asymmetric case: android and the jvm fallback<a class="headerlink" href="#the-asymmetric-case-android-and-the-jvm-fallback" title="Permanent link">&para;</a></h3>
+<p>The same set arithmetic has a subtler form that bites at scale, and it is the single hardest selection failure to diagnose. An android-leaning module depends on a library that ships only <code>jvm</code> + native variants and <strong>no <code>androidTarget</code></strong> — common for pure-Kotlin libraries that never opted into Android. That build still works, because Gradle resolves the android consumer against the library&rsquo;s <strong><code>jvm</code> variant</strong> as a fallback. The android module was relying on the jvm variant all along, even though nobody wrote it down.</p>
+<p>Now narrow the selection to pure <code>android</code> (<code>kmptargets.targets=android</code>). Every producer that <em>supported</em> <code>jvm</code> now registers no jvm target — and the jvm variant the android consumers were falling back to is gone. The edge no longer resolves. The rule:</p>
+<blockquote>
+<p><strong>An android consumer can be satisfied by a producer&rsquo;s <code>jvm</code> variant (the jvm fallback). A pure-<code>android</code> selection that strips <code>jvm</code> from those producers removes the variant the android modules were resolving against.</strong></p>
+</blockquote>
+<p>The symptom is unhelpful: Gradle&rsquo;s raw attribute-resolution wall of text on a <strong><code>compileDependencyFiles</code></strong> configuration (<code>*CompileDependencyFiles</code>), listing producer variants and consumer attributes, with <strong>no hint that the selection is the cause</strong>. If you arrived here from that error, the fix is one line — keep <code>jvm</code> <strong>co-selected</strong> with <code>android</code>:</p>
+<p><code>properties
+kmptargets.targets=android,jvm</code></p>
+<p>(or any preset that includes both). The jvm variant the android modules fall back to then still registers on every producer, and the edges resolve again. For a large android repo this is usually what you actually want: <code>android,jvm</code>, not bare <code>android</code>.</p>
+<div class="admonition note">
+<p class="admonition-title">The plugin cannot detect this for you</p>
+<p>Selection is resolved one module at a time, so this conflict is <strong>invisible to the plugin by construction</strong> — and it usually originates in <strong>external published libraries</strong> (the <code>jvm</code>-only producers), which the plugin cannot model at all. <code>kmpTargetsInfo</code> on a producer confirms it lost its <code>jvm</code> leaf under the current selection, but you reason about the closure across the graph yourself. A future <a href="https://github.com/rsicarelli/kmp-targets/issues/82">doctor mode</a> may surface project-edge closure gaps; it can never see external-dependency variants, so co-selecting <code>jvm</code> remains the rule.</p>
+</div>
 <h2 id="binary-compatibility-validator-selection">Binary-compatibility validator + selection<a class="headerlink" href="#binary-compatibility-validator-selection" title="Permanent link">&para;</a></h2>
 <p>BCV writes one ABI dump per target. A narrowed lane that runs <code>apiCheck</code>/<code>apiDump</code> sees only the registered subset — committing dumps from a narrowed lane deletes the other targets&rsquo; dumps. Rule: <strong>run BCV tasks only from a full-selection lane</strong> (<code>kmptargets.targets=all</code> or your repo&rsquo;s full set), and gate <code>apiDump</code> in CI to that lane.</p>
 <h2 id="troubleshooting-first">Troubleshooting first<a class="headerlink" href="#troubleshooting-first" title="Permanent link">&para;</a></h2>

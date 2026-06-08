@@ -1107,6 +1107,11 @@
 <td>check both modules with <code>kmpTargetsInfo</code>; widen the dependency&rsquo;s <code>supports { }</code> (<a href="../user-guide/recipes.html#selection-vs-the-dependency-graph">recipe</a>)</td>
 </tr>
 <tr>
+<td>Variant-resolution wall of text on a <code>compileDependencyFiles</code> config after narrowing to <code>android</code>-only</td>
+<td>android consumers were resolving against producers&rsquo; <strong>jvm fallback</strong> variant; a pure-<code>android</code> selection dropped it</td>
+<td>co-select <code>jvm</code> with <code>android</code> (<code>kmptargets.targets=android,jvm</code>) (<a href="../user-guide/recipes.html#the-asymmetric-case-android-and-the-jvm-fallback">recipe</a>)</td>
+</tr>
+<tr>
 <td>Unresolved <code>expect</code> after narrowing to one iOS leaf</td>
 <td>minimal template collapsed the single-child <code>iosMain</code> your sources live in</td>
 <td><a href="../user-guide/no-collapse-mode.html">no-collapse mode</a></td>
