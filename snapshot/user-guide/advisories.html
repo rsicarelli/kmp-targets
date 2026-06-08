@@ -755,6 +755,29 @@
   
   
     <li class="md-nav__item">
+      <a href="doctor-mode.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Doctor Mode
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="ci-matrix.html" class="md-nav__link">
         
   
@@ -1046,6 +1069,10 @@
 
 <h1 id="advisories-strict-mode">Advisories &amp; Strict Mode<a class="headerlink" href="#advisories-strict-mode" title="Permanent link">&para;</a></h1>
 <p>The plugin emits six configuration-time advisories. Five are <strong>signal only — never filtering</strong>; one (android-without-AGP) genuinely skips a leaf because the alternative is a raw KGP crash. <a href="#strict-mode">Strict mode</a> promotes all six to build failures with identical message text.</p>
+<div class="admonition tip">
+<p class="admonition-title">See the same findings explained, with fixes</p>
+<p><a href="doctor-mode.html"><code>kmpTargetsDoctor</code></a> renders each advisory below as a <code>[!]</code> finding (cause → effect → fix) plus a project-edge closure check — the triage surface for when a build broke and you want <em>why</em>.</p>
+</div>
 <h2 id="host-compatibility">Host compatibility<a class="headerlink" href="#host-compatibility" title="Permanent link">&para;</a></h2>
 <p>The registered set is <strong>host-blind by design</strong>: selecting <code>iosArm64</code> registers it on macOS, Linux, and Windows alike, so configuration-cache keys, task graphs, and published metadata stay identical across CI agents. But not every host can <em>compile</em> every native target. When the selection includes a native target the current host can&rsquo;t compile, the plugin warns — and <strong>still registers it</strong>:</p>
 <p><code>kmp-targets: ':shared' selects [iosArm64] which cannot be compiled on this host (LINUX_X64) —

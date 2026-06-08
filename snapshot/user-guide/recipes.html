@@ -779,6 +779,29 @@
   
   
     <li class="md-nav__item">
+      <a href="doctor-mode.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Doctor Mode
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="ci-matrix.html" class="md-nav__link">
         
   
@@ -1179,8 +1202,8 @@ pluginManager.withPlugin("com.android.library") {
 kmptargets.targets=android,jvm</code></p>
 <p>(or any preset that includes both). The jvm variant the android modules fall back to then still registers on every producer, and the edges resolve again. For a large android repo this is usually what you actually want: <code>android,jvm</code>, not bare <code>android</code>.</p>
 <div class="admonition note">
-<p class="admonition-title">The plugin cannot detect this for you</p>
-<p>Selection is resolved one module at a time, so this conflict is <strong>invisible to the plugin by construction</strong> — and it usually originates in <strong>external published libraries</strong> (the <code>jvm</code>-only producers), which the plugin cannot model at all. <code>kmpTargetsInfo</code> on a producer confirms it lost its <code>jvm</code> leaf under the current selection, but you reason about the closure across the graph yourself. A future <a href="https://github.com/rsicarelli/kmp-targets/issues/82">doctor mode</a> may surface project-edge closure gaps; it can never see external-dependency variants, so co-selecting <code>jvm</code> remains the rule.</p>
+<p class="admonition-title">What the plugin can and cannot detect for you</p>
+<p>Selection is resolved one module at a time, and this conflict usually originates in <strong>external published libraries</strong> (the <code>jvm</code>-only producers), which the plugin cannot model at all. <a href="doctor-mode.html#project-edge-closure">Doctor mode</a> surfaces the <strong><code>project(...)</code>-edge</strong> form of this gap — a sibling module that stopped registering a leaf its dependents need — but by construction it can never see external-dependency variants, so co-selecting <code>jvm</code> remains the rule. <code>kmpTargetsInfo</code> on a producer confirms it lost its <code>jvm</code> leaf under the current selection.</p>
 </div>
 <h2 id="binary-compatibility-validator-selection">Binary-compatibility validator + selection<a class="headerlink" href="#binary-compatibility-validator-selection" title="Permanent link">&para;</a></h2>
 <p>BCV writes one ABI dump per target. A narrowed lane that runs <code>apiCheck</code>/<code>apiDump</code> sees only the registered subset — committing dumps from a narrowed lane deletes the other targets&rsquo; dumps. Rule: <strong>run BCV tasks only from a full-selection lane</strong> (<code>kmptargets.targets=all</code> or your repo&rsquo;s full set), and gate <code>apiDump</code> in CI to that lane.</p>
