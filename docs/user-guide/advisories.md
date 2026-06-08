@@ -33,10 +33,13 @@ Signal only: deprecated leaves stay selectable, stay in every preset, and regist
 ```
 kmp-targets: ':feature' selects and supports [androidTarget] but no Android Gradle plugin is
 applied — the target was not registered. Apply com.android.library or com.android.application
-before supports { }.
+before supports { } — gate it on the selection (see
+https://rsicarelli.github.io/kmp-targets/user-guide/recipes/#selection-gated-eager-agp-application).
 ```
 
 This is the one advisory that **does filter** — the alternative is KGP's raw crash with no module-level guidance, which during build-logic migrations reads as "kmp-targets dropped my target". The fix is an **ordering rule**: apply the Android plugin *before* `supports { }`. A later `supports { }` union re-checks, so AGP applied between two calls lets the later pass register the leaf normally. Everything else registers exactly as selected.
+
+To apply AGP only on Android lanes — without paying its configuration cost in every lane — gate it on the resolved selection: see [Selection-gated eager AGP application](recipes.md#selection-gated-eager-agp-application), which spells out the `KmpTarget.Jvm.Android in resolvedSelection()` gate, the `com.android.application` exemption, and the downstream-read gating the same predicate must guard.
 
 ## Empty overlap
 
