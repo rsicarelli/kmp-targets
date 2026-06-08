@@ -732,6 +732,54 @@ This repo runs the pattern for real:
 hello-world sample per host — the macOS job is the only place Apple targets get genuinely
 compiled — so the example above can't rot.
 
+### Lane-agnostic compilation
+
+A matrix that narrows the selection per job breaks the other half-truth in most CI: a **hardcoded
+compile-task list**. Teams commonly drive compile-only jobs with explicit task names:
+
+```bash
+# Brittle: a snapshot of one particular selection.
+./gradlew compileCommonMainKotlinMetadata compileKotlinJvm compileReleaseKotlinAndroid compileKotlinIosArm64
+```
+
+Once the selection is variable, that list has two failure modes:
+
+- **Hard 404** — a name that exists in *no* module under the current lane (`compileReleaseKotlinAndroid`
+  on an android-less selection) → `Task '…' not found`, the job fails before it starts.
+- **Silent false-green (worse)** — under a [renamed jvm leaf](#renaming-the-jvm-target)
+  (`targetName(jvm, "desktop")`) the real task is `compileKotlinDesktop`, so a literal
+  `compileKotlinJvm` matches *zero* tasks and the job passes **while compiling nothing**. The test
+  side is higher-stakes still: a hardcoded `jvmTest` never runs.
+
+The plugin already knows exactly what registered in every module, so it exposes two per-module
+umbrella lifecycle tasks that depend on **exactly the registered intersection** — selection-agnostic
+and rename-proof:
+
+- **`kmpCompileAll`** — compiles every registered target's main compilation.
+- **`kmpTestAll`** — runs every registered target's tests (the targets that have a test task; a
+  device-only native like `iosArm64` has none and is skipped).
+
+```bash
+# Stable: one name, correct in every lane and under any rename.
+./gradlew kmpCompileAll "-Pkmptargets.targets=${{ matrix.targets }}"
+```
+
+Both are registered in **every** module (even one that never called `supports { }`), so an
+unqualified `./gradlew kmpCompileAll` from the root **fans out** to every project that has the task —
+no root aggregator, no cross-project wiring. Under a narrowed lane the umbrella simply depends on
+fewer tasks (a module with nothing registered is a clean no-op — never a 404), and under a renamed
+jvm leaf it wires the real `compileKotlinDesktop` / `desktopTest`.
+
+They depend on registered **platform** compilations only and **never** on
+`compileCommonMainKotlinMetadata` (or any `*KotlinMetadata` compilation), so they cannot re-introduce
+the [inert-module](#inert-modules) (#71) or [JVM-less-fragment](#native-only-metadata-jvm-less-commonmain)
+(#72) failures — exactly the compilations build-logic deliberately disables for those modules.
+
+Drop them straight into the matrix: replace `build` with `kmpCompileAll` for compile-only jobs (or
+add `kmpTestAll` where the host can run the lane's tests). The
+[`desktop-named`](./samples/hello-world/desktop-named/build.gradle.kts) sample asserts the
+rename-proofing as a living regression gate.
+
 ## Compatibility
 
 The published jar targets the oldest supported consumer, not the toolchain this repo builds with:

@@ -35,3 +35,32 @@ tasks.register("verifyRenamedTargets") {
 }
 
 tasks.named("check") { dependsOn("verifyRenamedTargets") }
+
+// Umbrella rename gate (issue #77): kmpCompileAll / kmpTestAll must wire the RENAMED tasks
+// (`compileKotlinDesktop` / `desktopTest`), never the default `compileKotlinJvm` / `jvmTest` a
+// hardcoded CI list would have used — the latter silently match zero tasks here. iosArm64 is a
+// device-only native, so it contributes a compile task but no test task. Dependency names are
+// captured as List<String> at configuration time (config-cache safe — no Task escapes into doLast).
+fun umbrellaDeps(name: String): List<String> =
+    tasks.named(name).get().let { task ->
+        task.taskDependencies.getDependencies(task).map { it.name }.sorted()
+    }
+
+val compileAllDeps = umbrellaDeps("kmpCompileAll")
+val testAllDeps = umbrellaDeps("kmpTestAll")
+
+tasks.register("verifyUmbrellaWiring") {
+    val compileDeps = compileAllDeps
+    val testDeps = testAllDeps
+    doLast {
+        check("compileKotlinDesktop" in compileDeps && "compileKotlinJvm" !in compileDeps) {
+            "kmpCompileAll rename regressed: expected compileKotlinDesktop (not compileKotlinJvm), " +
+                "saw $compileDeps"
+        }
+        check("desktopTest" in testDeps && "jvmTest" !in testDeps) {
+            "kmpTestAll rename regressed: expected desktopTest (not jvmTest), saw $testDeps"
+        }
+    }
+}
+
+tasks.named("check") { dependsOn("verifyUmbrellaWiring") }
