@@ -26,8 +26,17 @@ internal object ConfigKeys {
      */
     const val STRICT: String = "kmptargets.strict"
 
+    /**
+     * Global opt-in registering the `kmpCompileAll`/`kmpTestAll` umbrella lifecycle tasks
+     * (`true`/`false`, default off — issue #77). Off by default because the umbrellas add
+     * dependency edges to every registered target's compile/test tasks; a build only wants them
+     * when it drives CI off one stable task name.
+     */
+    const val UMBRELLA_TASKS: String = "kmptargets.umbrellaTasks"
+
     /** Every key the dedicated config files may legally contain (unknown keys fail the build). */
-    val ALL: Set<String> = setOf(TARGETS, HIERARCHY_TEMPLATE, HIERARCHY_COLLAPSE, STRICT)
+    val ALL: Set<String> =
+        setOf(TARGETS, HIERARCHY_TEMPLATE, HIERARCHY_COLLAPSE, STRICT, UMBRELLA_TASKS)
 
     /** Committed, team-shared config file at the root of the build. */
     const val COMMITTED_FILE: String = "kmp-targets.properties"

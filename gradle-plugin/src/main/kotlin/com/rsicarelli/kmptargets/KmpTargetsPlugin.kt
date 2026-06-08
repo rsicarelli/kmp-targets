@@ -26,7 +26,12 @@ import com.rsicarelli.kmptargets.source.composeSelectionSources
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
+import org.gradle.api.tasks.TaskProvider
 import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
+import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
+import org.jetbrains.kotlin.gradle.plugin.KotlinTarget
+import org.jetbrains.kotlin.gradle.plugin.KotlinTargetWithTests
 import org.jetbrains.kotlin.konan.target.HostManager
 
 public class KmpTargetsPlugin : Plugin<Project> {
@@ -89,6 +94,89 @@ public class KmpTargetsPlugin : Plugin<Project> {
         }
 
         registerInfoTask(target, ext, configOrigin)
+
+        // Umbrella lifecycle tasks (#77): OPT-IN via `kmptargets.umbrellaTasks` (default off), read
+        // once at apply time as a primitive. Off by default because the umbrellas add dependency
+        // edges to every registered target's compile/test tasks — a build wants them only when it
+        // drives CI off one stable name. When ON they are registered in EVERY module (the flag is
+        // global), so an inert or never-supports module still carries a no-op task and an
+        // unqualified
+        // `./gradlew kmpCompileAll` from the root never 404s in any project. The eager register()
+        // loop appends one dependency per registered leaf, so each ends up wired to exactly the
+        // registered intersection; when OFF the carriers stay null and `wireUmbrellas` no-ops.
+        if (umbrellaTasksEnabled(target, personal, committed)) {
+            ext.compileAllTask =
+                registerUmbrella(target, COMPILE_ALL_TASK, "build", COMPILE_ALL_DESC)
+            ext.testAllTask = registerUmbrella(target, TEST_ALL_TASK, "verification", TEST_ALL_DESC)
+        }
+    }
+
+    /**
+     * Registers one umbrella lifecycle task — a pure aggregator with no `@TaskAction` and no
+     * inputs; the eager [register] loop wires its dependencies. Registration is unconditional and
+     * lazy: when the task is never requested it is never configured, and when a module registers
+     * nothing it stays a clean no-op. Config-cache safe by construction — `dependsOn` added later
+     * is configuration-time wiring, and the task captures no `Project` and serializes no state.
+     */
+    private fun registerUmbrella(
+        target: Project,
+        name: String,
+        group: String,
+        description: String,
+    ): TaskProvider<Task> =
+        target.tasks.register(name) { task ->
+            task.group = group
+            task.description = description
+        }
+
+    /**
+     * Wires the umbrella tasks (#77) for one freshly registered [leaf]/[kotlinTarget], off the live
+     * `KotlinTarget` so the dependency is the genuine task — rename-proof and impossible to
+     * silently zero-match, the exact failure modes hardcoded CI task lists suffer.
+     *
+     * For every non-Android target KGP creates the `main` (and `test`) compilation synchronously
+     * when the target is created, so the real **compile** task is wired via a provider
+     * ([KotlinCompilation.compileTaskProvider]) — a genuine `TaskProvider` that can never silently
+     * zero-match. The **test-run** task exists only for the [KotlinTargetWithTests] targets (a
+     * device-only native such as `iosArm64` has none, and is correctly skipped); its public surface
+     * does not expose the execution task, so it is wired by its stable KGP name `<targetName>Test`
+     * — still rename-proof, because `targetName` is the real registered name (`desktopTest`, never
+     * a hardcoded `jvmTest`). Android is the exception — its compilations/test tasks are
+     * variant-named and created later by AGP — so its tasks are named by reconstruction from the
+     * fixed `android` gradle name, matching the literals hardcoded CI already used.
+     *
+     * The umbrellas only ever depend on registered *platform* tasks; the commonMain metadata
+     * compilation is never referenced, so they cannot re-introduce the inert (#71) or
+     * JVM-less-fragment (#72) failures.
+     */
+    private fun wireUmbrellas(
+        ext: KmpTargetsExtension,
+        leaf: KmpTarget,
+        kotlinTarget: KotlinTarget,
+    ) {
+        val compileAll = ext.compileAllTask
+        val testAll = ext.testAllTask
+        if (leaf == KmpTarget.Jvm.Android) {
+            // AGP materializes both production variants for a library/application module; a literal
+            // dependsOn(name) fails loudly if one is absent — loud beats the silent zero-match.
+            val cap = kotlinTarget.targetName.replaceFirstChar(Char::titlecase)
+            compileAll?.configure {
+                it.dependsOn("compileDebugKotlin$cap", "compileReleaseKotlin$cap")
+            }
+            testAll?.configure { it.dependsOn("testDebugUnitTest", "testReleaseUnitTest") }
+            return
+        }
+        compileAll?.configure {
+            it.dependsOn(
+                kotlinTarget.compilations.named(KotlinCompilation.MAIN_COMPILATION_NAME).flatMap {
+                    compilation ->
+                    compilation.compileTaskProvider
+                }
+            )
+        }
+        if (kotlinTarget is KotlinTargetWithTests<*, *>) {
+            testAll?.configure { it.dependsOn("${kotlinTarget.targetName}Test") }
+        }
     }
 
     /**
@@ -199,6 +287,20 @@ public class KmpTargetsPlugin : Plugin<Project> {
 
     internal companion object {
         const val KGP_ID: String = "org.jetbrains.kotlin.multiplatform"
+
+        const val COMPILE_ALL_TASK: String = "kmpCompileAll"
+        const val TEST_ALL_TASK: String = "kmpTestAll"
+
+        const val COMPILE_ALL_DESC: String =
+            "Compiles every target this module registered — the registered intersection, not a " +
+                "hardcoded leaf list — so it stays correct under any selection and a renamed jvm " +
+                "leaf. Excludes the commonMain metadata compilation, so it never re-introduces the " +
+                "inert (#71) or JVM-less-fragment (#72) failures."
+
+        const val TEST_ALL_DESC: String =
+            "Runs the tests of every target this module registered that has a test task — " +
+                "selection-agnostic and rename-proof, so a renamed jvm leaf's tests still run " +
+                "where a hardcoded jvmTest would silently match nothing."
     }
 
     /**
@@ -296,6 +398,23 @@ public class KmpTargetsPlugin : Plugin<Project> {
             ?.lowercase()
             ?.toBooleanStrictOrNull() ?: false
 
+    /**
+     * Reads the global `kmptargets.umbrellaTasks` flag (#77) through the standard [configSources]
+     * chain. Opt-in: unset — or anything other than `true`/`false` (case-insensitive, per
+     * `toBooleanStrictOrNull`) — means OFF, so the `kmpCompileAll`/`kmpTestAll` tasks are not
+     * registered.
+     */
+    private fun umbrellaTasksEnabled(
+        target: Project,
+        personal: Map<String, String>?,
+        committed: Map<String, String>?,
+    ): Boolean =
+        configSources(target, ConfigKeys.UMBRELLA_TASKS, personal, committed)
+            .read()
+            ?.trim()
+            ?.lowercase()
+            ?.toBooleanStrictOrNull() ?: false
+
     /** The parsed entries of a dedicated config file in the root directory, or `null` if absent. */
     private fun configFile(target: Project, fileName: String): Map<String, String>? =
         target.providers
@@ -375,7 +494,11 @@ public class KmpTargetsPlugin : Plugin<Project> {
             // — the advisory below names the module and the fix — and do NOT record it, so a
             // later supports{} pass after AGP is applied still registers it.
             if (leaf == KmpTarget.Jvm.Android && !androidPluginApplied) return@forEach
-            val gradleName = registerTarget(kotlin, leaf, jvmName)
+            val kotlinTarget = registerTarget(kotlin, leaf, jvmName)
+            val gradleName = kotlinTarget.targetName
+            // Wire the umbrella tasks (#77) off the live target before recording: the dependency is
+            // the genuine compile/test task, so it is rename-proof and never a silent zero-match.
+            wireUmbrellas(ext, leaf, kotlinTarget)
             // Leaf first, then the carrier+callbacks (issue #52): an onRegistered action that
             // re-enters register() must already see this leaf as registered.
             ext.registeredLeaves.add(leaf)
@@ -524,16 +647,18 @@ public class KmpTargetsPlugin : Plugin<Project> {
     }
 
     /**
-     * Registers [target] with KGP and returns the Gradle target name registration actually used —
-     * read off the `KotlinTarget` each KGP factory returns, never re-derived from the leaf, so the
+     * Registers [target] with KGP and returns the `KotlinTarget` the factory created. Its
+     * [targetName][KotlinTarget.getTargetName] is the Gradle registration actually used — never
+     * re-derived from the leaf, so the
      * [RegisteredTarget][com.rsicarelli.kmptargets.model.RegisteredTarget] carriers stay truthful
-     * for the renamed jvm leaf (issue #49) and for whatever name KGP picks.
+     * for the renamed jvm leaf (issue #49) and for whatever name KGP picks. The live target is also
+     * what [wireUmbrellas] reads to find the genuine compile/test tasks (#77).
      */
     private fun registerTarget(
         kotlin: KotlinMultiplatformExtension,
         target: KmpTarget,
         jvmName: String?,
-    ): String =
+    ): KotlinTarget =
         when (target) {
             KmpTarget.Jvm.Android -> kotlin.androidTarget()
             // The only renamable leaf (issue #49): KGP's hierarchy matchers (`withJvm()`) key
@@ -571,7 +696,7 @@ public class KmpTargetsPlugin : Plugin<Project> {
                     nodejs()
                 }
             KmpTarget.Web.WasmWasi -> kotlin.wasmWasi { nodejs() }
-        }.targetName
+        }
 }
 
 /**

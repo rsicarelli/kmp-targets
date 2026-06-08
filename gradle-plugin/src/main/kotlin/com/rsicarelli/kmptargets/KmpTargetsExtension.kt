@@ -5,8 +5,10 @@ import com.rsicarelli.kmptargets.model.KmpTargetSet
 import com.rsicarelli.kmptargets.model.RegisteredTarget
 import javax.inject.Inject
 import org.gradle.api.GradleException
+import org.gradle.api.Task
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
+import org.gradle.api.tasks.TaskProvider
 
 /**
  * Public DSL surface exposed by the plugin as the `kmpTargets` extension.
@@ -203,6 +205,26 @@ public abstract class KmpTargetsExtension @Inject constructor(objects: ObjectFac
 
     /** Actions hooked via [onRegistered], fired for each future [recordRegistration]. */
     internal val onRegisteredActions: MutableList<(RegisteredTarget) -> Unit> = mutableListOf()
+
+    /**
+     * The per-module `kmpCompileAll` umbrella task (#77), registered unconditionally at apply time.
+     * The eager registration loop appends one compile-task dependency per registered leaf, so the
+     * umbrella ends up depending on exactly the registered intersection — selection-agnostic and
+     * rename-proof. A configuration-time-only carrier: it holds a [TaskProvider], never a
+     * `Project`, and the umbrella itself declares no inputs, so nothing here is serialized into the
+     * configuration cache. Nullable only defensively — `apply` always assigns it before [supports]
+     * can fire.
+     */
+    internal var compileAllTask: TaskProvider<Task>? = null
+
+    /**
+     * The per-module `kmpTestAll` umbrella task (#77), the test-side sibling of [compileAllTask].
+     * The registration loop appends the test-run task of each registered leaf that has one (the
+     * `KotlinTargetWithTests` targets), so a renamed jvm leaf's `desktopTest` runs where a
+     * hardcoded `jvmTest` would have silently matched nothing. Same configuration-time-only carrier
+     * discipline.
+     */
+    internal var testAllTask: TaskProvider<Task>? = null
 
     /**
      * Records that [leaf] registered with KGP under [gradleName] and fires the [onRegistered]

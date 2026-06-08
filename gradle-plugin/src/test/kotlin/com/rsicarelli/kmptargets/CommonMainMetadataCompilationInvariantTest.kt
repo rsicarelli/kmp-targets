@@ -83,12 +83,34 @@ class CommonMainMetadataCompilationInvariantTest {
         assertNotNull(project.tasks.findByName(COMMON_MAIN_METADATA))
     }
 
+    @Test
+    fun `given the metadata compilation exists when kmpCompileAll is wired then it never depends on the metadata compilation`(
+        @TempDir dir: Path
+    ) {
+        // Co-located with the invariant it protects (#77 must not re-introduce #71/#72): even when
+        // KGP creates compileCommonMainKotlinMetadata, the kmpCompileAll umbrella depends only on
+        // the registered platform compile tasks, never the metadata one.
+        val project = evaluated(dir, "jvm,js") { supports { jvm + js } }
+        assertNotNull(
+            project.tasks.findByName(COMMON_MAIN_METADATA),
+            "metadata compilation present",
+        )
+        val umbrella = project.tasks.getByName(KmpTargetsPlugin.COMPILE_ALL_TASK)
+        val deps = umbrella.taskDependencies.getDependencies(umbrella).map { it.name }
+        assertFalse(COMMON_MAIN_METADATA in deps, "kmpCompileAll excludes metadata: $deps")
+        assertTrue(deps.containsAll(listOf("compileKotlinJvm", "compileKotlinJs")), "deps: $deps")
+    }
+
     private fun evaluated(
         dir: Path,
         selection: String,
         block: KmpTargetsExtension.() -> Unit,
     ): Project {
-        dir.resolve("gradle.properties").writeText("kmptargets.targets=$selection\n")
+        // umbrellaTasks on so the #77 metadata-exclusion pin can read kmpCompileAll; harmless to
+        // the
+        // other invariants (extra lifecycle tasks don't affect metadata-compilation existence).
+        dir.resolve("gradle.properties")
+            .writeText("kmptargets.targets=$selection\nkmptargets.umbrellaTasks=true\n")
         val project = ProjectBuilder.builder().withProjectDir(dir.toFile()).build()
         project.pluginManager.apply("org.jetbrains.kotlin.multiplatform")
         project.pluginManager.apply("com.rsicarelli.kmptargets")
