@@ -69,7 +69,8 @@ class KmpCompileAllFunctionalTest {
 
     private fun writeFixture(dir: Path, jvmName: String?, supports: String) {
         dir.resolve("settings.gradle.kts").writeText("rootProject.name = \"fixture\"\n")
-        dir.resolve("gradle.properties").writeText("kmptargets.targets=$supports\n")
+        dir.resolve("gradle.properties")
+            .writeText("kmptargets.targets=$supports\nkmptargets.umbrellaTasks=true\n")
         val rename =
             if (jvmName != null) "targetName(KmpTargetsDsl.jvm, \"$jvmName\")\n    " else ""
         dir.resolve("build.gradle.kts")

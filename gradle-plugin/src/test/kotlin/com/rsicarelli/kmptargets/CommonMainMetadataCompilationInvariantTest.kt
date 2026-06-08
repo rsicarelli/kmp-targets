@@ -106,7 +106,11 @@ class CommonMainMetadataCompilationInvariantTest {
         selection: String,
         block: KmpTargetsExtension.() -> Unit,
     ): Project {
-        dir.resolve("gradle.properties").writeText("kmptargets.targets=$selection\n")
+        // umbrellaTasks on so the #77 metadata-exclusion pin can read kmpCompileAll; harmless to
+        // the
+        // other invariants (extra lifecycle tasks don't affect metadata-compilation existence).
+        dir.resolve("gradle.properties")
+            .writeText("kmptargets.targets=$selection\nkmptargets.umbrellaTasks=true\n")
         val project = ProjectBuilder.builder().withProjectDir(dir.toFile()).build()
         project.pluginManager.apply("org.jetbrains.kotlin.multiplatform")
         project.pluginManager.apply("com.rsicarelli.kmptargets")

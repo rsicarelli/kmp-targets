@@ -76,7 +76,8 @@ class KmpTestAllInProcessTest {
     fun `given a module that never declares supports when the project evaluates then kmpTestAll exists with zero dependencies`(
         @TempDir dir: Path
     ) {
-        dir.resolve("gradle.properties").writeText("kmptargets.targets=jvm\n")
+        dir.resolve("gradle.properties")
+            .writeText("kmptargets.targets=jvm\nkmptargets.umbrellaTasks=true\n")
         val project = ProjectBuilder.builder().withProjectDir(dir.toFile()).build()
         project.pluginManager.apply("org.jetbrains.kotlin.multiplatform")
         project.pluginManager.apply("com.rsicarelli.kmptargets")
@@ -97,7 +98,8 @@ class KmpTestAllInProcessTest {
         selection: String,
         block: KmpTargetsExtension.() -> Unit,
     ): Project {
-        dir.resolve("gradle.properties").writeText("kmptargets.targets=$selection\n")
+        dir.resolve("gradle.properties")
+            .writeText("kmptargets.targets=$selection\nkmptargets.umbrellaTasks=true\n")
         val project = ProjectBuilder.builder().withProjectDir(dir.toFile()).build()
         project.pluginManager.apply("org.jetbrains.kotlin.multiplatform")
         project.pluginManager.apply("com.rsicarelli.kmptargets")

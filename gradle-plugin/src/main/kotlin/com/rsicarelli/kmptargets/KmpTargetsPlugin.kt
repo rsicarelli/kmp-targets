@@ -95,14 +95,20 @@ public class KmpTargetsPlugin : Plugin<Project> {
 
         registerInfoTask(target, ext, configOrigin)
 
-        // Umbrella lifecycle tasks (#77): registered unconditionally — like kmpTargetsInfo — so an
-        // inert or never-supports module still carries a no-op task and an unqualified
+        // Umbrella lifecycle tasks (#77): OPT-IN via `kmptargets.umbrellaTasks` (default off), read
+        // once at apply time as a primitive. Off by default because the umbrellas add dependency
+        // edges to every registered target's compile/test tasks — a build wants them only when it
+        // drives CI off one stable name. When ON they are registered in EVERY module (the flag is
+        // global), so an inert or never-supports module still carries a no-op task and an
+        // unqualified
         // `./gradlew kmpCompileAll` from the root never 404s in any project. The eager register()
         // loop appends one dependency per registered leaf, so each ends up wired to exactly the
-        // registered intersection. Stored on the extension because the loop runs later, under
-        // withPlugin(KGP).
-        ext.compileAllTask = registerUmbrella(target, COMPILE_ALL_TASK, "build", COMPILE_ALL_DESC)
-        ext.testAllTask = registerUmbrella(target, TEST_ALL_TASK, "verification", TEST_ALL_DESC)
+        // registered intersection; when OFF the carriers stay null and `wireUmbrellas` no-ops.
+        if (umbrellaTasksEnabled(target, personal, committed)) {
+            ext.compileAllTask =
+                registerUmbrella(target, COMPILE_ALL_TASK, "build", COMPILE_ALL_DESC)
+            ext.testAllTask = registerUmbrella(target, TEST_ALL_TASK, "verification", TEST_ALL_DESC)
+        }
     }
 
     /**
@@ -387,6 +393,23 @@ public class KmpTargetsPlugin : Plugin<Project> {
         committed: Map<String, String>?,
     ): Boolean =
         configSources(target, ConfigKeys.STRICT, personal, committed)
+            .read()
+            ?.trim()
+            ?.lowercase()
+            ?.toBooleanStrictOrNull() ?: false
+
+    /**
+     * Reads the global `kmptargets.umbrellaTasks` flag (#77) through the standard [configSources]
+     * chain. Opt-in: unset — or anything other than `true`/`false` (case-insensitive, per
+     * `toBooleanStrictOrNull`) — means OFF, so the `kmpCompileAll`/`kmpTestAll` tasks are not
+     * registered.
+     */
+    private fun umbrellaTasksEnabled(
+        target: Project,
+        personal: Map<String, String>?,
+        committed: Map<String, String>?,
+    ): Boolean =
+        configSources(target, ConfigKeys.UMBRELLA_TASKS, personal, committed)
             .read()
             ?.trim()
             ?.lowercase()

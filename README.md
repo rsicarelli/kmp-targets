@@ -184,6 +184,7 @@ kmptargets.targets=jvm,iosArm64
 kmptargets.hierarchyTemplate=true
 # kmptargets.hierarchyCollapse=false    # opt-out of single-child collapse — see "Minimal hierarchy template"
 # kmptargets.strict=true    # opt-in: advisories become failures — see "Strict mode"
+# kmptargets.umbrellaTasks=true    # opt-in: register kmpCompileAll / kmpTestAll — see "Lane-agnostic compilation"
 ```
 
 An optional **personal override file** — `kmp-targets.local.properties`, git-ignored — mirrors
@@ -751,13 +752,23 @@ Once the selection is variable, that list has two failure modes:
   `compileKotlinJvm` matches *zero* tasks and the job passes **while compiling nothing**. The test
   side is higher-stakes still: a hardcoded `jvmTest` never runs.
 
-The plugin already knows exactly what registered in every module, so it exposes two per-module
+The plugin already knows exactly what registered in every module, so it can expose two per-module
 umbrella lifecycle tasks that depend on **exactly the registered intersection** — selection-agnostic
 and rename-proof:
 
 - **`kmpCompileAll`** — compiles every registered target's main compilation.
 - **`kmpTestAll`** — runs every registered target's tests (the targets that have a test task; a
   device-only native like `iosArm64` has none and is skipped).
+
+They are **opt-in** — set `kmptargets.umbrellaTasks=true` (default off) to register them, since they
+add dependency edges to every registered target's compile/test tasks and most builds only want them
+for CI. The flag reads through the same [precedence chain](#selecting-targets) as every other
+`kmptargets.` key (`-P`, env, `kmp-targets(.local).properties`, `gradle.properties`):
+
+```properties
+# kmp-targets.properties
+kmptargets.umbrellaTasks=true
+```
 
 ```bash
 # Stable: one name, correct in every lane and under any rename.

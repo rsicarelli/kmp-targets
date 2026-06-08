@@ -30,12 +30,14 @@ changes may land in any release.
   module that depends on the compile (resp. test) tasks of **exactly the registered intersection** —
   selection-agnostic and rename-proof, the cure for hardcoded CI task lists that 404 under a narrowed
   lane or silently match zero tasks under `targetName(jvm, "desktop")` (a literal `compileKotlinJvm`
-  compiling nothing while CI stays green). Wired off the live `KotlinTarget`, so the dependency is
-  the genuine task (`compileKotlinDesktop`, `desktopTest`), never a name guess. Registered in every
-  module, so an unqualified `./gradlew kmpCompileAll` from the root fans out to all of them with no
-  cross-project wiring, and a module that registered nothing is a clean no-op. Depends on registered
-  **platform** compilations only — never `compileCommonMainKotlinMetadata` — so it cannot
-  re-introduce the inert ([#71]) or JVM-less-fragment ([#72]) failures. See
+  compiling nothing while CI stays green). **Opt-in** via `kmptargets.umbrellaTasks=true` (default
+  off), since they add dependency edges most builds only want for CI. Wired off the live
+  `KotlinTarget`, so the dependency is the genuine task (`compileKotlinDesktop`, `desktopTest`), never
+  a name guess. When enabled they are registered in every module, so an unqualified
+  `./gradlew kmpCompileAll` from the root fans out to all of them with no cross-project wiring, and a
+  module that registered nothing is a clean no-op. Depends on registered **platform** compilations
+  only — never `compileCommonMainKotlinMetadata` — so it cannot re-introduce the inert ([#71]) or
+  JVM-less-fragment ([#72]) failures. See
   [README → CI → Lane-agnostic compilation](README.md#lane-agnostic-compilation).
 - **Per-target configuration-name helpers** ([#74]): `RegisteredTarget.configurationName(prefix)`
   and `RegisteredTarget.testConfigurationName(prefix)` build the `prefix + gradleNameCapitalized`

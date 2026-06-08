@@ -5,6 +5,7 @@ import kotlin.io.path.writeText
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectInternal
@@ -112,7 +113,8 @@ class KmpCompileAllInProcessTest {
     fun `given a module that never declares supports when the project evaluates then kmpCompileAll exists with zero dependencies`(
         @TempDir dir: Path
     ) {
-        dir.resolve("gradle.properties").writeText("kmptargets.targets=jvm\n")
+        dir.resolve("gradle.properties")
+            .writeText("kmptargets.targets=jvm\nkmptargets.umbrellaTasks=true\n")
         val project = ProjectBuilder.builder().withProjectDir(dir.toFile()).build()
         project.pluginManager.apply("org.jetbrains.kotlin.multiplatform")
         project.pluginManager.apply("com.rsicarelli.kmptargets")
@@ -124,15 +126,35 @@ class KmpCompileAllInProcessTest {
     fun `given KGP absent when the project evaluates then kmpCompileAll still exists as a no-op`(
         @TempDir dir: Path
     ) {
-        dir.resolve("gradle.properties").writeText("kmptargets.targets=jvm\n")
+        dir.resolve("gradle.properties")
+            .writeText("kmptargets.targets=jvm\nkmptargets.umbrellaTasks=true\n")
         val project = ProjectBuilder.builder().withProjectDir(dir.toFile()).build()
         project.pluginManager.apply("com.rsicarelli.kmptargets")
         (project as ProjectInternal).evaluate()
         assertNotNull(
             project.tasks.findByName(KmpTargetsPlugin.COMPILE_ALL_TASK),
-            "registered unconditionally so `./gradlew kmpCompileAll` never 404s",
+            "with the flag on it is registered in every module so root fan-out never 404s",
         )
         assertEquals(emptySet(), compileAllDeps(project))
+    }
+
+    @Test
+    fun `given the umbrellaTasks flag is unset when the project evaluates then the umbrella tasks are not registered`(
+        @TempDir dir: Path
+    ) {
+        // Opt-in (#77): without `kmptargets.umbrellaTasks=true` neither task exists — the default
+        // build is untouched, no extra dependency edges.
+        dir.resolve("gradle.properties").writeText("kmptargets.targets=jvm\n")
+        val project = ProjectBuilder.builder().withProjectDir(dir.toFile()).build()
+        project.pluginManager.apply("org.jetbrains.kotlin.multiplatform")
+        project.pluginManager.apply("com.rsicarelli.kmptargets")
+        project.extensions.getByType(KmpTargetsExtension::class.java).supports { jvm }
+        (project as ProjectInternal).evaluate()
+        assertNull(
+            project.tasks.findByName(KmpTargetsPlugin.COMPILE_ALL_TASK),
+            "compile umbrella off",
+        )
+        assertNull(project.tasks.findByName(KmpTargetsPlugin.TEST_ALL_TASK), "test umbrella off")
     }
 
     private fun compileAllDeps(project: Project): Set<String> {
@@ -147,7 +169,8 @@ class KmpCompileAllInProcessTest {
         selection: String,
         block: KmpTargetsExtension.() -> Unit,
     ): Project {
-        dir.resolve("gradle.properties").writeText("kmptargets.targets=$selection\n")
+        dir.resolve("gradle.properties")
+            .writeText("kmptargets.targets=$selection\nkmptargets.umbrellaTasks=true\n")
         val project = ProjectBuilder.builder().withProjectDir(dir.toFile()).build()
         project.pluginManager.apply("org.jetbrains.kotlin.multiplatform")
         project.pluginManager.apply("com.rsicarelli.kmptargets")
