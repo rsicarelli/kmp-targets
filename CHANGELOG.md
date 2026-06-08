@@ -26,6 +26,16 @@ changes may land in any release.
 
 ### Added
 
+- **Per-target configuration-name helpers** ([#74]): `RegisteredTarget.configurationName(prefix)`
+  and `RegisteredTarget.testConfigurationName(prefix)` build the `prefix + gradleNameCapitalized`
+  (+ `"Test"`) Gradle configuration name a per-target tool publishes — `it.configurationName("ksp")`
+  / `it.testConfigurationName("ksp")` instead of hand-rolled `"ksp${it.gradleNameCapitalized}"` and
+  a hardcoded `kspJvmTest` that breaks with *Configuration 'kspJvmTest' not found* under
+  `targetName(jvm, "desktop")` (it becomes `kspDesktopTest`). Derived from `gradleName`, so the
+  names track the rename; tool-generic by design (`it.configurationName("kapt")` works too — the
+  plugin blesses no single processor); blank prefix fails loud. Built on the existing
+  `gradleNameCapitalized` primitive, so they stay config-cache trivial (pure functions on the
+  immutable carrier).
 - **Native-only-metadata advisory** ([#72]): when a module **supports** the JVM family
   (`androidTarget`/`jvm`) yet a registration pass ends with **no** JVM-family target registered
   while other targets did register, the plugin logs a one-line advisory. The module is alive — the
@@ -117,3 +127,4 @@ changes may land in any release.
 [#52]: https://github.com/rsicarelli/kmp-targets/issues/52
 [#71]: https://github.com/rsicarelli/kmp-targets/issues/71
 [#72]: https://github.com/rsicarelli/kmp-targets/issues/72
+[#74]: https://github.com/rsicarelli/kmp-targets/issues/74

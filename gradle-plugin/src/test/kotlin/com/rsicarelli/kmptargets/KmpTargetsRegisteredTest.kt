@@ -135,6 +135,44 @@ class KmpTargetsRegisteredTest {
     }
 
     @Test
+    fun `given onRegistered when wiring via configurationName then the names match KGP's`(
+        @TempDir dir: Path
+    ) {
+        // Same proof as the gradleNameCapitalized test above, but through the issue #74 helpers:
+        // configurationName / testConfigurationName must derive exactly the ksp<Target>[Test] names
+        // KGP would mangle, so consumers stop hand-rolling the string.
+        val project = projectWithSelection(dir, "iosArm64,iosSimulatorArm64")
+        val mainConfigs = mutableSetOf<String>()
+        val testConfigs = mutableSetOf<String>()
+        project.kmpTargets().onRegistered {
+            mainConfigs += it.configurationName("ksp")
+            testConfigs += it.testConfigurationName("ksp")
+        }
+        project.kmpTargets().supports(KmpTargetSet.appleMobile)
+        val expectedMain =
+            project.kotlinTargetNames().map { "ksp${it.replaceFirstChar(Char::titlecase)}" }.toSet()
+        assertEquals(expectedMain, mainConfigs)
+        assertEquals(expectedMain.map { it + "Test" }.toSet(), testConfigs)
+        assertTrue("kspIosArm64" in mainConfigs, mainConfigs.toString())
+        assertTrue("kspIosArm64Test" in testConfigs, testConfigs.toString())
+    }
+
+    @Test
+    fun `given a renamed jvm when configurationName helpers fire then they follow the custom name`(
+        @TempDir dir: Path
+    ) {
+        // The regression the issue reports: a hardcoded "kspJvmTest" breaks under targetName; the
+        // helpers track the renamed gradleName into "kspDesktop" / "kspDesktopTest".
+        val project = projectWithSelection(dir, "jvm")
+        project.kmpTargets().targetName(KmpTargetsDsl.jvm, "desktop")
+        val seen = mutableListOf<RegisteredTarget>()
+        project.kmpTargets().onRegistered { seen += it }
+        project.kmpTargets().supports(KmpTargetSet.of(KmpTarget.Jvm.Desktop))
+        assertEquals("kspDesktop", seen.single().configurationName("ksp"))
+        assertEquals("kspDesktopTest", seen.single().testConfigurationName("ksp"))
+    }
+
+    @Test
     fun `given a renamed jvm when onRegistered fires then gradleName is the custom name`(
         @TempDir dir: Path
     ) {
