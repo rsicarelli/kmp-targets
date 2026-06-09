@@ -1,48 +1,43 @@
 # ABI Validation & Selection
 
-Binary-compatibility tooling — the classic [kotlinx binary-compatibility-validator](https://github.com/Kotlin/binary-compatibility-validator) (BCV) and Kotlin's built-in `abiValidation` — checks your public ABI against a committed reference dump (under `api/` by default). Both tools operate on the targets that **exist in the build**, which under kmp-targets means the targets the current selection registered (`selection ∩ supported`).
+Binary-compatibility tooling — the classic [kotlinx binary-compatibility-validator](https://github.com/Kotlin/binary-compatibility-validator) (BCV) and Kotlin's built-in `abiValidation` — checks your public ABI against a committed reference dump. Both tools operate on the targets that **exist in the build**, which under kmp-targets means the targets the current selection registered (`selection ∩ supported`).
 
 That creates a blind spot.
 
 ## The blind spot
 
-The committed dumps are generated under the full set of targets. Run the ABI tool under a **narrowed** lane and the safety net silently shrinks:
+The committed dumps are generated under the full set of targets. Run an ABI task under a **narrowed** lane and it can only act on the registered targets:
 
-- **An ABI update** (`apiDump` / `updateKotlinAbi`) regenerates the dump from only the registered targets — **dropping or mis-inferring** the unregistered targets' declarations in the committed file.
-- **An ABI check** (`apiCheck` / `checkKotlinAbi`) validates only the registered subset — drift on an unregistered target's ABI is a **false-green**.
+- **An ABI update** (`apiDump` / `updateKotlinAbi`) regenerates the dump from only the registered targets — **dropping** the unregistered targets' declarations from the committed file.
+- **An ABI check** (`apiCheck` / `checkKotlinAbi`) covers only the registered subset. The two tools then diverge:
+    - Kotlin's **built-in** `checkKotlinAbi` passes **green** — a silent false-green on the unregistered targets.
+    - **BCV** `apiCheck` fails **loud** (its `klibApiCheck` diffs the committed klib dump against nothing) and suggests an `apiDump` that would *drop* those targets.
 
-A developer on a `jvm`-only lane can break the `linuxX64` ABI, run the update task, and commit a green-looking diff. Nothing in either tool points at the interaction.
+A developer on a `jvm`-only lane can break the `linuxX64` ABI and — with the built-in tool — commit a green-looking diff.
 
 ## The signal kmp-targets adds
 
-The plugin **never depends on any ABI tool** — it only reads the dump directory. When the current selection did not register some of the targets the dumps cover, the diagnostic reports say so. The check is layout-agnostic (it understands both the merged `<project>.klib.api` header `// Targets: [...]` and any per-target subdirectory layout) and maps dumps to the **registered Gradle names**, so a [renamed jvm leaf](jvm-rename.md)'s `api/desktop/` resolves correctly.
+The plugin **depends on no ABI tool**. It hooks the ABI lifecycle tasks **by name** (`apiDump`, `apiCheck`, `updateKotlinAbi`, `checkKotlinAbi`) — the only approach that catches *both* tools, since the built-in one has no separate plugin id — and gates on the diff it already owns: `resolvedSupported() − registered()`. When that is non-empty, the run under-covers, and the plugin warns at the moment the task runs:
 
-In [`kmpTargetsDoctor`](doctor-mode.md):
-
-```text
-[!] ABI dumps not covered by this selection
-    why:    the ABI dump directory holds dumps covering js, linuxX64, which the current selection did not register
-    effect: the ABI check (checkKotlinAbi/apiCheck) validates only the registered subset — drift on the
-            uncovered targets is a false-green; an ABI update (updateKotlinAbi/apiDump) would drop or infer them
-    fix:    run the ABI update/check under the full selection, or in the lane that owns each target;
-            make CI's full-selection lane run the check explicitly
+```
+kmp-targets: ':lib' is running 'checkKotlinAbi' under a narrowed selection — it covers only the
+registered targets, so js, linuxX64 are NOT dumped/validated by this run. Run it under the full
+selection (or the lane that owns each target); your team's full-selection CI lane is the safety net.
+(strict mode fails this.)
 ```
 
-[`kmpTargetsInfo`](kmp-targets-info.md) carries the same fact as a neutral `ABI dumps` section. **Under a full selection both reports are silent** — every dumped target is registered, so there is no gap. Zero noise in the common case.
+It is deliberately **signal-only and best-effort**, not a guarantee:
 
-This is **signal-only**: it never changes what registers, never fails a normal build, and never runs an ABI tool for you. It only annotates the two report surfaces you ask for explicitly.
+- It compiles nothing, parses no dump files, and reads no `api/` directory — just a set difference the plugin already computes. Configuration-cache safe (the `doFirst` captures only strings).
+- Under a **full** selection `supported − registered` is empty, so it is silent — zero noise in the common case.
+- It does **not** replace the ABI check. Your team's full-selection CI lane is the authoritative gate; this exists so a local narrowed run is never silent.
+- Under [strict mode](advisories.md) (`kmptargets.strict=true`) the warning becomes a build failure.
 
-## Configuration
-
-| Key | Default | Effect |
-|---|---|---|
-| `kmptargets.abiDumpDir` | `api` | Directory the coverage check inspects (relative to each project). Set to `off` to disable the check, or point it at a custom layout. |
-
-Resolved through the [standard selection layers](selection-layers.md) (CLI `-P`, env, the dedicated config files, `gradle.properties`).
+No new configuration key, no opt-in: if an ABI task exists and the lane is narrowed, you get the signal.
 
 ## Recommended practice
 
-- Run `apiDump`/`apiCheck` (or `updateKotlinAbi`/`checkKotlinAbi`) only under the **full** selection, or in the lane that owns each target.
+- Run `apiDump`/`apiCheck` (or `updateKotlinAbi`/`checkKotlinAbi`) under the **full** selection, or in the lane that owns each target.
 - Make CI's **full-selection** lane run the check explicitly — that is the one place the whole ABI is validated.
 
-See the [`abi-bcv` and `abi-builtin` samples](../samples/index.md) for runnable, end-to-end proof with both tools.
+See the [`abi-bcv` and `abi-builtin` samples](../samples/index.md) for runnable, end-to-end proof with both tools — including the green-vs-loud contrast.

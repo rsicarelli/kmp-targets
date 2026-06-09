@@ -34,17 +34,9 @@ internal object ConfigKeys {
      */
     const val UMBRELLA_TASKS: String = "kmptargets.umbrellaTasks"
 
-    /**
-     * Directory the signal-only ABI-dump coverage check inspects (issue #81), relative to each
-     * project. Defaults to `api` — the convention both kotlinx-BCV and Kotlin's built-in
-     * `abiValidation` use for committed dumps. Set it blank (or `off`) to disable the check, or
-     * point it at a custom layout. Read filesystem-only; the plugin never depends on any ABI tool.
-     */
-    const val ABI_DUMP_DIR: String = "kmptargets.abiDumpDir"
-
     /** Every key the dedicated config files may legally contain (unknown keys fail the build). */
     val ALL: Set<String> =
-        setOf(TARGETS, HIERARCHY_TEMPLATE, HIERARCHY_COLLAPSE, STRICT, UMBRELLA_TASKS, ABI_DUMP_DIR)
+        setOf(TARGETS, HIERARCHY_TEMPLATE, HIERARCHY_COLLAPSE, STRICT, UMBRELLA_TASKS)
 
     /** Committed, team-shared config file at the root of the build. */
     const val COMMITTED_FILE: String = "kmp-targets.properties"

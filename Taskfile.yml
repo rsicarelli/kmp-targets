@@ -48,16 +48,16 @@ tasks:
       - "{{.GRADLE}} -p samples/isolated-projects build"
 
   sample:abi-bcv:
-    desc: "ABI × selection blind spot (kotlinx BCV): doctor flags the uncovered dumps under a narrowed jvm lane (depends on publish-local)"
+    desc: "ABI × selection (kotlinx BCV): apiCheck under the full selection — the recommended lane, clean (depends on publish-local; needs the Kotlin/Native toolchain)"
     deps: [publish-local]
     cmds:
-      - "{{.GRADLE}} -p samples/abi-bcv kmpTargetsInfo kmpTargetsDoctor -Pkmptargets.targets=jvm"
+      - "{{.GRADLE}} -p samples/abi-bcv apiCheck"
 
   sample:abi-builtin:
-    desc: "ABI × selection blind spot (built-in abiValidation): doctor flags the uncovered dumps under a narrowed jvm lane (depends on publish-local)"
+    desc: "ABI × selection (built-in abiValidation): checkKotlinAbi under a narrowed jvm lane — green, but the plugin warns it under-covers (depends on publish-local)"
     deps: [publish-local]
     cmds:
-      - "{{.GRADLE}} -p samples/abi-builtin kmpTargetsInfo kmpTargetsDoctor -Pkmptargets.targets=jvm"
+      - "{{.GRADLE}} -p samples/abi-builtin checkKotlinAbi -Pkmptargets.targets=jvm"
 
   ci:
     desc: Full local CI dry-run (check + publish-local + samples)

@@ -33,11 +33,11 @@ Drive it like CI does:
 
 ## abi-bcv & abi-builtin — the ABI-validation blind spot
 
-Two single-module libraries that support `jvm + linuxX64 + js` and commit ABI dumps under `api/`, one per tool: [`samples/abi-bcv`](https://github.com/rsicarelli/kmp-targets/tree/main/samples/abi-bcv) uses the classic [kotlinx binary-compatibility-validator](https://github.com/Kotlin/binary-compatibility-validator); [`samples/abi-builtin`](https://github.com/rsicarelli/kmp-targets/tree/main/samples/abi-builtin) uses Kotlin's built-in `abiValidation`. Both make the same point concrete: an ABI tool only sees the targets the current selection registered, so running it under a narrowed lane silently under-covers the committed dumps. The plugin's [ABI coverage signal](../user-guide/abi-validation.md) flags exactly that — see the per-sample READMEs.
+Two single-module libraries that support `jvm + linuxX64 + js` and commit ABI dumps under `api/`, one per tool: [`samples/abi-bcv`](https://github.com/rsicarelli/kmp-targets/tree/main/samples/abi-bcv) uses the classic [kotlinx binary-compatibility-validator](https://github.com/Kotlin/binary-compatibility-validator); [`samples/abi-builtin`](https://github.com/rsicarelli/kmp-targets/tree/main/samples/abi-builtin) uses Kotlin's built-in `abiValidation`. Both make the same point concrete: an ABI tool only sees the targets the current selection registered, so running it under a narrowed lane under-covers — the built-in tool passes a silent *false-green*, BCV fails loud and suggests a destructive dump. The plugin's [ABI narrowing signal](../user-guide/abi-validation.md) warns the moment you run an ABI task under a narrowed lane — see the per-sample READMEs.
 
 ```bash
-./gradlew -p samples/abi-bcv     kmpTargetsDoctor "-Pkmptargets.targets=jvm"   # flags js, linuxX64 as uncovered
-./gradlew -p samples/abi-builtin kmpTargetsDoctor                              # full selection → clean bill
+./gradlew -p samples/abi-builtin checkKotlinAbi "-Pkmptargets.targets=jvm"  # green, but warns: js, linuxX64 not validated
+./gradlew -p samples/abi-bcv     apiCheck                                   # full selection (recommended lane) → clean
 ```
 
 ## CI runs them for real

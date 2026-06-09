@@ -36,7 +36,6 @@ internal fun formatKmpTargetsDoctor(
     jvmRegisteredAs: String?,
     closureDepCount: Int,
     closureGaps: List<ClosureGap>,
-    abiDumpUncoveredIds: List<String> = emptyList(),
 ): String = buildString {
     appendLine("kmp-targets doctor — $projectPath")
     appendLine()
@@ -121,28 +120,6 @@ internal fun formatKmpTargetsDoctor(
                         "reject JVM-flavored constructs (e.g. @JvmInline)",
                     "fix:    gate on registered(jvmFamily).isEmpty() in build-logic, disabling " +
                         "only the *KotlinMetadata* compilations",
-                )
-            )
-        }
-        // ABI-dump coverage (#81): committed ABI dumps cover targets this selection did not
-        // register.
-        // A cross-tool consequence (BCV / built-in abiValidation), so it is ordered last — after
-        // the
-        // registration causes above. Layout-agnostic and filesystem-only: the plugin depends on no
-        // ABI
-        // tool, it just reads the dump directory. Empty (silent) under a full selection.
-        if (abiDumpUncoveredIds.isNotEmpty()) {
-            add(
-                finding(
-                    "ABI dumps not covered by this selection",
-                    "why:    the ABI dump directory holds dumps covering " +
-                        "${render(abiDumpUncoveredIds)}, which the current selection did not register",
-                    "effect: the ABI check (checkKotlinAbi/apiCheck) validates only the registered " +
-                        "subset — drift on the uncovered targets is a false-green; an ABI update " +
-                        "(updateKotlinAbi/apiDump) would drop or infer them",
-                    "fix:    run the ABI update/check under the full selection, or in the lane that " +
-                        "owns each target; make CI's full-selection lane run the check explicitly " +
-                        "(see https://rsicarelli.github.io/kmp-targets/user-guide/abi-validation/)",
                 )
             )
         }

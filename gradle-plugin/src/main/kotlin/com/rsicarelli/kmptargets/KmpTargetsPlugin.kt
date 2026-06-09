@@ -85,11 +85,6 @@ public class KmpTargetsPlugin : Plugin<Project> {
         // once at apply time as a primitive Boolean (default off) so no `Project` is captured.
         val strict: Boolean = strictModeEnabled(target, personal, committed)
 
-        // ABI-dump coverage check (#81): the directory the report tasks inspect for committed ABI
-        // dumps, read once at apply time as a primitive. Defaults to `api` (the convention both
-        // kotlinx-BCV and the built-in abiValidation use); blank/`off` disables the check.
-        val abiDumpDirName: String = abiDumpDir(target, personal, committed)
-
         // Eager registration: `supports { … }` in the build-script body registers `selection ∩
         // supported` immediately — no deferred (after-evaluate) pass, no timing wall. We hook it
         // via
@@ -103,8 +98,17 @@ public class KmpTargetsPlugin : Plugin<Project> {
             }
         }
 
-        registerInfoTask(target, ext, configOrigin, abiDumpDirName)
-        registerDoctorTask(target, ext, abiDumpDirName)
+        registerInfoTask(target, ext, configOrigin)
+        registerDoctorTask(target, ext)
+
+        // ABI × selection advisory (#81): when an ABI-validation task (kotlinx BCV or the built-in
+        // abiValidation — detected by task name, so neither plugin is a dependency) runs under a
+        // selection narrower than this module's supported set, it can only cover the registered
+        // targets. The hook warns at that moment (strict → fails), so a narrowed
+        // `apiDump`/`apiCheck`
+        // never silently under-covers; a full-selection run leaves supported − registered empty and
+        // stays silent.
+        wireAbiNarrowingAdvisory(target, ext, strict)
 
         // Umbrella lifecycle tasks (#77): OPT-IN via `kmptargets.umbrellaTasks` (default off), read
         // once at apply time as a primitive. Off by default because the umbrellas add dependency
@@ -207,12 +211,7 @@ public class KmpTargetsPlugin : Plugin<Project> {
      * registered unconditionally (not gated on KGP): without KGP or `supports`, the report states
      * explicitly that nothing is declared and nothing registers.
      */
-    private fun registerInfoTask(
-        target: Project,
-        ext: KmpTargetsExtension,
-        configOrigin: String?,
-        abiDumpDirName: String,
-    ) {
+    private fun registerInfoTask(target: Project, ext: KmpTargetsExtension, configOrigin: String?) {
         val projectPath = target.path
         target.tasks.register("kmpTargetsInfo", KmpTargetsInfoTask::class.java) { task ->
             task.group = "help"
@@ -239,13 +238,6 @@ public class KmpTargetsPlugin : Plugin<Project> {
             task.androidWithoutAgp.set(androidWithoutAgpProvider(target, ext))
             task.inertModule.set(inertModuleProvider(target, ext))
             task.nativeOnlyMetadata.set(nativeOnlyMetadataProvider(target, ext))
-            // ABI-dump coverage (#81): the project dir + dump dir name let the action read
-            // committed
-            // dumps at execution time; the registered Gradle names are the basis for the coverage
-            // diff.
-            task.projectDir.set(target.layout.projectDirectory)
-            task.abiDumpDirName.set(abiDumpDirName)
-            task.registeredGradleNames.set(registeredGradleNamesProvider(target, ext))
             // The config-layer origin is fixed at apply time, but the fallback labels must read
             // `defaultSelection` lazily — the body may override it after apply.
             task.originLabel.set(
@@ -279,11 +271,7 @@ public class KmpTargetsPlugin : Plugin<Project> {
      * dependencies are invisible, and the android→jvm fallback only approximates Gradle's attribute
      * matching.
      */
-    private fun registerDoctorTask(
-        target: Project,
-        ext: KmpTargetsExtension,
-        abiDumpDirName: String,
-    ) {
+    private fun registerDoctorTask(target: Project, ext: KmpTargetsExtension) {
         val projectPath = target.path
         val dataFile = target.layout.buildDirectory.file("kmp-targets/doctor-data.properties")
 
@@ -343,10 +331,44 @@ public class KmpTargetsPlugin : Plugin<Project> {
             task.registeredDeprecatedIds.set(registeredDeprecatedIdsProvider(target, ext))
             task.jvmRegisteredAs.set(jvmRegisteredAsProvider(target, ext))
             task.dependencyData.from(dependencyDataFiles)
-            // ABI-dump coverage (#81): same execution-time read as kmpTargetsInfo.
-            task.projectDir.set(target.layout.projectDirectory)
-            task.abiDumpDirName.set(abiDumpDirName)
-            task.registeredGradleNames.set(registeredGradleNamesProvider(target, ext))
+        }
+    }
+
+    /**
+     * Hooks the ABI-validation lifecycle tasks (#81) so a run under a narrowed selection cannot
+     * silently under-cover. Identification is by **task name** ([ABI_TASK_NAMES]) — the only way
+     * that catches BOTH the kotlinx-BCV plugin and Kotlin's built-in `abiValidation` (which has no
+     * separate plugin id) without the plugin taking a dependency on either. When none of those
+     * tasks exists, [org.gradle.api.tasks.TaskCollection.configureEach] matches nothing and this is
+     * a complete no-op.
+     *
+     * The gate is the diff the plugin already owns: `resolvedSupported() − registered()` — the
+     * targets this module *can* build that the current selection did not register. An ABI tool only
+     * ever sees the registered targets, so a non-empty diff means the run under-covers exactly that
+     * set. The check is read inside `configureEach` (task realization, after the build-script
+     * body), so the registration snapshot is final, and only the resulting `List<String>` (plus the
+     * path and the strict flag) is captured into the `doFirst` action — never the extension or
+     * `Project`, so the task stays configuration-cache safe. The warning fires at the moment the
+     * ABI task runs; under strict mode (#34) it fails instead, blocking a narrowed
+     * `apiDump`/`updateKotlinAbi` from committing an under-covered dump. A full-selection run
+     * leaves the diff empty and stays silent.
+     */
+    private fun wireAbiNarrowingAdvisory(
+        target: Project,
+        ext: KmpTargetsExtension,
+        strict: Boolean,
+    ) {
+        val path = target.path
+        target.tasks.configureEach { task ->
+            if (task.name !in ABI_TASK_NAMES) return@configureEach
+            val uncovered = ids(ext.resolvedSupported() - ext.registered())
+            if (uncovered.isEmpty()) return@configureEach
+            val taskName = task.name
+            task.doFirst { realized ->
+                warnOrFail(strict, abiNarrowingWarning(path, taskName, uncovered)) {
+                    realized.logger.warn(it)
+                }
+            }
         }
     }
 
@@ -401,17 +423,6 @@ public class KmpTargetsPlugin : Plugin<Project> {
         ids(ext.registered())
     }
 
-    /**
-     * The Gradle **names** this module registered (issue #81), sorted — the basis for the ABI-dump
-     * coverage diff. Names, not leaf ids, so a jvm leaf renamed via `targetName` (#49) matches its
-     * `api/desktop/` dump and a pre-rename `api/jvm/` correctly shows as orphaned. Realized at
-     * provider time (post-body), so it observes the final registrations.
-     */
-    private fun registeredGradleNamesProvider(target: Project, ext: KmpTargetsExtension) =
-        target.provider {
-            ext.registeredLog.map { it.gradleName }.sorted()
-        }
-
     private fun hostImpossibleIdsProvider(target: Project, ext: KmpTargetsExtension) =
         target.provider {
             if (!hasKgp(target)) emptyList()
@@ -461,6 +472,16 @@ public class KmpTargetsPlugin : Plugin<Project> {
 
     internal companion object {
         const val KGP_ID: String = "org.jetbrains.kotlin.multiplatform"
+
+        /**
+         * The ABI-validation lifecycle task names the narrowing advisory (#81) hooks — the umbrella
+         * tasks users run, for both ABI tools: `apiDump`/`apiCheck` (kotlinx-BCV) and
+         * `updateKotlinAbi`/`checkKotlinAbi` (Kotlin's built-in `abiValidation`). Matching by name
+         * is what lets the plugin cover the built-in tool, which has no separate plugin id, without
+         * depending on either.
+         */
+        val ABI_TASK_NAMES: Set<String> =
+            setOf("apiDump", "apiCheck", "updateKotlinAbi", "checkKotlinAbi")
 
         const val DOCTOR_TASK: String = "kmpTargetsDoctor"
         const val DOCTOR_DATA_TASK: String = "kmpTargetsDoctorData"
@@ -600,21 +621,6 @@ public class KmpTargetsPlugin : Plugin<Project> {
             ?.trim()
             ?.lowercase()
             ?.toBooleanStrictOrNull() ?: false
-
-    /**
-     * Reads the global `kmptargets.abiDumpDir` (#81) through the standard [configSources] chain.
-     * Defaults to `api` — the convention both kotlinx-BCV and the built-in `abiValidation` use for
-     * committed dumps. A blank value is treated as the default; set the key to `off` to disable the
-     * coverage check.
-     */
-    private fun abiDumpDir(
-        target: Project,
-        personal: Map<String, String>?,
-        committed: Map<String, String>?,
-    ): String =
-        configSources(target, ConfigKeys.ABI_DUMP_DIR, personal, committed).read()?.trim()?.takeIf {
-            it.isNotEmpty()
-        } ?: "api"
 
     /** The parsed entries of a dedicated config file in the root directory, or `null` if absent. */
     private fun configFile(target: Project, fileName: String): Map<String, String>? =
@@ -1060,6 +1066,20 @@ internal fun nativeOnlyMetadataWarning(path: String): String =
         "constructs (e.g. @JvmInline): klibs build, metadata fails. Gate it in build-logic when " +
         "kmpTargets.registered(jvmFamily).isEmpty(), disabling only the *KotlinMetadata* " +
         "compilations."
+
+/**
+ * The ABI × selection narrowing advisory (#81). Fired from an ABI task's `doFirst` — so it names
+ * the exact [task] the developer just ran — when the run only covers part of this module's
+ * supported set ([uncovered] = `supported − registered`, never empty here). Mirrors its siblings in
+ * shape and doubles as the strict-mode failure text through [warnOrFail]. Deliberately points at
+ * the team's full-selection CI lane as the real safety net: this signal exists so a local narrowed
+ * run is never silent, not to replace the check that owns the whole ABI.
+ */
+internal fun abiNarrowingWarning(path: String, task: String, uncovered: List<String>): String =
+    "kmp-targets: '$path' is running '$task' under a narrowed selection — it covers only the " +
+        "registered targets, so ${uncovered.joinToString(", ")} are NOT dumped/validated by this " +
+        "run. Run it under the full selection (or the lane that owns each target); your team's " +
+        "full-selection CI lane is the safety net. (strict mode fails this.)"
 
 private fun ids(set: KmpTargetSet): List<String> = set.members.map { it.id }.sorted()
 

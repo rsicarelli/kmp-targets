@@ -2,11 +2,10 @@
 
 The sibling of [`abi-bcv`](../abi-bcv), using the ABI tool that ships **inside** the Kotlin Gradle
 plugin (no third-party plugin) — `kotlin { abiValidation { } }` (experimental in KGP 2.3.21), with
-the `updateKotlinAbi` / `checkKotlinAbi` tasks. The selection × ABI blind spot, and the plugin's
-signal-only response to it, are identical; this sample proves the kmp-targets annotation is
-**tool-agnostic**.
+the `updateKotlinAbi` / `checkKotlinAbi` tasks. The selection blind spot is the same; this sample
+proves the kmp-targets signal is **tool-agnostic** (it hooks ABI tasks by name).
 
-## The blind spot (same as abi-bcv)
+## The blind spot — and why it's worse here
 
 The committed dumps under [`api/`](api) were generated under the **full** selection
 (`kmptargets.targets=jvm,linuxX64,js`):
@@ -17,27 +16,30 @@ The committed dumps under [`api/`](api) were generated under the **full** select
 Under a narrowed lane only the registered targets are seen:
 
 ```bash
-./gradlew checkKotlinAbi  -Pkmptargets.targets=jvm   # validates only the JVM ABI
-./gradlew updateKotlinAbi -Pkmptargets.targets=jvm   # regenerates from jvm only — js/linuxX64 coverage drops/infers
+./gradlew checkKotlinAbi -Pkmptargets.targets=jvm   # only jvm registered
 ```
 
-## What kmp-targets does about it
+Unlike BCV (which fails loudly), the built-in `checkKotlinAbi` here passes **green** — silently
+validating only the JVM ABI while js/linuxX64 drift would sail through. That **false-green** is the
+most dangerous shape of the blind spot, and the kmp-targets signal is the only thing that flags it:
 
-```bash
-./gradlew kmpTargetsDoctor -Pkmptargets.targets=jvm
 ```
-```
-[!] ABI dumps not covered by this selection
-    why:    the ABI dump directory holds dumps covering js, linuxX64, which the current selection did not register
-    effect: the ABI check (checkKotlinAbi/apiCheck) validates only the registered subset — drift on the
-            uncovered targets is a false-green; an ABI update (updateKotlinAbi/apiDump) would drop or infer them
-    fix:    run the ABI update/check under the full selection, or in the lane that owns each target;
-            make CI's full-selection lane run the check explicitly
+> Task :checkKotlinAbi
+kmp-targets: ':' is running 'checkKotlinAbi' under a narrowed selection — it covers only the registered
+targets, so js, linuxX64 are NOT dumped/validated by this run. Run it under the full selection (or the
+lane that owns each target); your team's full-selection CI lane is the safety net. (strict mode fails this.)
+
+BUILD SUCCESSFUL
 ```
 
-Under the full selection the report is silent. The same `kmpTargetsInfo` `ABI dumps` section and the
-`kmptargets.abiDumpDir` knob (default `api`, `off` to disable) apply — see [`abi-bcv`](../abi-bcv)
-for the full write-up.
+Under the full selection `supported − registered` is empty and the signal is silent. With
+`kmptargets.strict=true` it becomes a build failure. The hook is configuration-cache safe (the run
+above stores and reuses a config-cache entry).
+
+## Recommended practice
+
+Same as [`abi-bcv`](../abi-bcv): run the ABI update/check under the full selection (or the owning
+lane), and let CI's full-selection lane be the authoritative gate.
 
 ## Regenerating the dumps
 

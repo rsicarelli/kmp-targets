@@ -25,8 +25,6 @@ internal fun formatKmpTargetsInfo(
     androidWithoutAgp: Boolean = false,
     inertModule: Boolean = false,
     nativeOnlyMetadata: Boolean = false,
-    abiDumpCoveredIds: List<String> = emptyList(),
-    abiDumpUncoveredIds: List<String> = emptyList(),
 ): String = buildString {
     appendLine("kmp-targets — $projectPath")
     appendLine()
@@ -86,25 +84,6 @@ internal fun formatKmpTargetsInfo(
             "  jvm-less: no JVM-family target registered — *KotlinMetadata* compilations reject " +
                 "@JvmInline etc. while the klibs compile; gate on registered(jvmFamily).isEmpty()"
         )
-    }
-    // ABI dumps (#81): rendered only when committed dumps exist, so a project without ABI
-    // validation
-    // sees nothing. `present` names every target the dumps cover; `coverage` appears only when the
-    // current selection left some of them unregistered — the false-green/dropped-dump risk. Empty
-    // by
-    // construction under a full selection (everything registers), so this is silent in the common
-    // case.
-    if (abiDumpCoveredIds.isNotEmpty()) {
-        appendLine()
-        appendLine("ABI dumps (binary-compatibility)")
-        appendLine("  present:  covers ${abiDumpCoveredIds.joinToString(", ")}")
-        if (abiDumpUncoveredIds.isNotEmpty()) {
-            appendLine(
-                "  coverage: ${abiDumpUncoveredIds.joinToString(", ")} not registered under this " +
-                    "selection — apiCheck/checkKotlinAbi validate only the registered subset; an " +
-                    "apiDump/updateKotlinAbi would drop or infer them"
-            )
-        }
     }
     appendLine()
     appendLine("Vocabulary")
