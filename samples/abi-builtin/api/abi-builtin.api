@@ -1,0 +1,5 @@
+public final class com/rsicarelli/kmptargets/sample/Greeting {
+	public fun <init> ()V
+	public final fun greet ()Ljava/lang/String;
+}
+

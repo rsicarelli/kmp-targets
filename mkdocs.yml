@@ -95,6 +95,7 @@ nav:
       - 'Advisories & Strict Mode': user-guide/advisories.md
       - 'Inspecting with kmpTargetsInfo': user-guide/kmp-targets-info.md
       - 'Doctor Mode': user-guide/doctor-mode.md
+      - 'ABI Validation & Selection': user-guide/abi-validation.md
       - 'CI Matrix': user-guide/ci-matrix.md
       - 'Renaming the JVM Target': user-guide/jvm-rename.md
   - 'Samples': samples/index.md

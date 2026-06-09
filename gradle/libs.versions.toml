@@ -4,6 +4,9 @@ junit = "6.1.0"
 ktfmt = "0.26.0"
 asm = "9.8"
 mavenPublish = "0.35.0"
+# Sample-only: the classic kotlinx ABI tool, exercised by samples/abi-bcv to demonstrate the
+# selection × ABI-validation interaction (#81). The main build does not use it.
+binaryCompatibilityValidator = "0.18.1"
 # The plugin's own published version — single declaration point for the standalone samples
 # (they import this catalog and consume the plugin via `alias(libs.plugins.kmpTargets)`).
 # Kept in lockstep with `version=` in gradle.properties by .github/scripts/bump-version.main.kts.
@@ -21,3 +24,4 @@ kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 ktfmt = { id = "com.ncorti.ktfmt.gradle", version.ref = "ktfmt" }
 mavenPublish = { id = "com.vanniktech.maven.publish", version.ref = "mavenPublish" }
 kmpTargets = { id = "com.rsicarelli.kmptargets", version.ref = "kmpTargets" }
+binaryCompatibilityValidator = { id = "org.jetbrains.kotlinx.binary-compatibility-validator", version.ref = "binaryCompatibilityValidator" }

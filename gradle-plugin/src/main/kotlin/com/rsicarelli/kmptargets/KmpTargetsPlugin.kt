@@ -101,6 +101,15 @@ public class KmpTargetsPlugin : Plugin<Project> {
         registerInfoTask(target, ext, configOrigin)
         registerDoctorTask(target, ext)
 
+        // ABI × selection advisory (#81): when an ABI-validation task (kotlinx BCV or the built-in
+        // abiValidation — detected by task name, so neither plugin is a dependency) runs under a
+        // selection narrower than this module's supported set, it can only cover the registered
+        // targets. The hook warns at that moment (strict → fails), so a narrowed
+        // `apiDump`/`apiCheck`
+        // never silently under-covers; a full-selection run leaves supported − registered empty and
+        // stays silent.
+        wireAbiNarrowingAdvisory(target, ext, strict)
+
         // Umbrella lifecycle tasks (#77): OPT-IN via `kmptargets.umbrellaTasks` (default off), read
         // once at apply time as a primitive. Off by default because the umbrellas add dependency
         // edges to every registered target's compile/test tasks — a build wants them only when it
@@ -326,6 +335,44 @@ public class KmpTargetsPlugin : Plugin<Project> {
     }
 
     /**
+     * Hooks the ABI-validation lifecycle tasks (#81) so a run under a narrowed selection cannot
+     * silently under-cover. Identification is by **task name** ([ABI_TASK_NAMES]) — the only way
+     * that catches BOTH the kotlinx-BCV plugin and Kotlin's built-in `abiValidation` (which has no
+     * separate plugin id) without the plugin taking a dependency on either. When none of those
+     * tasks exists, [org.gradle.api.tasks.TaskCollection.configureEach] matches nothing and this is
+     * a complete no-op.
+     *
+     * The gate is the diff the plugin already owns: `resolvedSupported() − registered()` — the
+     * targets this module *can* build that the current selection did not register. An ABI tool only
+     * ever sees the registered targets, so a non-empty diff means the run under-covers exactly that
+     * set. The check is read inside `configureEach` (task realization, after the build-script
+     * body), so the registration snapshot is final, and only the resulting `List<String>` (plus the
+     * path and the strict flag) is captured into the `doFirst` action — never the extension or
+     * `Project`, so the task stays configuration-cache safe. The warning fires at the moment the
+     * ABI task runs; under strict mode (#34) it fails instead, blocking a narrowed
+     * `apiDump`/`updateKotlinAbi` from committing an under-covered dump. A full-selection run
+     * leaves the diff empty and stays silent.
+     */
+    private fun wireAbiNarrowingAdvisory(
+        target: Project,
+        ext: KmpTargetsExtension,
+        strict: Boolean,
+    ) {
+        val path = target.path
+        target.tasks.configureEach { task ->
+            if (task.name !in ABI_TASK_NAMES) return@configureEach
+            val uncovered = abiUncoveredGroups(ext.resolvedSupported(), ext.registered())
+            if (uncovered.isEmpty()) return@configureEach
+            val taskName = task.name
+            task.doFirst { realized ->
+                warnOrFail(strict, abiNarrowingWarning(path, taskName, uncovered)) {
+                    realized.logger.warn(it)
+                }
+            }
+        }
+    }
+
+    /**
      * Live-mirrors every `project(...)` dependency this project declares (now or later in the body)
      * into [closureDeps] as a plain coordinate, so the closure configuration resolves those
      * dependencies' doctor-data without an `afterEvaluate` and without reading any peer `Project`
@@ -425,6 +472,16 @@ public class KmpTargetsPlugin : Plugin<Project> {
 
     internal companion object {
         const val KGP_ID: String = "org.jetbrains.kotlin.multiplatform"
+
+        /**
+         * The ABI-validation lifecycle task names the narrowing advisory (#81) hooks — the umbrella
+         * tasks users run, for both ABI tools: `apiDump`/`apiCheck` (kotlinx-BCV) and
+         * `updateKotlinAbi`/`checkKotlinAbi` (Kotlin's built-in `abiValidation`). Matching by name
+         * is what lets the plugin cover the built-in tool, which has no separate plugin id, without
+         * depending on either.
+         */
+        val ABI_TASK_NAMES: Set<String> =
+            setOf("apiDump", "apiCheck", "updateKotlinAbi", "checkKotlinAbi")
 
         const val DOCTOR_TASK: String = "kmpTargetsDoctor"
         const val DOCTOR_DATA_TASK: String = "kmpTargetsDoctorData"
@@ -1009,6 +1066,58 @@ internal fun nativeOnlyMetadataWarning(path: String): String =
         "constructs (e.g. @JvmInline): klibs build, metadata fails. Gate it in build-logic when " +
         "kmpTargets.registered(jvmFamily).isEmpty(), disabling only the *KotlinMetadata* " +
         "compilations."
+
+/**
+ * The ABI × selection narrowing advisory (#81). Fired from an ABI task's `doFirst` — so it names
+ * the exact [task] the developer just ran — when the run only covers part of this module's
+ * supported set ([uncovered] = `supported − registered`, never empty here). Mirrors its siblings in
+ * shape and doubles as the strict-mode failure text through [warnOrFail]. Deliberately points at
+ * the team's full-selection CI lane as the real safety net: this signal exists so a local narrowed
+ * run is never silent, not to replace the check that owns the whole ABI.
+ */
+internal fun abiNarrowingWarning(path: String, task: String, uncovered: List<String>): String =
+    "kmp-targets: '$path' is running '$task' under a narrowed selection — it covers only the " +
+        "registered targets, so the ABI of ${uncovered.joinToString(", ")} is NOT dumped/validated " +
+        "by this run. Run it under the full selection (or the lane that owns each target); your " +
+        "team's full-selection CI lane is the safety net. (strict mode fails this.)"
+
+/**
+ * The supported leaves the current selection left unregistered AND whose **ABI group** has no
+ * registered representative (#81), as sorted ids — the precise gate for the narrowing advisory. A
+ * leaf is deliberately *not* flagged when a same-ABI-group sibling registered: with `iosArm64 +
+ * iosSimulatorArm64` supported but only `iosSimulatorArm64` registered, the iOS ABI surface is
+ * still dumped/validated by the simulator (KLIB dumps share declarations across a family and infer
+ * siblings), so warning about `iosArm64` would be a false alarm that trains users to ignore the
+ * signal. A whole family with no registered member (e.g. `linuxX64`/`js` while only `jvm`
+ * registered) is still flagged. Pure over its inputs, so it is unit-testable without Gradle.
+ */
+internal fun abiUncoveredGroups(supported: KmpTargetSet, registered: KmpTargetSet): List<String> {
+    val coveredGroups = registered.members.mapTo(mutableSetOf(), ::abiGroupOf)
+    return (supported.members - registered.members)
+        .filterNot { abiGroupOf(it) in coveredGroups }
+        .map { it.id }
+        .sorted()
+}
+
+/**
+ * The ABI group a leaf belongs to — the granularity at which KLIB ABI dumps share declarations and
+ * infer siblings (#81). Native targets group by konan family (every iOS leaf shares one ABI, every
+ * linux leaf another, the four androidNative arches one); the JVM-backed leaves (`jvm`,
+ * `androidTarget`) and each web leaf are distinct ABIs, so each is its own group. Derived from the
+ * sealed hierarchy, so it loads no konan classes (safe even when KGP is absent).
+ */
+internal fun abiGroupOf(leaf: KmpTarget): String =
+    when (leaf) {
+        is KmpTarget.Native.Apple.Ios -> "ios"
+        is KmpTarget.Native.Apple.Macos -> "macos"
+        is KmpTarget.Native.Apple.Watchos -> "watchos"
+        is KmpTarget.Native.Apple.Tvos -> "tvos"
+        is KmpTarget.Native.Linux -> "linux"
+        is KmpTarget.Native.Mingw -> "mingw"
+        is KmpTarget.Native.AndroidNative -> "androidNative"
+        is KmpTarget.Jvm,
+        is KmpTarget.Web -> leaf.id
+    }
 
 private fun ids(set: KmpTargetSet): List<String> = set.members.map { it.id }.sorted()
 

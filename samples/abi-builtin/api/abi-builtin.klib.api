@@ -1,0 +1,13 @@
+// Klib ABI Dump
+// Targets: [js, linuxX64]
+// Rendering settings:
+// - Signature version: 2
+// - Show manifest properties: true
+// - Show declarations: true
+
+// Library unique name: <abi-builtin>
+final class com.rsicarelli.kmptargets.sample/Greeting { // com.rsicarelli.kmptargets.sample/Greeting|null[0]
+    constructor <init>() // com.rsicarelli.kmptargets.sample/Greeting.<init>|<init>(){}[0]
+
+    final fun greet(): kotlin/String // com.rsicarelli.kmptargets.sample/Greeting.greet|greet(){}[0]
+}
