@@ -361,7 +361,7 @@ public class KmpTargetsPlugin : Plugin<Project> {
         val path = target.path
         target.tasks.configureEach { task ->
             if (task.name !in ABI_TASK_NAMES) return@configureEach
-            val uncovered = ids(ext.resolvedSupported() - ext.registered())
+            val uncovered = abiUncoveredGroups(ext.resolvedSupported(), ext.registered())
             if (uncovered.isEmpty()) return@configureEach
             val taskName = task.name
             task.doFirst { realized ->
@@ -1080,6 +1080,44 @@ internal fun abiNarrowingWarning(path: String, task: String, uncovered: List<Str
         "registered targets, so ${uncovered.joinToString(", ")} are NOT dumped/validated by this " +
         "run. Run it under the full selection (or the lane that owns each target); your team's " +
         "full-selection CI lane is the safety net. (strict mode fails this.)"
+
+/**
+ * The supported leaves the current selection left unregistered AND whose **ABI group** has no
+ * registered representative (#81), as sorted ids — the precise gate for the narrowing advisory. A
+ * leaf is deliberately *not* flagged when a same-ABI-group sibling registered: with `iosArm64 +
+ * iosSimulatorArm64` supported but only `iosSimulatorArm64` registered, the iOS ABI surface is
+ * still dumped/validated by the simulator (KLIB dumps share declarations across a family and infer
+ * siblings), so warning about `iosArm64` would be a false alarm that trains users to ignore the
+ * signal. A whole family with no registered member (e.g. `linuxX64`/`js` while only `jvm`
+ * registered) is still flagged. Pure over its inputs, so it is unit-testable without Gradle.
+ */
+internal fun abiUncoveredGroups(supported: KmpTargetSet, registered: KmpTargetSet): List<String> {
+    val coveredGroups = registered.members.mapTo(mutableSetOf(), ::abiGroupOf)
+    return (supported.members - registered.members)
+        .filterNot { abiGroupOf(it) in coveredGroups }
+        .map { it.id }
+        .sorted()
+}
+
+/**
+ * The ABI group a leaf belongs to — the granularity at which KLIB ABI dumps share declarations and
+ * infer siblings (#81). Native targets group by konan family (every iOS leaf shares one ABI, every
+ * linux leaf another, the four androidNative arches one); the JVM-backed leaves (`jvm`,
+ * `androidTarget`) and each web leaf are distinct ABIs, so each is its own group. Derived from the
+ * sealed hierarchy, so it loads no konan classes (safe even when KGP is absent).
+ */
+internal fun abiGroupOf(leaf: KmpTarget): String =
+    when (leaf) {
+        is KmpTarget.Native.Apple.Ios -> "ios"
+        is KmpTarget.Native.Apple.Macos -> "macos"
+        is KmpTarget.Native.Apple.Watchos -> "watchos"
+        is KmpTarget.Native.Apple.Tvos -> "tvos"
+        is KmpTarget.Native.Linux -> "linux"
+        is KmpTarget.Native.Mingw -> "mingw"
+        is KmpTarget.Native.AndroidNative -> "androidNative"
+        is KmpTarget.Jvm,
+        is KmpTarget.Web -> leaf.id
+    }
 
 private fun ids(set: KmpTargetSet): List<String> = set.members.map { it.id }.sorted()
 

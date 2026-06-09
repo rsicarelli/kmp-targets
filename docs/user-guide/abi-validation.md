@@ -26,6 +26,8 @@ selection (or the lane that owns each target); your team's full-selection CI lan
 (strict mode fails this.)
 ```
 
+The gate is **ABI-group-aware**, so it doesn't cry wolf on the most common narrowing there is. A leaf is only flagged when its whole ABI group has *no* registered representative: with `iosArm64 + iosSimulatorArm64` supported but only `iosSimulatorArm64` registered, the iOS ABI surface is still dumped/validated by the simulator (KLIB dumps share declarations across a family), so `iosArm64` is **not** flagged. Drop a whole family — `linuxX64`/`js` while only `jvm` is registered — and it is. Native targets group by konan family (all iOS leaves, all linux leaves, the four androidNative arches); `jvm`, `androidTarget`, and each web leaf are distinct ABIs.
+
 It is deliberately **signal-only and best-effort**, not a guarantee:
 
 - It compiles nothing, parses no dump files, and reads no `api/` directory — just a set difference the plugin already computes. Configuration-cache safe (the `doFirst` captures only strings).

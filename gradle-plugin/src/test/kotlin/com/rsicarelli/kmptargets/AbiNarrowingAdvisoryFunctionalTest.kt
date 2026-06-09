@@ -36,6 +36,26 @@ class AbiNarrowingAdvisoryFunctionalTest {
     }
 
     @Test
+    fun `given a same-ABI-group sibling is registered when an abi task runs then it stays silent`(
+        @TempDir dir: Path
+    ) {
+        // iosArm64 + iosSimulatorArm64 supported, narrowed to the simulator: the iOS ABI is still
+        // covered by the registered simulator, so the advisory must NOT fire for iosArm64.
+        writeFixture(
+            dir,
+            supports = "iosArm64 + iosSimulatorArm64",
+            selection = "iosSimulatorArm64",
+        )
+        val result =
+            GradleRunner.create()
+                .withProjectDir(dir.toFile())
+                .withPluginClasspath()
+                .withArguments("apiCheck")
+                .build()
+        assertTrue("narrowed selection" !in result.output, result.output)
+    }
+
+    @Test
     fun `given the full selection when an abi task runs then it stays silent`(@TempDir dir: Path) {
         writeFixture(dir, selection = "jvm,linuxX64,js")
         val result =
@@ -64,7 +84,12 @@ class AbiNarrowingAdvisoryFunctionalTest {
         )
     }
 
-    private fun writeFixture(dir: Path, selection: String, strict: Boolean = false) {
+    private fun writeFixture(
+        dir: Path,
+        selection: String,
+        supports: String = "jvm + linuxX64 + js",
+        strict: Boolean = false,
+    ) {
         dir.resolve("settings.gradle.kts").writeText("rootProject.name = \"fixture\"\n")
         dir.resolve("gradle.properties")
             .writeText(
@@ -80,7 +105,7 @@ class AbiNarrowingAdvisoryFunctionalTest {
 
                 repositories { mavenCentral() }
 
-                kmpTargets { supports { jvm + linuxX64 + js } }
+                kmpTargets { supports { $supports } }
 
                 // Stand-in for an ABI tool's umbrella task — the hook matches on the name.
                 tasks.register("apiCheck") { group = "verification" }
