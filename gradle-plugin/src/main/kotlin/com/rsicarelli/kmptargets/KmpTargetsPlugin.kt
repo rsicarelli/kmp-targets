@@ -85,6 +85,11 @@ public class KmpTargetsPlugin : Plugin<Project> {
         // once at apply time as a primitive Boolean (default off) so no `Project` is captured.
         val strict: Boolean = strictModeEnabled(target, personal, committed)
 
+        // ABI-dump coverage check (#81): the directory the report tasks inspect for committed ABI
+        // dumps, read once at apply time as a primitive. Defaults to `api` (the convention both
+        // kotlinx-BCV and the built-in abiValidation use); blank/`off` disables the check.
+        val abiDumpDirName: String = abiDumpDir(target, personal, committed)
+
         // Eager registration: `supports { … }` in the build-script body registers `selection ∩
         // supported` immediately — no deferred (after-evaluate) pass, no timing wall. We hook it
         // via
@@ -98,8 +103,8 @@ public class KmpTargetsPlugin : Plugin<Project> {
             }
         }
 
-        registerInfoTask(target, ext, configOrigin)
-        registerDoctorTask(target, ext)
+        registerInfoTask(target, ext, configOrigin, abiDumpDirName)
+        registerDoctorTask(target, ext, abiDumpDirName)
 
         // Umbrella lifecycle tasks (#77): OPT-IN via `kmptargets.umbrellaTasks` (default off), read
         // once at apply time as a primitive. Off by default because the umbrellas add dependency
@@ -202,7 +207,12 @@ public class KmpTargetsPlugin : Plugin<Project> {
      * registered unconditionally (not gated on KGP): without KGP or `supports`, the report states
      * explicitly that nothing is declared and nothing registers.
      */
-    private fun registerInfoTask(target: Project, ext: KmpTargetsExtension, configOrigin: String?) {
+    private fun registerInfoTask(
+        target: Project,
+        ext: KmpTargetsExtension,
+        configOrigin: String?,
+        abiDumpDirName: String,
+    ) {
         val projectPath = target.path
         target.tasks.register("kmpTargetsInfo", KmpTargetsInfoTask::class.java) { task ->
             task.group = "help"
@@ -229,6 +239,13 @@ public class KmpTargetsPlugin : Plugin<Project> {
             task.androidWithoutAgp.set(androidWithoutAgpProvider(target, ext))
             task.inertModule.set(inertModuleProvider(target, ext))
             task.nativeOnlyMetadata.set(nativeOnlyMetadataProvider(target, ext))
+            // ABI-dump coverage (#81): the project dir + dump dir name let the action read
+            // committed
+            // dumps at execution time; the registered Gradle names are the basis for the coverage
+            // diff.
+            task.projectDir.set(target.layout.projectDirectory)
+            task.abiDumpDirName.set(abiDumpDirName)
+            task.registeredGradleNames.set(registeredGradleNamesProvider(target, ext))
             // The config-layer origin is fixed at apply time, but the fallback labels must read
             // `defaultSelection` lazily — the body may override it after apply.
             task.originLabel.set(
@@ -262,7 +279,11 @@ public class KmpTargetsPlugin : Plugin<Project> {
      * dependencies are invisible, and the android→jvm fallback only approximates Gradle's attribute
      * matching.
      */
-    private fun registerDoctorTask(target: Project, ext: KmpTargetsExtension) {
+    private fun registerDoctorTask(
+        target: Project,
+        ext: KmpTargetsExtension,
+        abiDumpDirName: String,
+    ) {
         val projectPath = target.path
         val dataFile = target.layout.buildDirectory.file("kmp-targets/doctor-data.properties")
 
@@ -322,6 +343,10 @@ public class KmpTargetsPlugin : Plugin<Project> {
             task.registeredDeprecatedIds.set(registeredDeprecatedIdsProvider(target, ext))
             task.jvmRegisteredAs.set(jvmRegisteredAsProvider(target, ext))
             task.dependencyData.from(dependencyDataFiles)
+            // ABI-dump coverage (#81): same execution-time read as kmpTargetsInfo.
+            task.projectDir.set(target.layout.projectDirectory)
+            task.abiDumpDirName.set(abiDumpDirName)
+            task.registeredGradleNames.set(registeredGradleNamesProvider(target, ext))
         }
     }
 
@@ -375,6 +400,17 @@ public class KmpTargetsPlugin : Plugin<Project> {
     private fun registeredIdsProvider(target: Project, ext: KmpTargetsExtension) = target.provider {
         ids(ext.registered())
     }
+
+    /**
+     * The Gradle **names** this module registered (issue #81), sorted — the basis for the ABI-dump
+     * coverage diff. Names, not leaf ids, so a jvm leaf renamed via `targetName` (#49) matches its
+     * `api/desktop/` dump and a pre-rename `api/jvm/` correctly shows as orphaned. Realized at
+     * provider time (post-body), so it observes the final registrations.
+     */
+    private fun registeredGradleNamesProvider(target: Project, ext: KmpTargetsExtension) =
+        target.provider {
+            ext.registeredLog.map { it.gradleName }.sorted()
+        }
 
     private fun hostImpossibleIdsProvider(target: Project, ext: KmpTargetsExtension) =
         target.provider {
@@ -564,6 +600,21 @@ public class KmpTargetsPlugin : Plugin<Project> {
             ?.trim()
             ?.lowercase()
             ?.toBooleanStrictOrNull() ?: false
+
+    /**
+     * Reads the global `kmptargets.abiDumpDir` (#81) through the standard [configSources] chain.
+     * Defaults to `api` — the convention both kotlinx-BCV and the built-in `abiValidation` use for
+     * committed dumps. A blank value is treated as the default; set the key to `off` to disable the
+     * coverage check.
+     */
+    private fun abiDumpDir(
+        target: Project,
+        personal: Map<String, String>?,
+        committed: Map<String, String>?,
+    ): String =
+        configSources(target, ConfigKeys.ABI_DUMP_DIR, personal, committed).read()?.trim()?.takeIf {
+            it.isNotEmpty()
+        } ?: "api"
 
     /** The parsed entries of a dedicated config file in the root directory, or `null` if absent. */
     private fun configFile(target: Project, fileName: String): Map<String, String>? =

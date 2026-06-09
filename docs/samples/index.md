@@ -1,6 +1,6 @@
 # Samples
 
-Two standalone sample builds live in the repo, consuming the plugin exactly as an external project would. Both share the root version catalog and resolve the plugin by version (mavenLocal in the dev loop, Maven Central for consumers).
+Four standalone sample builds live in the repo, consuming the plugin exactly as an external project would. They share the root version catalog and resolve the plugin by version (mavenLocal in the dev loop, Maven Central for consumers).
 
 ## hello-world — the multi-module showcase
 
@@ -30,6 +30,15 @@ Drive it like CI does:
 ## isolated-projects — the compatibility gate
 
 [`samples/isolated-projects`](https://github.com/rsicarelli/kmp-targets/tree/main/samples/isolated-projects) is a two-module build ([`lib`](https://github.com/rsicarelli/kmp-targets/tree/main/samples/isolated-projects/lib) supports `all`, [`app`](https://github.com/rsicarelli/kmp-targets/tree/main/samples/isolated-projects/app) supports `jvm` and depends on `lib`) running with **Gradle Isolated Projects enabled**. `lib` carries a `verifyIsolatedConfiguration` regression gate, so the plugin's Isolated Projects compatibility is exercised, not claimed.
+
+## abi-bcv & abi-builtin — the ABI-validation blind spot
+
+Two single-module libraries that support `jvm + linuxX64 + js` and commit ABI dumps under `api/`, one per tool: [`samples/abi-bcv`](https://github.com/rsicarelli/kmp-targets/tree/main/samples/abi-bcv) uses the classic [kotlinx binary-compatibility-validator](https://github.com/Kotlin/binary-compatibility-validator); [`samples/abi-builtin`](https://github.com/rsicarelli/kmp-targets/tree/main/samples/abi-builtin) uses Kotlin's built-in `abiValidation`. Both make the same point concrete: an ABI tool only sees the targets the current selection registered, so running it under a narrowed lane silently under-covers the committed dumps. The plugin's [ABI coverage signal](../user-guide/abi-validation.md) flags exactly that — see the per-sample READMEs.
+
+```bash
+./gradlew -p samples/abi-bcv     kmpTargetsDoctor "-Pkmptargets.targets=jvm"   # flags js, linuxX64 as uncovered
+./gradlew -p samples/abi-builtin kmpTargetsDoctor                              # full selection → clean bill
+```
 
 ## CI runs them for real
 

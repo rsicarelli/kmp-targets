@@ -1,7 +1,10 @@
 package com.rsicarelli.kmptargets.doctor
 
+import com.rsicarelli.kmptargets.abi.abiDumpUncovered
+import com.rsicarelli.kmptargets.abi.readAbiDumpCoveredTargets
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.InputFiles
@@ -75,11 +78,32 @@ public abstract class KmpTargetsDoctorTask : DefaultTask() {
     @get:PathSensitive(PathSensitivity.NONE)
     public abstract val dependencyData: ConfigurableFileCollection
 
+    /**
+     * This project's directory, so the action can resolve the ABI dump dir at execution time (#81).
+     */
+    @get:Internal public abstract val projectDir: DirectoryProperty
+
+    /**
+     * Directory the ABI-dump coverage check inspects (default `api`); blank/`off` disables it
+     * (#81).
+     */
+    @get:Internal public abstract val abiDumpDirName: Property<String>
+
+    /**
+     * The Gradle names this module actually registered — the basis for the ABI coverage diff (#81).
+     */
+    @get:Internal public abstract val registeredGradleNames: ListProperty<String>
+
     @TaskAction
     public fun report() {
         val dependencies =
             dependencyData.files.map { parseDoctorData(it.readText()) }.sortedBy { it.path }
         val gaps = computeClosureGaps(registeredIds.get(), dependencies)
+        val dirName = abiDumpDirName.getOrElse("").trim()
+        val covered =
+            if (dirName.isEmpty() || dirName.equals("off", ignoreCase = true)) emptySet()
+            else readAbiDumpCoveredTargets(projectDir.get().asFile.resolve(dirName))
+        val abiUncovered = abiDumpUncovered(covered, registeredGradleNames.get().toSet())
         println(
             formatKmpTargetsDoctor(
                 projectPath = projectPath.get(),
@@ -97,6 +121,7 @@ public abstract class KmpTargetsDoctorTask : DefaultTask() {
                 jvmRegisteredAs = jvmRegisteredAs.orNull?.takeIf { it.isNotBlank() },
                 closureDepCount = dependencies.size,
                 closureGaps = gaps,
+                abiDumpUncoveredIds = abiUncovered,
             )
         )
     }

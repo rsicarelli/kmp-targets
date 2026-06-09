@@ -1,6 +1,9 @@
 package com.rsicarelli.kmptargets.info
 
+import com.rsicarelli.kmptargets.abi.abiDumpUncovered
+import com.rsicarelli.kmptargets.abi.readAbiDumpCoveredTargets
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Internal
@@ -97,8 +100,29 @@ public abstract class KmpTargetsInfoTask : DefaultTask() {
      */
     @get:Internal public abstract val nativeOnlyMetadata: Property<Boolean>
 
+    /**
+     * This project's directory, so the action can resolve the ABI dump dir at execution time (#81).
+     */
+    @get:Internal public abstract val projectDir: DirectoryProperty
+
+    /**
+     * Directory the ABI-dump coverage check inspects (default `api`); blank/`off` disables it
+     * (#81).
+     */
+    @get:Internal public abstract val abiDumpDirName: Property<String>
+
+    /**
+     * The Gradle names this module actually registered — the basis for the ABI coverage diff (#81).
+     */
+    @get:Internal public abstract val registeredGradleNames: ListProperty<String>
+
     @TaskAction
     public fun report() {
+        val dirName = abiDumpDirName.getOrElse("").trim()
+        val covered =
+            if (dirName.isEmpty() || dirName.equals("off", ignoreCase = true)) emptySet()
+            else readAbiDumpCoveredTargets(projectDir.get().asFile.resolve(dirName))
+        val uncovered = abiDumpUncovered(covered, registeredGradleNames.get().toSet())
         println(
             formatKmpTargetsInfo(
                 projectPath = projectPath.get(),
@@ -116,6 +140,8 @@ public abstract class KmpTargetsInfoTask : DefaultTask() {
                 androidWithoutAgp = androidWithoutAgp.get(),
                 inertModule = inertModule.get(),
                 nativeOnlyMetadata = nativeOnlyMetadata.get(),
+                abiDumpCoveredIds = covered.sorted(),
+                abiDumpUncoveredIds = uncovered,
             )
         )
     }

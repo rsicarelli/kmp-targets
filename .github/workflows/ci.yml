@@ -41,3 +41,13 @@ jobs:
 
       - name: Build sample (isolated-projects, Isolated Projects enabled)
         run: ./gradlew -p samples/isolated-projects build
+
+      # ABI × selection blind spot (#81): under a narrowed jvm lane the committed dumps cover
+      # targets the build did not register, so kmpTargetsDoctor flags it. Doctor compiles nothing,
+      # so this stays on the fast lane (no Kotlin/Native toolchain). The -P flag is quoted for
+      # PowerShell parity with the sample matrix; harmless on bash.
+      - name: ABI coverage signal (kotlinx BCV sample)
+        run: ./gradlew -p samples/abi-bcv kmpTargetsDoctor "-Pkmptargets.targets=jvm"
+
+      - name: ABI coverage signal (built-in abiValidation sample)
+        run: ./gradlew -p samples/abi-builtin kmpTargetsDoctor "-Pkmptargets.targets=jvm"
