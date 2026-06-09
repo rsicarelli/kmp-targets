@@ -2,11 +2,10 @@
 //
 // A standalone, single-module library that supports jvm + linuxX64 + js and commits BCV's ABI dumps
 // under api/. Its point is the selection × ABI interaction: BCV only ever sees the targets the
-// current selection registered, so running its tasks under a narrowed lane silently under-covers
-// the
-// committed dumps. The plugin's `kmpTargetsDoctor` / `kmpTargetsInfo` reports flag that gap (see
-// the
-// README). The plugin itself never depends on BCV — it only reads the api/ directory.
+// current selection registered, so running its tasks under a narrowed lane under-covers. The plugin
+// hooks the ABI tasks by name and warns at that moment (strict → fails) — see the README. The
+// plugin
+// itself never depends on BCV.
 plugins {
     kotlin("multiplatform") version libs.versions.kotlin.get()
     alias(libs.plugins.kmpTargets)

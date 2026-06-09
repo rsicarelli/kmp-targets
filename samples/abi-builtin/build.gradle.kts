@@ -4,11 +4,9 @@ import org.jetbrains.kotlin.gradle.dsl.abi.ExperimentalAbiValidation
 //
 // Same shape as the abi-bcv sample, but the ABI tool is the one that ships inside the Kotlin Gradle
 // plugin (no third-party plugin): `kotlin { abiValidation { } }`, with updateKotlinAbi /
-// checkKotlinAbi
-// tasks. The committed dumps live under api/, and the selection × ABI blind spot — plus the
-// plugin's
-// signal-only `kmpTargetsDoctor` / `kmpTargetsInfo` annotation of it — is identical. See the
-// README.
+// checkKotlinAbi tasks. The committed dumps live under api/, and the selection × ABI blind spot —
+// plus
+// the plugin's task-name hook that warns under a narrowed lane — is identical. See the README.
 plugins {
     kotlin("multiplatform") version libs.versions.kotlin.get()
     alias(libs.plugins.kmpTargets)
