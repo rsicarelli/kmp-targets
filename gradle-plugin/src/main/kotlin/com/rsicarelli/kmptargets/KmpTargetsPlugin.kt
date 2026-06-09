@@ -1077,9 +1077,9 @@ internal fun nativeOnlyMetadataWarning(path: String): String =
  */
 internal fun abiNarrowingWarning(path: String, task: String, uncovered: List<String>): String =
     "kmp-targets: '$path' is running '$task' under a narrowed selection — it covers only the " +
-        "registered targets, so ${uncovered.joinToString(", ")} are NOT dumped/validated by this " +
-        "run. Run it under the full selection (or the lane that owns each target); your team's " +
-        "full-selection CI lane is the safety net. (strict mode fails this.)"
+        "registered targets, so the ABI of ${uncovered.joinToString(", ")} is NOT dumped/validated " +
+        "by this run. Run it under the full selection (or the lane that owns each target); your " +
+        "team's full-selection CI lane is the safety net. (strict mode fails this.)"
 
 /**
  * The supported leaves the current selection left unregistered AND whose **ABI group** has no

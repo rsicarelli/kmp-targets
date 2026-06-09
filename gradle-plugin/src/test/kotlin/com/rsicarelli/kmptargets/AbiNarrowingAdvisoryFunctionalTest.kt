@@ -32,7 +32,7 @@ class AbiNarrowingAdvisoryFunctionalTest {
             "is running 'apiCheck' under a narrowed selection" in result.output,
             result.output,
         )
-        assertTrue("js, linuxX64 are NOT dumped/validated" in result.output, result.output)
+        assertTrue("js, linuxX64 is NOT dumped/validated" in result.output, result.output)
     }
 
     @Test
