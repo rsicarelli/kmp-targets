@@ -12,13 +12,13 @@
         <meta name="author" content="Rodrigo Sicarelli">
       
       
-        <link rel="canonical" href="https://rsicarelli.github.io/kmp-targets/snapshot/get-started/index.html">
+        <link rel="canonical" href="https://rsicarelli.github.io/kmp-targets/snapshot/user-guide/abi-validation.html">
       
       
-        <link rel="prev" href="../why-kmp-targets.html">
+        <link rel="prev" href="doctor-mode.html">
       
       
-        <link rel="next" href="quick-start.html">
+        <link rel="next" href="ci-matrix.html">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
@@ -26,7 +26,7 @@
     
     
       
-        <title>Installation - kmp-targets</title>
+        <title>ABI Validation & Selection - kmp-targets</title>
       
     
     
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#installation" class="md-skip">
+        <a href="#abi-validation-selection" class="md-skip">
           Skip to content
         </a>
       
@@ -120,7 +120,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Installation
+              ABI Validation & Selection
             
           </span>
         </div>
@@ -309,20 +309,18 @@
       
   
   
-    
   
   
-  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
         
           
           <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
@@ -338,7 +336,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             Get Started
@@ -349,32 +347,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    Installation
-    
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="index.html" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../get-started/index.html" class="md-nav__link">
         
   
   
@@ -385,44 +361,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#prerequisites" class="md-nav__link">
-    <span class="md-ellipsis">
-      Prerequisites
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#apply-the-plugin" class="md-nav__link">
-    <span class="md-ellipsis">
-      Apply the plugin
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -435,7 +373,7 @@
   
   
     <li class="md-nav__item">
-      <a href="quick-start.html" class="md-nav__link">
+      <a href="../get-started/quick-start.html" class="md-nav__link">
         
   
   
@@ -462,18 +400,20 @@
       
   
   
+    
   
   
+  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
         
           
           <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
@@ -489,7 +429,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_4">
             <span class="md-nav__icon md-icon"></span>
             User Guide
@@ -503,7 +443,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../user-guide/selection-dsl.html" class="md-nav__link">
+      <a href="selection-dsl.html" class="md-nav__link">
         
   
   
@@ -526,7 +466,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../user-guide/selection-layers.html" class="md-nav__link">
+      <a href="selection-layers.html" class="md-nav__link">
         
   
   
@@ -549,7 +489,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../user-guide/targets-reference.html" class="md-nav__link">
+      <a href="targets-reference.html" class="md-nav__link">
         
   
   
@@ -572,7 +512,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../user-guide/hierarchy-template.html" class="md-nav__link">
+      <a href="hierarchy-template.html" class="md-nav__link">
         
   
   
@@ -595,7 +535,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../user-guide/no-collapse-mode.html" class="md-nav__link">
+      <a href="no-collapse-mode.html" class="md-nav__link">
         
   
   
@@ -618,7 +558,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../user-guide/build-logic.html" class="md-nav__link">
+      <a href="build-logic.html" class="md-nav__link">
         
   
   
@@ -641,7 +581,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../user-guide/recipes.html" class="md-nav__link">
+      <a href="recipes.html" class="md-nav__link">
         
   
   
@@ -664,7 +604,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../user-guide/advisories.html" class="md-nav__link">
+      <a href="advisories.html" class="md-nav__link">
         
   
   
@@ -687,7 +627,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../user-guide/kmp-targets-info.html" class="md-nav__link">
+      <a href="kmp-targets-info.html" class="md-nav__link">
         
   
   
@@ -710,7 +650,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../user-guide/doctor-mode.html" class="md-nav__link">
+      <a href="doctor-mode.html" class="md-nav__link">
         
   
   
@@ -730,10 +670,32 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../user-guide/abi-validation.html" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    ABI Validation & Selection
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="abi-validation.html" class="md-nav__link md-nav__link--active">
         
   
   
@@ -744,6 +706,53 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-blind-spot" class="md-nav__link">
+    <span class="md-ellipsis">
+      The blind spot
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-signal-kmp-targets-adds" class="md-nav__link">
+    <span class="md-ellipsis">
+      The signal kmp-targets adds
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recommended-practice" class="md-nav__link">
+    <span class="md-ellipsis">
+      Recommended practice
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -756,7 +765,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../user-guide/ci-matrix.html" class="md-nav__link">
+      <a href="ci-matrix.html" class="md-nav__link">
         
   
   
@@ -779,7 +788,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../user-guide/jvm-rename.html" class="md-nav__link">
+      <a href="jvm-rename.html" class="md-nav__link">
         
   
   
@@ -964,18 +973,27 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#prerequisites" class="md-nav__link">
+  <a href="#the-blind-spot" class="md-nav__link">
     <span class="md-ellipsis">
-      Prerequisites
+      The blind spot
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#apply-the-plugin" class="md-nav__link">
+  <a href="#the-signal-kmp-targets-adds" class="md-nav__link">
     <span class="md-ellipsis">
-      Apply the plugin
+      The signal kmp-targets adds
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recommended-practice" class="md-nav__link">
+    <span class="md-ellipsis">
+      Recommended practice
     </span>
   </a>
   
@@ -1000,110 +1018,41 @@
   
 
 
-<h1 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h1>
-<h2 id="prerequisites">Prerequisites<a class="headerlink" href="#prerequisites" title="Permanent link">&para;</a></h2>
-<table>
-<thead>
-<tr>
-<th>Requirement</th>
-<th>Floor</th>
-<th>Notes</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Gradle</td>
-<td><strong>8.11+</strong></td>
-<td>the published jar carries Kotlin 2.0 metadata, readable by Gradle 8.x <code>kotlin-dsl</code> build-logic</td>
-</tr>
-<tr>
-<td>Daemon JVM</td>
-<td><strong>JDK 17</strong></td>
-<td>bytecode is pinned to 17 with <code>--release</code> protection</td>
-</tr>
-<tr>
-<td>Kotlin Gradle Plugin</td>
-<td><strong>2.2+</strong></td>
-<td>apply <code>kotlin("multiplatform")</code> yourself — the plugin never applies KGP for you</td>
-</tr>
-</tbody>
-</table>
-<h2 id="apply-the-plugin">Apply the plugin<a class="headerlink" href="#apply-the-plugin" title="Permanent link">&para;</a></h2>
-<p>The plugin is published to <strong>Maven Central</strong> (group <code>com.rsicarelli</code>, artifact <code>kmp-targets-gradle-plugin</code>, plugin id <code>com.rsicarelli.kmptargets</code>). Make sure <code>mavenCentral()</code> is in your plugin repositories:</p>
-<p><code>kotlin
-// settings.gradle.kts
-pluginManagement {
-    repositories {
-        mavenCentral()
-        gradlePluginPortal()
-    }
-}</code></p>
-<p>Then apply it next to KGP in each module:</p>
-<p>```kotlin<br />
-// build.gradle.kts<br />
-plugins {<br />
-    kotlin(&ldquo;multiplatform&rdquo;)<br />
-    id(&ldquo;com.rsicarelli.kmptargets&rdquo;) version &ldquo;0.1.0-SNAPSHOT&rdquo;<br />
-}</p>
-<p>kmpTargets {<br />
-    supports { mobile }<br />
-}<br />
-```</p>
-<div class="admonition tip">
-<p class="admonition-title">Version catalog</p>
-<p>With a catalog entry the version lives in one place:</p>
-<p>```toml</p>
-<h1 id="gradlelibsversionstoml">gradle/libs.versions.toml<a class="headerlink" href="#gradlelibsversionstoml" title="Permanent link">&para;</a></h1>
-<p>[versions]<br />
-kmpTargets = &ldquo;0.1.0-SNAPSHOT&rdquo;</p>
-<p>[plugins]<br />
-kmpTargets = { id = &ldquo;com.rsicarelli.kmptargets&rdquo;, version.ref = &ldquo;kmpTargets&rdquo; }<br />
-```</p>
-<p><code>kotlin
-plugins {
-    kotlin("multiplatform")
-    alias(libs.plugins.kmpTargets)
-}</code></p>
-</div>
-<p>Build-logic that references the DSL types directly depends on the artifact:</p>
-<p><code>kotlin
-// build-logic/build.gradle.kts
-dependencies {
-    implementation("com.rsicarelli:kmp-targets-gradle-plugin:0.1.0-SNAPSHOT")
-}</code></p>
-<h2 id="consuming-snapshots">Consuming snapshots<a class="headerlink" href="#consuming-snapshots" title="Permanent link">&para;</a></h2>
-<p>Every push to <code>main</code> publishes a <code>-SNAPSHOT</code> to the Central Portal snapshots repository. To ride the bleeding edge, add the snapshots repo to <strong>both</strong> plugin and dependency resolution:</p>
-<p>```kotlin<br />
-// settings.gradle.kts<br />
-pluginManagement {<br />
-    repositories {<br />
-        mavenCentral()<br />
-        gradlePluginPortal()<br />
-        maven(&ldquo;<a href="https://central.sonatype.com/repository/maven-snapshots/">https://central.sonatype.com/repository/maven-snapshots/</a>&rdquo;)<br />
-    }<br />
-}</p>
-<p>dependencyResolutionManagement {<br />
-    repositories {<br />
-        mavenCentral()<br />
-        maven(&ldquo;<a href="https://central.sonatype.com/repository/maven-snapshots/">https://central.sonatype.com/repository/maven-snapshots/</a>&rdquo;)<br />
-    }<br />
-}<br />
-```</p>
-<div class="admonition warning">
-<p class="admonition-title">Snapshot hygiene</p>
-<p>Gradle caches changing modules for 24h by default. After a new snapshot lands, refresh explicitly:</p>
-<p><code>bash
-./gradlew build --refresh-dependencies</code></p>
-<p>If resolution fails with a bare <code>Could not find com.rsicarelli:kmp-targets-gradle-plugin:&lt;version&gt;</code>, the repository list is the first thing to check — snapshots only exist in the snapshots repo, releases only on Maven Central.</p>
-</div>
-<h2 id="contributing-local-development">Contributing / local development<a class="headerlink" href="#contributing-local-development" title="Permanent link">&para;</a></h2>
-<p>Working on the plugin itself? The repo publishes to <code>mavenLocal()</code> for the sample dev loop:</p>
-<p><code>bash
-task publish-local           # publishes the plugin (and marker) to ~/.m2
-task sample                  # smoke test against samples/hello-world</code></p>
-<p>This is a contributor workflow — consumers should use Maven Central or the snapshots repo above.</p>
-<hr />
-<p><strong>Next: <a href="quick-start.html">Quick Start →</a></strong></p>
+<h1 id="abi-validation-selection">ABI Validation &amp; Selection<a class="headerlink" href="#abi-validation-selection" title="Permanent link">&para;</a></h1>
+<p>Binary-compatibility tooling — the classic <a href="https://github.com/Kotlin/binary-compatibility-validator">kotlinx binary-compatibility-validator</a> (BCV) and Kotlin&rsquo;s built-in <code>abiValidation</code> — checks your public ABI against a committed reference dump. Both tools operate on the targets that <strong>exist in the build</strong>, which under kmp-targets means the targets the current selection registered (<code>selection ∩ supported</code>).</p>
+<p>That creates a blind spot.</p>
+<h2 id="the-blind-spot">The blind spot<a class="headerlink" href="#the-blind-spot" title="Permanent link">&para;</a></h2>
+<p>The committed dumps are generated under the full set of targets. Run an ABI task under a <strong>narrowed</strong> lane and it can only act on the registered targets:</p>
+<ul>
+<li><strong>An ABI update</strong> (<code>apiDump</code> / <code>updateKotlinAbi</code>) regenerates the dump from only the registered targets — <strong>dropping</strong> the unregistered targets&rsquo; declarations from the committed file.</li>
+<li><strong>An ABI check</strong> (<code>apiCheck</code> / <code>checkKotlinAbi</code>) covers only the registered subset. The two tools then diverge:<ul>
+<li>Kotlin&rsquo;s <strong>built-in</strong> <code>checkKotlinAbi</code> passes <strong>green</strong> — a silent false-green on the unregistered targets.</li>
+<li><strong>BCV</strong> <code>apiCheck</code> fails <strong>loud</strong> (its <code>klibApiCheck</code> diffs the committed klib dump against nothing) and suggests an <code>apiDump</code> that would <em>drop</em> those targets.</li>
+</ul>
+</li>
+</ul>
+<p>A developer on a <code>jvm</code>-only lane can break the <code>linuxX64</code> ABI and — with the built-in tool — commit a green-looking diff.</p>
+<h2 id="the-signal-kmp-targets-adds">The signal kmp-targets adds<a class="headerlink" href="#the-signal-kmp-targets-adds" title="Permanent link">&para;</a></h2>
+<p>The plugin <strong>depends on no ABI tool</strong>. It hooks the ABI lifecycle tasks <strong>by name</strong> (<code>apiDump</code>, <code>apiCheck</code>, <code>updateKotlinAbi</code>, <code>checkKotlinAbi</code>) — the only approach that catches <em>both</em> tools, since the built-in one has no separate plugin id — and gates on the diff it already owns: <code>resolvedSupported() − registered()</code>. When that is non-empty, the run under-covers, and the plugin warns at the moment the task runs:</p>
+<p><code>kmp-targets: ':lib' is running 'checkKotlinAbi' under a narrowed selection — it covers only the
+registered targets, so js, linuxX64 are NOT dumped/validated by this run. Run it under the full
+selection (or the lane that owns each target); your team's full-selection CI lane is the safety net.
+(strict mode fails this.)</code></p>
+<p>The gate is <strong>ABI-group-aware</strong>, so it doesn&rsquo;t cry wolf on the most common narrowing there is. A leaf is only flagged when its whole ABI group has <em>no</em> registered representative: with <code>iosArm64 + iosSimulatorArm64</code> supported but only <code>iosSimulatorArm64</code> registered, the iOS ABI surface is still dumped/validated by the simulator (KLIB dumps share declarations across a family), so <code>iosArm64</code> is <strong>not</strong> flagged. Drop a whole family — <code>linuxX64</code>/<code>js</code> while only <code>jvm</code> is registered — and it is. Native targets group by konan family (all iOS leaves, all linux leaves, the four androidNative arches); <code>jvm</code>, <code>androidTarget</code>, and each web leaf are distinct ABIs.</p>
+<p>It is deliberately <strong>signal-only and best-effort</strong>, not a guarantee:</p>
+<ul>
+<li>It compiles nothing, parses no dump files, and reads no <code>api/</code> directory — just a set difference the plugin already computes. Configuration-cache safe (the <code>doFirst</code> captures only strings).</li>
+<li>Under a <strong>full</strong> selection <code>supported − registered</code> is empty, so it is silent — zero noise in the common case.</li>
+<li>It does <strong>not</strong> replace the ABI check. Your team&rsquo;s full-selection CI lane is the authoritative gate; this exists so a local narrowed run is never silent.</li>
+<li>Under <a href="advisories.html">strict mode</a> (<code>kmptargets.strict=true</code>) the warning becomes a build failure.</li>
+</ul>
+<p>No new configuration key, no opt-in: if an ABI task exists and the lane is narrowed, you get the signal.</p>
+<h2 id="recommended-practice">Recommended practice<a class="headerlink" href="#recommended-practice" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Run <code>apiDump</code>/<code>apiCheck</code> (or <code>updateKotlinAbi</code>/<code>checkKotlinAbi</code>) under the <strong>full</strong> selection, or in the lane that owns each target.</li>
+<li>Make CI&rsquo;s <strong>full-selection</strong> lane run the check explicitly — that is the one place the whole ABI is validated.</li>
+</ul>
+<p>See the <a href="../samples/index.html"><code>abi-bcv</code> and <code>abi-builtin</code> samples</a> for runnable, end-to-end proof with both tools — including the green-vs-loud contrast.</p>
 
 
 

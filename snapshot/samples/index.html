@@ -671,6 +671,29 @@
   
   
     <li class="md-nav__item">
+      <a href="../user-guide/abi-validation.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ABI Validation & Selection
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../user-guide/ci-matrix.html" class="md-nav__link">
         
   
@@ -786,6 +809,15 @@
   <a href="#isolated-projects-the-compatibility-gate" class="md-nav__link">
     <span class="md-ellipsis">
       isolated-projects — the compatibility gate
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#abi-bcv-abi-builtin-the-abi-validation-blind-spot" class="md-nav__link">
+    <span class="md-ellipsis">
+      abi-bcv &amp; abi-builtin — the ABI-validation blind spot
     </span>
   </a>
   
@@ -966,6 +998,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#abi-bcv-abi-builtin-the-abi-validation-blind-spot" class="md-nav__link">
+    <span class="md-ellipsis">
+      abi-bcv &amp; abi-builtin — the ABI-validation blind spot
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#ci-runs-them-for-real" class="md-nav__link">
     <span class="md-ellipsis">
       CI runs them for real
@@ -994,7 +1035,7 @@
 
 
 <h1 id="samples">Samples<a class="headerlink" href="#samples" title="Permanent link">&para;</a></h1>
-<p>Two standalone sample builds live in the repo, consuming the plugin exactly as an external project would. Both share the root version catalog and resolve the plugin by version (mavenLocal in the dev loop, Maven Central for consumers).</p>
+<p>Four standalone sample builds live in the repo, consuming the plugin exactly as an external project would. They share the root version catalog and resolve the plugin by version (mavenLocal in the dev loop, Maven Central for consumers).</p>
 <h2 id="hello-world-the-multi-module-showcase">hello-world — the multi-module showcase<a class="headerlink" href="#hello-world-the-multi-module-showcase" title="Permanent link">&para;</a></h2>
 <p><a href="https://github.com/rsicarelli/kmp-targets/tree/main/samples/hello-world"><code>samples/hello-world</code></a> is a heterogeneous multi-module project — each module demonstrates one shape:</p>
 <table>
@@ -1069,6 +1110,11 @@
 ./gradlew -p samples/hello-world :shared-core:kmpTargetsInfo -q</code></p>
 <h2 id="isolated-projects-the-compatibility-gate">isolated-projects — the compatibility gate<a class="headerlink" href="#isolated-projects-the-compatibility-gate" title="Permanent link">&para;</a></h2>
 <p><a href="https://github.com/rsicarelli/kmp-targets/tree/main/samples/isolated-projects"><code>samples/isolated-projects</code></a> is a two-module build (<a href="https://github.com/rsicarelli/kmp-targets/tree/main/samples/isolated-projects/lib"><code>lib</code></a> supports <code>all</code>, <a href="https://github.com/rsicarelli/kmp-targets/tree/main/samples/isolated-projects/app"><code>app</code></a> supports <code>jvm</code> and depends on <code>lib</code>) running with <strong>Gradle Isolated Projects enabled</strong>. <code>lib</code> carries a <code>verifyIsolatedConfiguration</code> regression gate, so the plugin&rsquo;s Isolated Projects compatibility is exercised, not claimed.</p>
+<h2 id="abi-bcv-abi-builtin-the-abi-validation-blind-spot">abi-bcv &amp; abi-builtin — the ABI-validation blind spot<a class="headerlink" href="#abi-bcv-abi-builtin-the-abi-validation-blind-spot" title="Permanent link">&para;</a></h2>
+<p>Two single-module libraries that support <code>jvm + linuxX64 + js</code> and commit ABI dumps under <code>api/</code>, one per tool: <a href="https://github.com/rsicarelli/kmp-targets/tree/main/samples/abi-bcv"><code>samples/abi-bcv</code></a> uses the classic <a href="https://github.com/Kotlin/binary-compatibility-validator">kotlinx binary-compatibility-validator</a>; <a href="https://github.com/rsicarelli/kmp-targets/tree/main/samples/abi-builtin"><code>samples/abi-builtin</code></a> uses Kotlin&rsquo;s built-in <code>abiValidation</code>. Both make the same point concrete: an ABI tool only sees the targets the current selection registered, so running it under a narrowed lane under-covers — the built-in tool passes a silent <em>false-green</em>, BCV fails loud and suggests a destructive dump. The plugin&rsquo;s <a href="../user-guide/abi-validation.html">ABI narrowing signal</a> warns the moment you run an ABI task under a narrowed lane — see the per-sample READMEs.</p>
+<p><code>bash
+./gradlew -p samples/abi-builtin checkKotlinAbi "-Pkmptargets.targets=jvm"  # green, but warns: js, linuxX64 not validated
+./gradlew -p samples/abi-bcv     apiCheck                                   # full selection (recommended lane) → clean</code></p>
 <h2 id="ci-runs-them-for-real">CI runs them for real<a class="headerlink" href="#ci-runs-them-for-real" title="Permanent link">&para;</a></h2>
 <p><a href="https://github.com/rsicarelli/kmp-targets/blob/main/.github/workflows/ci.yml"><code>ci.yml</code></a> builds both samples on every push; <a href="https://github.com/rsicarelli/kmp-targets/blob/main/.github/workflows/sample-matrix.yml"><code>sample-matrix.yml</code></a> builds hello-world per host with host-appropriate selections — the <a href="../user-guide/ci-matrix.html">CI matrix</a> pattern, exercised.</p>
 
