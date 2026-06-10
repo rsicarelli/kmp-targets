@@ -50,9 +50,6 @@ Unknown tokens fail the build at configuration time with a "did you mean …?" s
 
 The full preset and leaf vocabulary lives in the [Targets Reference](targets-reference.md).
 
-!!! warning "Breaking rename (pre-1.0)"
-    The selection key used to be `KMP_TARGETS` (env: `ORG_GRADLE_PROJECT_KMP_TARGETS` or bare `KMP_TARGETS`). It is now `kmptargets.targets` — the old key is **not read at all**; a build still setting only `KMP_TARGETS` falls through to `defaultSelection` / the plugin default.
-
 ## Diagnosing a surprising selection
 
 [`kmpTargetsInfo`](diagnostics.md#kmptargetsinfo) prints the resolved selection and the winning source by name — `command line (-Pkmptargets.targets)`, `kmp-targets.local.properties`, etc. Values from `-Dorg.gradle.project.kmptargets.targets` and `~/.gradle/gradle.properties` are indistinguishable from root `gradle.properties`; all three report as the fused `gradle.properties (...)` layer.

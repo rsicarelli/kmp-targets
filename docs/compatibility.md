@@ -19,6 +19,3 @@ The build pins the emitted output: Kotlin `languageVersion`/`apiVersion` 2.0, `j
 | kmp-targets | Kotlin/KGP | Gradle |
 |---|---|---|
 | 0.1.x | 2.2+ (built against 2.3.21) | 8.11+ (repo runs 9.5.1, configuration cache on) |
-
-!!! note
-    Pre-1.0, minor versions may contain breaking changes — they are called out in the [CHANGELOG](https://github.com/rsicarelli/kmp-targets/blob/main/CHANGELOG.md) (e.g. the `KMP_TARGETS` → `kmptargets.targets` key rename).
