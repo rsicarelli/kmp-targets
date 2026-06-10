@@ -71,3 +71,6 @@ research-prompts-*.txt
 
 # Stray kotlin_module written to the repo root by KGP applied in-process during tests
 /META-INF/
+
+# MkDocs build output (task docs:build / mkdocs build)
+/site/
