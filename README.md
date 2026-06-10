@@ -57,7 +57,7 @@ Full story: [Compatibility](https://rsicarelli.github.io/kmp-targets/compatibili
 
 ## Documentation
 
-**Status:** alpha (pre-1.0). Roadmap: user-defined hierarchy groups, XCFramework helpers.
+**Status:** alpha. Roadmap: user-defined hierarchy groups, XCFramework helpers.
 
 Everything lives at **[rsicarelli.github.io/kmp-targets](https://rsicarelli.github.io/kmp-targets/)**:
 

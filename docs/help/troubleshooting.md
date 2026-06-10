@@ -17,7 +17,6 @@ Start with [`kmpTargetsInfo`](../user-guide/diagnostics.md#kmptargetsinfo): it p
 | Build fails at configuration: `Unknown target token '...' — did you mean ...?` | typo in `kmptargets.targets`; the parser is strict | accept the suggestion; vocabulary is in [`kmpTargetsInfo`](../user-guide/diagnostics.md#kmptargetsinfo) or the [reference](../user-guide/targets-reference.md) |
 | Build fails: unknown key in `kmp-targets.properties` | the config files accept only known `kmptargets.*` keys | fix the key (the error suggests the nearest match) |
 | Selection ignored / surprising value wins | a higher-precedence source is set — often a stale `kmp-targets.local.properties` or an env var | `kmpTargetsInfo` names the winning source; check the [precedence chain](../user-guide/selection-layers.md) |
-| Setting `KMP_TARGETS` does nothing | pre-1.0 breaking rename — the old key is not read at all | use `kmptargets.targets` |
 | A module builds nothing | empty overlap: selection ∩ supported = ∅ | widen the selection or the module's `supports { }`; the [empty-overlap advisory](../user-guide/advisories.md#empty-overlap) names the module |
 | Every sync re-configures after changing selection | each distinct value is its own configuration-cache entry — only the first build of a value misses | expected; alternating between known values hits the cache ([the trade-off](../why-kmp-targets.md#the-configuration-cache-trade-off)) |
 

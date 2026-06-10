@@ -28,7 +28,7 @@ class HostAwarenessInProcessTest {
         // appleMobile + linux + mingw cannot all be compilable on any single host, so whatever
         // machine runs this test exercises the warning path for at least zero leaves — and the
         // registered set must be the full selection regardless.
-        dir.resolve("gradle.properties").writeText("KMP_TARGETS=all\n")
+        dir.resolve("gradle.properties").writeText("kmptargets.targets=all\n")
         val project =
             newEvaluatedProject(dir) { ext -> ext.supports { appleMobile + linux + mingw } }
         assertRegisteredTargets(
@@ -46,7 +46,7 @@ class HostAwarenessInProcessTest {
     fun `given supports called twice when configured then hostWarned stays a subset of the active set`(
         @TempDir dir: Path
     ) {
-        dir.resolve("gradle.properties").writeText("KMP_TARGETS=all\n")
+        dir.resolve("gradle.properties").writeText("kmptargets.targets=all\n")
         lateinit var ext: KmpTargetsExtension
         val project =
             newEvaluatedProject(dir) {

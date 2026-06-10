@@ -28,7 +28,7 @@ kmpTargets {
 
 The plugin registers `selection ∩ supported` per module: the module declares what it *can* build, the global selection decides what you *want* right now.
 
-**Status:** alpha (pre-1.0). Roadmap: user-defined hierarchy groups, XCFramework helpers.
+**Status:** alpha. Roadmap: user-defined hierarchy groups, XCFramework helpers.
 
 ## Documentation
 
