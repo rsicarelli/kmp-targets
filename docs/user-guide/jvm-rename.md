@@ -17,6 +17,7 @@ kmpTargets {
 - **jvm leaf only.** `androidTarget`'s name is fixed by AGP, and native/web names are derived by KGP — renaming them would break konan/source-set conventions. `targetName` fails loud on any other leaf (or a preset), on a blank name, and when called after `supports { }` already registered the jvm leaf (a late rename could never apply).
 - **Hierarchy unaffected.** KGP's hierarchy matchers (`withJvm()`) key off the platform type, not the target name, so the [minimal template](hierarchy-template.md) attaches a renamed target exactly as it would a plain `jvm`.
 - **Introspection.** [`kmpTargetsInfo`](kmp-targets-info.md) surfaces the rename on the registered line: `jvm (registered as: desktop)`. Build-logic sees it through [`RegisteredTarget.gradleName`](build-logic.md#registeredtarget), so [`onRegistered`-driven wiring](build-logic.md) keeps working without knowing about the rename.
+- **CI task names.** A hardcoded `compileKotlinJvm` silently matches zero tasks under the rename — the exact false-green the opt-in [umbrella tasks](umbrella-tasks.md) are proof against: `kmpCompileAll` wires the real `compileKotlinDesktop`.
 
 ## See it running
 
