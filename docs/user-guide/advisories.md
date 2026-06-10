@@ -1,13 +1,10 @@
 # Advisories & Strict Mode
 
-The plugin emits six configuration-time advisories. Five are **signal only — never filtering**; one (android-without-AGP) genuinely skips a leaf because the alternative is a raw KGP crash. [Strict mode](#strict-mode) promotes all six to build failures with identical message text.
-
-!!! tip "See the same findings explained, with fixes"
-    [`kmpTargetsDoctor`](doctor-mode.md) renders each advisory below as a `[!]` finding (cause → effect → fix) plus a project-edge closure check — the triage surface for when a build broke and you want *why*.
+The plugin emits six configuration-time advisories. Five are signal-only; one (android-without-AGP) skips a leaf — the reasoning is on the [Design page](../why-kmp-targets.md#diagnostics-philosophy). [Strict mode](#strict-mode) promotes all six to build failures with identical message text. [`kmpTargetsDoctor`](diagnostics.md#kmptargetsdoctor) renders each advisory as a finding with the fix attached.
 
 ## Host compatibility
 
-The registered set is **host-blind by design**: selecting `iosArm64` registers it on macOS, Linux, and Windows alike, so configuration-cache keys, task graphs, and published metadata stay identical across CI agents. But not every host can *compile* every native target. When the selection includes a native target the current host can't compile, the plugin warns — and **still registers it**:
+Fires when the selection includes a native target the current host can't compile. The target still registers ([host-blind registration](../why-kmp-targets.md#selection-model)); compile/link tasks for it fail or are skipped on this host:
 
 ```
 kmp-targets: ':shared' selects [iosArm64] which cannot be compiled on this host (LINUX_X64) —
@@ -15,11 +12,11 @@ still registered (selection is host-independent), but compile/link tasks for the
 be skipped here.
 ```
 
-The host → target matrix comes from KGP's own encoding of [Kotlin's native target support](https://kotlinlang.org/docs/native-target-support.html), so it tracks your Kotlin version automatically. JVM and Web targets are host-agnostic and never warned. Fires at most once per target per module.
+The host → target matrix comes from KGP's encoding of [Kotlin's native target support](https://kotlinlang.org/docs/native-target-support.html), so it tracks your Kotlin version. JVM and Web targets are host-agnostic and never warned. Fires at most once per target per module. Per-host builds: [CI](ci-matrix.md).
 
 ## Deprecated targets
 
-Kotlin marks `macosX64`, `watchosX64`, and `tvosX64` deprecated (since Kotlin 2.3.20), but KGP emits no configuration-time signal when they register. This plugin does:
+Kotlin marks `macosX64`, `watchosX64`, and `tvosX64` deprecated (since 2.3.20) but emits no configuration-time signal when they register. This plugin does:
 
 ```
 kmp-targets: ':shared' registers [macosX64] which Kotlin marks deprecated (since Kotlin 2.3.20,
@@ -27,11 +24,11 @@ see https://kotlinlang.org/docs/native-target-support.html) — still registered
 unchanged), but consider migrating off them.
 ```
 
-Signal only: deprecated leaves stay selectable, stay in every preset, and register exactly as selected. [`kmpTargetsInfo`](kmp-targets-info.md) marks the same leaves `(deprecated)` in its vocabulary listing. (`iosX64` is low-tier but *not* deprecated.)
+Deprecated leaves stay selectable, stay in every preset, and register as selected. [`kmpTargetsInfo`](diagnostics.md#kmptargetsinfo) marks them `(deprecated)`. `iosX64` is low-tier but not deprecated.
 
 ## Android target without AGP
 
-`androidTarget` is the one leaf whose registration needs more than KGP: `kotlin.androidTarget()` is a **hard KGP failure** (the FATAL `AndroidGradlePluginIsMissing` diagnostic) unless an Android Gradle plugin — `com.android.library`, `com.android.application`, or any other id KGP accepts — is already applied. So when a module both selects and supports `androidTarget` but no Android plugin is applied by the time `supports { }` runs, the plugin **skips registering that leaf** and says so:
+`kotlin.androidTarget()` is a hard KGP failure unless an Android Gradle plugin is already applied. When a module selects and supports `androidTarget` but no Android plugin is applied by the time `supports { }` runs, the plugin skips that leaf:
 
 ```
 kmp-targets: ':feature' selects and supports [androidTarget] but no Android Gradle plugin is
@@ -40,17 +37,15 @@ before supports { } — gate it on the selection (see
 https://rsicarelli.github.io/kmp-targets/user-guide/recipes/#selection-gated-eager-agp-application).
 ```
 
-This is the one advisory that **does filter** — the alternative is KGP's raw crash with no module-level guidance, which during build-logic migrations reads as "kmp-targets dropped my target". The fix is an **ordering rule**: apply the Android plugin *before* `supports { }`. A later `supports { }` union re-checks, so AGP applied between two calls lets the later pass register the leaf normally. Everything else registers exactly as selected.
-
-To apply AGP only on Android lanes — without paying its configuration cost in every lane — gate it on the resolved selection: see [Selection-gated eager AGP application](recipes.md#selection-gated-eager-agp-application), which spells out the `KmpTarget.Jvm.Android in resolvedSelection()` gate, the `com.android.application` exemption, and the downstream-read gating the same predicate must guard.
+Fix: apply the Android plugin before `supports { }`. A later `supports { }` union re-checks, so AGP applied between two calls lets the later pass register the leaf. To apply AGP only on Android lanes, see [Selection-gated eager AGP application](recipes.md#selection-gated-eager-agp-application).
 
 ## Empty overlap
 
-A non-empty selection that matches nothing a module `supports` (so the module registers zero targets) gets its own warning — the everyday symptom of a typo'd lane or an over-narrow selection.
+Fires when a non-empty selection matches nothing the module `supports` — the module registers zero targets. Typical cause: a typo'd lane or an over-narrow selection.
 
 ## Inert modules
 
-A module that declared `supports { … }` can still register **zero** targets — disjoint selection, explicitly empty selection (`kmptargets.targets=jvm,-jvm`), or the only overlap being an AGP-skipped `androidTarget`. The trap: KGP still materializes the **commonMain metadata compilation** for every module applying `kotlin("multiplatform")`, and with no platform targets that compilation **fails** — any aggregate invocation (`build`, `check`, `publishToMavenLocal`) then trips over every inert module with an opaque compiler error. So the plugin names the consequence and the gate:
+A module that declared `supports { … }` can still register zero targets: disjoint selection, explicitly empty selection (`kmptargets.targets=jvm,-jvm`), or the only overlap being an AGP-skipped `androidTarget`. KGP materializes the commonMain metadata compilation even with zero platform targets, and it fails — every aggregate invocation (`build`, `check`) then trips over the module:
 
 ```
 kmp-targets: ':shared' declared supports { } but registered zero targets — the module is inert.
@@ -58,7 +53,7 @@ KGP still materializes the commonMain metadata compilation, which fails with no 
 Gate it in build-logic when kmpTargets.registered().isEmpty().
 ```
 
-The recommended gate lives in your build-logic, right after `supports { }`:
+The gate, right after `supports { }`:
 
 ```kotlin
 if (kmpTargets.registered().isEmpty()) {
@@ -66,11 +61,11 @@ if (kmpTargets.registered().isEmpty()) {
 }
 ```
 
-A module that **never calls** `supports { }` registers nothing *by definition* and is deliberately not flagged — that's the explicit-selection baseline, not the trap. A later `supports { }` union that registers a leaf un-inerts the module permanently.
+A module that never calls `supports { }` registers nothing by definition and is not flagged. A later `supports { }` union that registers a leaf un-inerts the module.
 
 ## Native-only metadata
 
-The consequence sibling of the inert trap, for a module that is *alive* but lopsided. A module that **supports** the JVM family yet, under this selection, registers no JVM-family leaf while registering at least one other target gets a JVM-less shared `commonMain`:
+Fires when a module supports the JVM family but, under this selection, registers no JVM-family leaf while registering at least one other target — `commonMain` becomes a JVM-less shared fragment:
 
 ```
 kmp-targets: ':shared' supports the JVM family but this selection registered no JVM-family
@@ -80,15 +75,22 @@ klibs compile, but the *KotlinMetadata* compilations reject JVM-flavored constru
 kmpTargets.registered(jvmFamily).isEmpty(), disabling only the *KotlinMetadata* compilations.
 ```
 
-The failure is paradoxical: every platform klib compiles, but the `*KotlinMetadata*` compilations reject JVM-flavored constructs (`@JvmInline` is the greppable token — named so a user arriving from the raw compiler error finds this advisory). Signal only, and **cause-agnostic**: a narrowed lane and an android-only [AGP skip](#android-target-without-agp) fire it alike, so it deliberately names neither the selection nor the supported set. It is **disjoint** from the inert advisory — inert means *registered empty*, this means *registered non-empty but no JVM-family leaf*; at most one fires per module. Any single JVM-family leaf (`jvm` **or** `androidTarget` — Android is a JVM platform) defeats it. The gate it points at is the *scoped* sibling of inert's: disable only the metadata compilations, keep the live platform ones. See [Gate compilation on inert modules](recipes.md#gate-compilation-on-inert-modules) for the build-logic shape.
+Platform klibs compile; the `*KotlinMetadata*` compilations reject JVM-flavored constructs such as `@JvmInline`. Cause-agnostic: a narrowed lane and an android-only [AGP skip](#android-target-without-agp) fire it alike. Disjoint from the inert advisory — inert means registered empty, this means registered non-empty with no JVM-family leaf; at most one fires per module. Any JVM-family leaf (`jvm` or `androidTarget`) defeats it.
+
+The gate is the scoped sibling of inert's — disable only the metadata compilations, keep the platform ones:
+
+```kotlin
+// after supports { } — drop the doomed metadata compilations, keep the platform klibs
+if (kmpTargets.registered().isNotEmpty() && kmpTargets.registered(jvmFamily).isEmpty()) {
+    tasks.withType(KotlinCompilationTask::class.java)
+        .matching { it.name.contains("KotlinMetadata") }
+        .configureEach { enabled = false }
+}
+```
 
 ## Strict mode
 
-By default all six advisories are warnings — right for local iteration, easy to miss in CI, where a module silently building nothing is usually a real configuration bug.
-
-`kmptargets.strict=true` promotes them to configuration-time **build failures** (`GradleException`) with the **identical message text** — severity changes, policy does not. It never changes *which* configurations are flagged and never changes *what registers* (the AGP skip happens with or without strict). Default **off**, deliberately. The flag resolves through the same [precedence chain](selection-layers.md) as every `kmptargets.*` key; anything other than `true`/`false` (case-insensitive) is treated as unset.
-
-The recommended setup keeps local builds advisory and turns CI strict:
+`kmptargets.strict=true` promotes all six advisories to configuration-time build failures (`GradleException`) with identical message text. Severity changes; policy does not — it never changes which configurations are flagged or what registers (the AGP skip happens with or without strict). Default off. Recommended: strict in CI only:
 
 ```yaml
 # CI only — e.g. a GitHub Actions env block
@@ -96,8 +98,10 @@ env:
   ORG_GRADLE_PROJECT_kmptargets.strict: "true"   # or: ./gradlew build -Pkmptargets.strict=true
 ```
 
+The flag resolves through the same [precedence chain](selection-layers.md) as every `kmptargets.*` key; anything other than `true`/`false` (case-insensitive) is treated as unset.
+
 !!! warning "Cross-host CI"
-    With strict on, a selection including targets the agent cannot compile (e.g. iOS leaves on a Linux runner) fails the build by design. Strict CI pairs with per-host selections — see [CI Matrix](ci-matrix.md).
+    With strict on, a selection including targets the agent cannot compile fails the build by design. Pair strict CI with per-host selections — see [CI](ci-matrix.md).
 
 !!! warning "Explicitly-empty selections"
-    With strict on, a selection narrowed to nothing (`kmptargets.targets=jvm,-jvm`) makes the inert-module advisory fail **every** module that declares `supports { }`, by design — each carries a doomed metadata compilation. A build-nothing lane that wants to configure successfully should not pair the empty selection with strict.
+    With strict on, a selection narrowed to nothing (`kmptargets.targets=jvm,-jvm`) makes the inert-module advisory fail every module that declares `supports { }`. A build-nothing lane should not pair the empty selection with strict.

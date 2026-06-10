@@ -36,8 +36,6 @@ Every leaf also accepts a kebab-case alias (e.g. `watchos-sim-arm64`, `linux-x64
 
 ## Membership clarifications
 
-Preset membership is worth spelling out where it's non-obvious:
-
 - **`jvmFamily` *includes* Android** — it is `{androidTarget, jvm}`, the two JVM-bytecode leaves, not just `jvm`.
 - **`mobile` = `androidTarget` + the iOS leaves** (`iosArm64`, `iosSimulatorArm64`, `iosX64`) — no watchOS, no macOS.
 - **`androidNative` ≠ `androidTarget`** — the four `androidNative*` leaves are Kotlin/Native NDK targets; the Android *app* target is `androidTarget` (alias `android`).
@@ -46,7 +44,7 @@ Preset membership is worth spelling out where it's non-obvious:
 
 ## Deprecated leaves
 
-Kotlin [marks](https://kotlinlang.org/docs/native-target-support.html) `macosX64`, `watchosX64`, and `tvosX64` **deprecated** (since Kotlin 2.3.20). They stay selectable and stay in every preset (`appleDesktop` still expands to both macOS leaves) — registering one logs a [deprecated-target advisory](advisories.md#deprecated-targets), and [`kmpTargetsInfo`](kmp-targets-info.md) annotates them `(deprecated)` in its vocabulary listing. (`iosX64` is low-tier but *not* deprecated.)
+Kotlin [marks](https://kotlinlang.org/docs/native-target-support.html) `macosX64`, `watchosX64`, and `tvosX64` **deprecated** (since Kotlin 2.3.20). They stay selectable and stay in every preset (`appleDesktop` still expands to both macOS leaves) — registering one logs a [deprecated-target advisory](advisories.md#deprecated-targets), and [`kmpTargetsInfo`](diagnostics.md#kmptargetsinfo) annotates them `(deprecated)` in its vocabulary listing. (`iosX64` is low-tier but *not* deprecated.)
 
 ## Composing
 

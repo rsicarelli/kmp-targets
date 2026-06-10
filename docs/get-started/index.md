@@ -4,9 +4,11 @@
 
 | Requirement | Floor | Notes |
 |---|---|---|
-| Gradle | **8.11+** | the published jar carries Kotlin 2.0 metadata, readable by Gradle 8.x `kotlin-dsl` build-logic |
-| Daemon JVM | **JDK 17** | bytecode is pinned to 17 with `--release` protection |
+| Gradle | **8.11+** | |
+| Daemon JVM | **JDK 17** | |
 | Kotlin Gradle Plugin | **2.2+** | apply `kotlin("multiplatform")` yourself — the plugin never applies KGP for you |
+
+How the floors are enforced: [Compatibility](../compatibility.md).
 
 ## Apply the plugin
 
@@ -63,6 +65,9 @@ dependencies {
     implementation("com.rsicarelli:kmp-targets-gradle-plugin:0.1.0-SNAPSHOT")
 }
 ```
+
+!!! tip "KDoc on hover (IntelliJ)"
+    The plugin ships a sources jar, but IntelliJ does not attach sources for build-script dependencies by default. Enable **Settings → Advanced Settings → Build Tools. Gradle → "Attach scripts dependencies sources"** (plus **"Download sources"**) and re-sync — hovering `supports`, `mobile`, `iosArm64`, … then shows their documentation.
 
 ## Consuming snapshots
 

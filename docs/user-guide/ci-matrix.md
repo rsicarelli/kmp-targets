@@ -1,10 +1,8 @@
-# CI Matrix
+# CI
 
-## The cost asymmetry
+Each runner builds only the targets it can host. The matrix passes a selection per job — the same `kmptargets.targets` strings used locally in `kmp-targets.local.properties` or `-P`. Why per-host selection pays (macOS pricing): [Design](../why-kmp-targets.md#the-problem).
 
-KMP CI has a sharp cost asymmetry: on **private repositories**, GitHub Actions macOS runners bill at roughly **10×** the Ubuntu per-minute rate — and Apple/native compilation, the part that *requires* macOS, is the dominant slice of total CI time. The cost-aware pattern is an **OS × selection matrix**: each runner compiles only the subset of targets it can host.
-
-`kmp-targets` is purpose-built for this. The matrix passes a host-appropriate selection per job — and the values are **literally the same strings** a developer puts in `kmp-targets.local.properties` or `-Pkmptargets.targets` locally. CI never grows its own divergent selection language.
+## The matrix
 
 ```yaml
 name: Build
@@ -38,25 +36,53 @@ jobs:
       - run: ./gradlew build "-Pkmptargets.targets=${{ matrix.targets }}"
 ```
 
-!!! tip "Compile-only jobs"
-    For jobs that only need to compile (no tests, no full `build`), replace `build` with the opt-in [`kmpCompileAll` umbrella task](umbrella-tasks.md) — one stable name that follows the lane's registered set and survives a [jvm rename](jvm-rename.md).
-
 ## Host → target mapping
 
 | Runner | `kmptargets.targets` | Rationale |
 |---|---|---|
-| `ubuntu-latest` | `jvm,android,js,wasmJs,wasmWasi,linuxX64,linuxArm64,androidNative` | the cheap runner — every non-Apple, non-MinGW target cross-compiles here (`android` requires AGP in your build; `web` is the `js,wasmJs,wasmWasi` preset) |
-| `macos-latest` | `apple` (or `appleMobile` on PRs) | the only host that can compile/link Apple targets; keep the expensive runner's set minimal |
+| `ubuntu-latest` | `jvm,android,js,wasmJs,wasmWasi,linuxX64,linuxArm64,androidNative` | every non-Apple, non-MinGW target cross-compiles here (`android` requires AGP in your build; `web` is the `js,wasmJs,wasmWasi` preset) |
+| `macos-latest` | `apple` (or `appleMobile` on PRs) | the only host that can compile/link Apple targets |
 | `windows-latest` | `mingwX64` (alias `windows`) | the only host for MinGW |
 
 ## Notes
 
-- **Same vocabulary, no drift.** Matrix values are plain [selection grammar](selection-layers.md#selection-grammar) strings — presets, leaves, and `-` exclusions all work. What CI builds is what [`kmpTargetsInfo`](kmp-targets-info.md) prints locally for the same value.
-- **Env form.** `ORG_GRADLE_PROJECT_kmptargets.targets` as a job `env:` is equivalent (dotted env keys work on GitHub Actions); `-P` is the canonical recommendation. Both sit above the committed `kmp-targets.properties` in [precedence](selection-layers.md), so a per-job value always wins over the repo default.
-- **Cost tier (optional).** Restrict the macOS job to `appleMobile` on `pull_request` and run the full `apple` preset only on `push` to `main` — the matrix `targets` value is the only thing that changes.
-- **Strict mode pairs well.** Set [`kmptargets.strict=true`](advisories.md#strict-mode) on jobs whose selection the host can fully compile — a misconfigured module then fails the job instead of silently building nothing.
-- **Configuration cache.** Each distinct selection is a distinct configuration-cache key; matrix jobs with different selections won't share an entry. Expected, not a regression — the same bounded cost described in [Why kmp-targets?](../why-kmp-targets.md#the-trade-off-stated-plainly).
+- **Same vocabulary.** Matrix values are plain [selection grammar](selection-layers.md#selection-grammar) strings — presets, leaves, and `-` exclusions all work. What CI builds is what [`kmpTargetsInfo`](diagnostics.md#kmptargetsinfo) prints locally for the same value.
+- **Env form.** `ORG_GRADLE_PROJECT_kmptargets.targets` as a job `env:` is equivalent; `-P` is the canonical recommendation. Both sit above the committed `kmp-targets.properties` in [precedence](selection-layers.md).
+- **Cost tier.** Restrict the macOS job to `appleMobile` on `pull_request` and run the full `apple` preset only on `push` to `main`.
+- **Strict mode.** Set [`kmptargets.strict=true`](advisories.md#strict-mode) on jobs whose selection the host can fully compile — a misconfigured module fails the job instead of silently building nothing.
+- **Configuration cache.** Each distinct selection is its own configuration-cache key; matrix jobs with different selections don't share an entry. See [Design](../why-kmp-targets.md#the-configuration-cache-trade-off).
+
+## Umbrella tasks
+
+`kmpCompileAll` and `kmpTestAll` are opt-in lifecycle tasks that depend on exactly the registered intersection — one stable task name per job, correct in every lane and under a [renamed jvm target](selection-dsl.md#renaming-the-jvm-target).
+
+Hardcoded task lists fail two ways under a variable selection: a name absent from the lane (`compileReleaseKotlinAndroid` on an android-less selection) fails with `Task '…' not found`; under a renamed jvm target a literal `compileKotlinJvm` matches zero tasks and the job passes without compiling.
+
+- **`kmpCompileAll`** — compiles every registered target's main compilation.
+- **`kmpTestAll`** — runs every registered target's tests (targets without a test task, like device-only `iosArm64`, are skipped).
+
+Opt in — the tasks add dependency edges to every registered compile/test task, and most builds only want them for CI:
+
+```properties
+# kmp-targets.properties
+kmptargets.umbrellaTasks=true
+```
+
+The flag reads through the same [precedence chain](selection-layers.md) as every `kmptargets.` key.
+
+Semantics:
+
+- Registered in every module the plugin is applied to, even without `supports { }`. An unqualified `./gradlew kmpCompileAll` from the root fans out to every project that has the task — no root aggregator. A module with nothing registered is a no-op, never a 404.
+- They depend on registered platform compilations only, never on `*KotlinMetadata` compilations — so they cannot re-introduce the [inert-module](recipes.md#gate-compilation-on-inert-modules) failures those gates disable.
+
+In the matrix, replace `build` for compile-only jobs:
+
+```bash
+./gradlew kmpCompileAll "-Pkmptargets.targets=${{ matrix.targets }}"
+```
+
+The [`desktop-named` sample](../samples/index.md) asserts the rename-proofing: its jvm leaf is renamed to `desktop`, and `kmpCompileAll` wires the real `compileKotlinDesktop`.
 
 ## The living example
 
-This repo runs the pattern for real: [`sample-matrix.yml`](https://github.com/rsicarelli/kmp-targets/blob/main/.github/workflows/sample-matrix.yml) builds the hello-world sample per host — the macOS job is the only place Apple targets get genuinely compiled — so the example above can't rot.
+This repo runs the pattern: [`sample-matrix.yml`](https://github.com/rsicarelli/kmp-targets/blob/main/.github/workflows/sample-matrix.yml) builds the hello-world sample per host on every push.
