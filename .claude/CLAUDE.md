@@ -67,4 +67,4 @@ The hello-world plugin demonstrates the correct pattern.
 
 ## Bootstrap deferred items
 
-The README "Status" section and the bootstrap plan list features explicitly out of scope for the initial release (real selector logic, Maven Central publishing, mkdocs, compat matrices, lint/format tooling, etc.). **Do not silently implement them.** Each is a separate PR with its own scope.
+The README status line (under "Documentation") and the bootstrap plan list features explicitly out of scope for the initial release (real selector logic, Maven Central publishing, mkdocs, compat matrices, lint/format tooling, etc.). **Do not silently implement them.** Each is a separate PR with its own scope.
