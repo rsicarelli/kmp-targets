@@ -1,5 +1,7 @@
 # FAQ
 
+Short answers to the questions that come up when adopting kmp-targets — each links to the page with the full story.
+
 ## Selection model
 
 **Why is the selection global instead of per-module?**
