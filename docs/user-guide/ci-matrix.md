@@ -38,6 +38,9 @@ jobs:
       - run: ./gradlew build "-Pkmptargets.targets=${{ matrix.targets }}"
 ```
 
+!!! tip "Compile-only jobs"
+    For jobs that only need to compile (no tests, no full `build`), replace `build` with the opt-in [`kmpCompileAll` umbrella task](umbrella-tasks.md) — one stable name that follows the lane's registered set and survives a [jvm rename](jvm-rename.md).
+
 ## Host → target mapping
 
 | Runner | `kmptargets.targets` | Rationale |

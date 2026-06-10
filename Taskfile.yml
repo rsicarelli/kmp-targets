@@ -93,6 +93,11 @@ tasks:
     cmds:
       - mkdocs serve
 
+  docs:build:
+    desc: Build the docs site with strict warnings (same gate as CI)
+    cmds:
+      - mkdocs build --strict
+
   clean:
     desc: Clean root build + sample build artifacts
     cmds:

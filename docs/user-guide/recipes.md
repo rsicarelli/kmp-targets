@@ -92,7 +92,7 @@ Aggregate tasks (`build`, `check`) only cover registered targets, so the **same 
 ./gradlew check "-Pkmptargets.targets=$LANE_TARGETS"
 ```
 
-Avoid hardcoding per-target task names (`:m:iosArm64Test`) in CI scripts: they break under renames and lane changes. If you must derive test tasks, derive them from `registered()` in a small task-listing helper, not from string conventions.
+Avoid hardcoding per-target task names (`:m:iosArm64Test`) in CI scripts: they break under renames and lane changes. If you must derive test tasks, derive them from `registered()` in a small task-listing helper, not from string conventions. For explicit compile/test umbrellas instead of `build`/`check`, opt into the [`kmpCompileAll` / `kmpTestAll` umbrella tasks](umbrella-tasks.md) — selection-agnostic and rename-proof by construction.
 
 ## Selection vs the dependency graph
 

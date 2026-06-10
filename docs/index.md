@@ -28,6 +28,8 @@ kmpTargets {
 
 The plugin registers `selection ∩ supported` per module: the module declares what it *can* build, the global selection decides what you *want* right now.
 
+**Status:** alpha (pre-1.0). Roadmap: user-defined hierarchy groups, XCFramework helpers.
+
 **[Why explicit selection? →](why-kmp-targets.md)**
 
 ---
@@ -45,10 +47,11 @@ The plugin registers `selection ∩ supported` per module: the module declares w
 
 ## 🚀 Start here
 
-1. **[Installation](get-started/index.md)** — coordinates, repositories, prerequisites
-2. **[Quick Start](get-started/quick-start.md)** — apply, declare, select, inspect, in 5 minutes
-3. **[Selection DSL](user-guide/selection-dsl.md)** — `supports { }`, eagerness, set algebra
-4. **[CI Matrix](user-guide/ci-matrix.md)** — one selection vocabulary across every CI host
+1. **[Why kmp-targets?](why-kmp-targets.md)** — the problem and the thesis, in 2 minutes
+2. **[Installation](get-started/index.md)** — coordinates, repositories, prerequisites
+3. **[Quick Start](get-started/quick-start.md)** — apply, declare, select, inspect, in 5 minutes
+4. **[Selection DSL](user-guide/selection-dsl.md)** — `supports { }`, eagerness, set algebra
+5. **[CI Matrix](user-guide/ci-matrix.md)** — one selection vocabulary across every CI host
 
 ---
 
