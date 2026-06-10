@@ -42,34 +42,45 @@ theme:
 plugins:
   - search
   - mike
-  - callouts
 
+# Material for MkDocs recommended set; codehilite/smarty/nl2br are
+# incompatible with superfences-rendered fenced code — do not re-add them.
 markdown_extensions:
-  - smarty
-  - codehilite:
-      guess_lang: false
+  # Python Markdown
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
   - footnotes
-  - meta
+  - md_in_html
+  - tables
   - toc:
       permalink: true
+
+  # PyMdown Extensions
   - pymdownx.betterem:
       smart_enable: all
   - pymdownx.caret
-  - pymdownx.inlinehilite
-  - pymdownx.magiclink
-  - pymdownx.smartsymbols
-  - pymdownx.superfences
-  - pymdownx.emoji
   - pymdownx.details
-  - pymdownx.tabbed:
-      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
   - pymdownx.highlight:
       anchor_linenums: true
-  - tables
-  - admonition
-  - attr_list
-  - md_in_html
-  - nl2br
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink:
+      repo_url_shorthand: true
+      user: rsicarelli
+      repo: kmp-targets
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tilde
 
 extra_css:
   - stylesheets/kmp-targets-brand.css
@@ -97,6 +108,7 @@ nav:
       - 'Doctor Mode': user-guide/doctor-mode.md
       - 'ABI Validation & Selection': user-guide/abi-validation.md
       - 'CI Matrix': user-guide/ci-matrix.md
+      - 'Umbrella Tasks': user-guide/umbrella-tasks.md
       - 'Renaming the JVM Target': user-guide/jvm-rename.md
   - 'Samples': samples/index.md
   - 'Compatibility': compatibility.md
