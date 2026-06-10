@@ -1025,10 +1025,6 @@
 </span></code></pre></div>
 <p>Unknown tokens fail the build at configuration time with a "did you mean …?" suggestion (<a href="../../why-kmp-targets/#selection-model">why the parser is strict</a>). Bare Apple sub-family names (<code>ios</code>, <code>macos</code>, <code>watchos</code>, <code>tvos</code>) are rejected with a hint pointing at the relevant leaf or <code>appleX</code> preset.</p>
 <p>The full preset and leaf vocabulary lives in the <a href="../targets-reference/">Targets Reference</a>.</p>
-<div class="admonition warning">
-<p class="admonition-title">Breaking rename (pre-1.0)</p>
-<p>The selection key used to be <code>KMP_TARGETS</code> (env: <code>ORG_GRADLE_PROJECT_KMP_TARGETS</code> or bare <code>KMP_TARGETS</code>). It is now <code>kmptargets.targets</code> — the old key is <strong>not read at all</strong>; a build still setting only <code>KMP_TARGETS</code> falls through to <code>defaultSelection</code> / the plugin default.</p>
-</div>
 <h2 id="diagnosing-a-surprising-selection">Diagnosing a surprising selection<a class="headerlink" href="#diagnosing-a-surprising-selection" title="Permanent link">&para;</a></h2>
 <p><a href="../diagnostics/#kmptargetsinfo"><code>kmpTargetsInfo</code></a> prints the resolved selection and the winning source by name — <code>command line (-Pkmptargets.targets)</code>, <code>kmp-targets.local.properties</code>, etc. Values from <code>-Dorg.gradle.project.kmptargets.targets</code> and <code>~/.gradle/gradle.properties</code> are indistinguishable from root <code>gradle.properties</code>; all three report as the fused <code>gradle.properties (...)</code> layer.</p>
 
