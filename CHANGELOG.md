@@ -39,7 +39,7 @@ changes may land in any release.
   configuration-cache- and **Isolated Projects**-safe). Two honest, permanent limits, printed
   inline: no external-dependency coverage, and an approximate android→jvm fallback — best-effort
   project-edge diagnostics, not a correctness guarantee. See
-  [Doctor mode](https://rsicarelli.github.io/kmp-targets/user-guide/doctor-mode/).
+  [Diagnostics](https://rsicarelli.github.io/kmp-targets/user-guide/diagnostics/).
 - **Umbrella lifecycle tasks `kmpCompileAll` / `kmpTestAll`** ([#77]): one stable task name per
   module that depends on the compile (resp. test) tasks of **exactly the registered intersection** —
   selection-agnostic and rename-proof, the cure for hardcoded CI task lists that 404 under a narrowed

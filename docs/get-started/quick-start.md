@@ -1,6 +1,6 @@
 # Quick Start
 
-Five minutes from apply to a narrowed build. Each step builds on the previous one.
+Five minutes from apply to a narrowed build.
 
 ## 1. Apply and declare what the module *can* build
 
@@ -24,10 +24,10 @@ kotlin {
 }
 ```
 
-`supports { }` is the module's *supported set* — the complete list of targets this module is ever allowed to register. The vocabulary is type-safe set algebra: presets (`all`, `mobile`, `apple`, `web`, `jvmFamily`, …) and leaves (`jvm`, `iosArm64`, `linuxX64`, …) compose with `+` and `-`.
+`supports { }` is the module's supported set: the targets this module is allowed to register. Presets (`all`, `mobile`, `apple`, `web`, `jvmFamily`, …) and leaves (`jvm`, `iosArm64`, `linuxX64`, …) compose with `+` and `-`.
 
 !!! warning "Ordering: apply everything first, then `supports`"
-    `supports` registers targets **eagerly**, the moment it runs. Apply all plugins that influence registration **before** the `kmpTargets { }` block — most importantly the Android Gradle plugin when the module supports `androidTarget`. Calling `supports` more than once unions; a registered target can't be retracted.
+    `supports` registers targets eagerly, the moment it runs. Apply all plugins that influence registration before the `kmpTargets { }` block — most importantly the Android Gradle plugin when the module supports `androidTarget`. Calling `supports` more than once unions; a registered target can't be retracted.
 
 ## 2. Build everything (default)
 
@@ -43,7 +43,7 @@ With no selection configured, every supported target registers:
 ./gradlew :feature-mobile:build -Pkmptargets.targets=iosArm64
 ```
 
-Only `iosArm64` registers — `selection ∩ supported`. The Android/JVM/simulator tasks don't run slow; they *don't exist*.
+Only `iosArm64` registers — `selection ∩ supported`. The unselected targets' tasks are never created.
 
 For a durable choice, use the config files instead of the flag:
 
@@ -78,11 +78,11 @@ Registered (selection ∩ supported)
   targets:  iosArm64
 ```
 
-The `source` line names the winning [selection layer](../user-guide/selection-layers.md), so a surprising selection is a one-command diagnosis.
+The `source` line names the winning [selection layer](../user-guide/selection-layers.md).
 
 ## Where to next
 
-- **[Selection DSL](../user-guide/selection-dsl.md)** — the full `supports { }` story: eagerness, unions, escape hatches
+- **[Selection DSL](../user-guide/selection-dsl.md)** — `supports { }` in full: eagerness, unions, escape hatches
 - **[Selection Layers](../user-guide/selection-layers.md)** — the precedence chain in detail
 - **[Targets Reference](../user-guide/targets-reference.md)** — every preset and leaf
-- **[CI Matrix](../user-guide/ci-matrix.md)** — per-host selections on a 3-OS matrix
+- **[CI](../user-guide/ci-matrix.md)** — per-host selections on a 3-OS matrix

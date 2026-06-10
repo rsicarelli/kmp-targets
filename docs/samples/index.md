@@ -1,6 +1,6 @@
 # Samples
 
-Four standalone sample builds live in the repo, consuming the plugin exactly as an external project would. They share the root version catalog and resolve the plugin by version (mavenLocal in the dev loop, Maven Central for consumers).
+Four standalone sample builds consume the plugin as an external project would: shared root version catalog, plugin resolved by version (mavenLocal in the dev loop, Maven Central for consumers).
 
 ## hello-world — the multi-module showcase
 
@@ -13,8 +13,8 @@ Four standalone sample builds live in the repo, consuming the plugin exactly as 
 | [`jvm-tools`](https://github.com/rsicarelli/kmp-targets/tree/main/samples/hello-world/jvm-tools) | `supports { jvm }` | a JVM-only tooling module |
 | [`core-and-apple`](https://github.com/rsicarelli/kmp-targets/tree/main/samples/hello-world/core-and-apple) | `supports { apple + jvm }` | preset + leaf composition |
 | [`escape-hatch-dsl`](https://github.com/rsicarelli/kmp-targets/tree/main/samples/hello-world/escape-hatch-dsl) | `supports { jvm + linuxX64 }` | mixing the DSL with raw `kotlin { }` target configuration |
-| [`desktop-named`](https://github.com/rsicarelli/kmp-targets/tree/main/samples/hello-world/desktop-named) | `targetName(jvm, "desktop")` + `supports { jvm + iosArm64 }` | the [JVM rename](../user-guide/jvm-rename.md): `src/desktopMain`, `compileKotlinDesktop` |
-| [`pinned-intermediates`](https://github.com/rsicarelli/kmp-targets/tree/main/samples/hello-world/pinned-intermediates) | `supports { appleMobile }`, collapse off | [no-collapse mode](../user-guide/no-collapse-mode.md): `iosMain` survives a single-leaf selection |
+| [`desktop-named`](https://github.com/rsicarelli/kmp-targets/tree/main/samples/hello-world/desktop-named) | `targetName(jvm, "desktop")` + `supports { jvm + iosArm64 }` | the [JVM rename](../user-guide/selection-dsl.md#renaming-the-jvm-target): `src/desktopMain`, `compileKotlinDesktop` |
+| [`pinned-intermediates`](https://github.com/rsicarelli/kmp-targets/tree/main/samples/hello-world/pinned-intermediates) | `supports { appleMobile }`, collapse off | [no-collapse](../user-guide/hierarchy-template.md#keeping-intermediates): `iosMain` survives a single-leaf selection |
 | [`eager-conventions`](https://github.com/rsicarelli/kmp-targets/tree/main/samples/hello-world/eager-conventions) | applies `kmptargets.module` | the [convention-plugin pattern](../user-guide/build-logic.md) with an `onRegistered` regression gate (`verifyEagerTargets`) |
 | [`legacy-default`](https://github.com/rsicarelli/kmp-targets/tree/main/samples/hello-world/legacy-default) | `supports { all }`, template off | opting out of the [minimal hierarchy](../user-guide/hierarchy-template.md) — KGP's default tree, side by side |
 | [`plain-kmp`](https://github.com/rsicarelli/kmp-targets/tree/main/samples/hello-world/plain-kmp) | *no kmp-targets* | the non-interference proof: a module without the plugin is untouched |
@@ -29,17 +29,17 @@ Drive it like CI does:
 
 ## isolated-projects — the compatibility gate
 
-[`samples/isolated-projects`](https://github.com/rsicarelli/kmp-targets/tree/main/samples/isolated-projects) is a two-module build ([`lib`](https://github.com/rsicarelli/kmp-targets/tree/main/samples/isolated-projects/lib) supports `all`, [`app`](https://github.com/rsicarelli/kmp-targets/tree/main/samples/isolated-projects/app) supports `jvm` and depends on `lib`) running with **Gradle Isolated Projects enabled**. `lib` carries a `verifyIsolatedConfiguration` regression gate, so the plugin's Isolated Projects compatibility is exercised, not claimed.
+[`samples/isolated-projects`](https://github.com/rsicarelli/kmp-targets/tree/main/samples/isolated-projects) is a two-module build ([`lib`](https://github.com/rsicarelli/kmp-targets/tree/main/samples/isolated-projects/lib) supports `all`, [`app`](https://github.com/rsicarelli/kmp-targets/tree/main/samples/isolated-projects/app) supports `jvm` and depends on `lib`) running with Gradle Isolated Projects enabled. `lib` carries a `verifyIsolatedConfiguration` regression gate.
 
-## abi-bcv & abi-builtin — the ABI-validation blind spot
+## abi-bcv & abi-builtin — the ABI coverage gap
 
-Two single-module libraries that support `jvm + linuxX64 + js` and commit ABI dumps under `api/`, one per tool: [`samples/abi-bcv`](https://github.com/rsicarelli/kmp-targets/tree/main/samples/abi-bcv) uses the classic [kotlinx binary-compatibility-validator](https://github.com/Kotlin/binary-compatibility-validator); [`samples/abi-builtin`](https://github.com/rsicarelli/kmp-targets/tree/main/samples/abi-builtin) uses Kotlin's built-in `abiValidation`. Both make the same point concrete: an ABI tool only sees the targets the current selection registered, so running it under a narrowed lane under-covers — the built-in tool passes a silent *false-green*, BCV fails loud and suggests a destructive dump. The plugin's [ABI narrowing signal](../user-guide/abi-validation.md) warns the moment you run an ABI task under a narrowed lane — see the per-sample READMEs.
+Two single-module libraries that support `jvm + linuxX64 + js` and commit ABI dumps under `api/`, one per tool: [`samples/abi-bcv`](https://github.com/rsicarelli/kmp-targets/tree/main/samples/abi-bcv) uses [kotlinx binary-compatibility-validator](https://github.com/Kotlin/binary-compatibility-validator); [`samples/abi-builtin`](https://github.com/rsicarelli/kmp-targets/tree/main/samples/abi-builtin) uses Kotlin's built-in `abiValidation`. Both show the [coverage gap](../user-guide/abi-validation.md): an ABI tool only sees the registered targets, so a narrowed lane under-covers — the built-in tool passes without validating the missing targets, BCV fails and suggests a destructive dump. See the per-sample READMEs.
 
 ```bash
 ./gradlew -p samples/abi-builtin checkKotlinAbi "-Pkmptargets.targets=jvm"  # green, but warns: js, linuxX64 not validated
 ./gradlew -p samples/abi-bcv     apiCheck                                   # full selection (recommended lane) → clean
 ```
 
-## CI runs them for real
+## CI runs them
 
-[`ci.yml`](https://github.com/rsicarelli/kmp-targets/blob/main/.github/workflows/ci.yml) builds both samples on every push; [`sample-matrix.yml`](https://github.com/rsicarelli/kmp-targets/blob/main/.github/workflows/sample-matrix.yml) builds hello-world per host with host-appropriate selections — the [CI matrix](../user-guide/ci-matrix.md) pattern, exercised.
+[`ci.yml`](https://github.com/rsicarelli/kmp-targets/blob/main/.github/workflows/ci.yml) builds the samples on every push; [`sample-matrix.yml`](https://github.com/rsicarelli/kmp-targets/blob/main/.github/workflows/sample-matrix.yml) builds hello-world per host with host-appropriate selections — the [CI matrix](../user-guide/ci-matrix.md) pattern.
