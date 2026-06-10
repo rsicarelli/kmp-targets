@@ -289,28 +289,6 @@
   
   
   
-    <li class="md-nav__item">
-      <a href="../../why-kmp-targets/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Why kmp-targets?
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
     
     
     
@@ -320,10 +298,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
         
           
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
             
   
   
@@ -336,8 +314,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             Get Started
           </label>
@@ -413,10 +391,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
             
   
   
@@ -429,8 +407,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_4">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             User Guide
           </label>
@@ -604,30 +582,7 @@
   
   
   <span class="md-ellipsis">
-    Hierarchy Template
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../no-collapse-mode/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    No-Collapse Mode
+    Hierarchy
     
   </span>
   
@@ -650,7 +605,7 @@
   
   
   <span class="md-ellipsis">
-    Build-Logic Conventions
+    Build Logic
     
   </span>
   
@@ -714,35 +669,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../kmp-targets-info/" class="md-nav__link">
+      <a href="../diagnostics/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Inspecting with kmpTargetsInfo
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../doctor-mode/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Doctor Mode
+    Diagnostics
     
   </span>
   
@@ -765,7 +697,7 @@
   
   
   <span class="md-ellipsis">
-    ABI Validation & Selection
+    ABI Validation
     
   </span>
   
@@ -788,53 +720,7 @@
   
   
   <span class="md-ellipsis">
-    CI Matrix
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../umbrella-tasks/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Umbrella Tasks
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../jvm-rename/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Renaming the JVM Target
+    CI
     
   </span>
   
@@ -887,6 +773,28 @@
   
   <span class="md-ellipsis">
     Compatibility
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../why-kmp-targets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Design
     
   </span>
   
@@ -1183,7 +1091,6 @@
 </tbody>
 </table>
 <h2 id="membership-clarifications">Membership clarifications<a class="headerlink" href="#membership-clarifications" title="Permanent link">&para;</a></h2>
-<p>Preset membership is worth spelling out where it's non-obvious:</p>
 <ul>
 <li><strong><code>jvmFamily</code> <em>includes</em> Android</strong> — it is <code>{androidTarget, jvm}</code>, the two JVM-bytecode leaves, not just <code>jvm</code>.</li>
 <li><strong><code>mobile</code> = <code>androidTarget</code> + the iOS leaves</strong> (<code>iosArm64</code>, <code>iosSimulatorArm64</code>, <code>iosX64</code>) — no watchOS, no macOS.</li>
@@ -1192,7 +1099,7 @@
 <li><strong>Bare sub-family names are rejected</strong>: <code>ios</code>, <code>macos</code>, <code>watchos</code>, <code>tvos</code> fail parsing with a hint pointing at the relevant leaf or <code>appleX</code> preset — they would be ambiguous between "all leaves" and "the device leaf".</li>
 </ul>
 <h2 id="deprecated-leaves">Deprecated leaves<a class="headerlink" href="#deprecated-leaves" title="Permanent link">&para;</a></h2>
-<p>Kotlin <a href="https://kotlinlang.org/docs/native-target-support.html">marks</a> <code>macosX64</code>, <code>watchosX64</code>, and <code>tvosX64</code> <strong>deprecated</strong> (since Kotlin 2.3.20). They stay selectable and stay in every preset (<code>appleDesktop</code> still expands to both macOS leaves) — registering one logs a <a href="../advisories/#deprecated-targets">deprecated-target advisory</a>, and <a href="../kmp-targets-info/"><code>kmpTargetsInfo</code></a> annotates them <code>(deprecated)</code> in its vocabulary listing. (<code>iosX64</code> is low-tier but <em>not</em> deprecated.)</p>
+<p>Kotlin <a href="https://kotlinlang.org/docs/native-target-support.html">marks</a> <code>macosX64</code>, <code>watchosX64</code>, and <code>tvosX64</code> <strong>deprecated</strong> (since Kotlin 2.3.20). They stay selectable and stay in every preset (<code>appleDesktop</code> still expands to both macOS leaves) — registering one logs a <a href="../advisories/#deprecated-targets">deprecated-target advisory</a>, and <a href="../diagnostics/#kmptargetsinfo"><code>kmpTargetsInfo</code></a> annotates them <code>(deprecated)</code> in its vocabulary listing. (<code>iosX64</code> is low-tier but <em>not</em> deprecated.)</p>
 <h2 id="composing">Composing<a class="headerlink" href="#composing" title="Permanent link">&para;</a></h2>
 <p>Presets and leaves compose with <code>+</code> / <code>-</code> in the DSL and with <code>,</code> / <code>-</code> / <code>+</code> in the property grammar:</p>
 <div class="language-kotlin highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="n">kmpTargets</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">supports</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">mobile</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">web</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">iosX64</span><span class="w"> </span><span class="p">}</span><span class="w"> </span><span class="p">}</span>

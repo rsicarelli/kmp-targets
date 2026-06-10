@@ -289,28 +289,6 @@
   
   
   
-    <li class="md-nav__item">
-      <a href="../../why-kmp-targets/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Why kmp-targets?
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
     
     
     
@@ -320,10 +298,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
         
           
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
             
   
   
@@ -336,8 +314,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             Get Started
           </label>
@@ -413,10 +391,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
             
   
   
@@ -429,8 +407,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_4">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             User Guide
           </label>
@@ -595,30 +573,7 @@
   
   
   <span class="md-ellipsis">
-    Hierarchy Template
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../no-collapse-mode/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    No-Collapse Mode
+    Hierarchy
     
   </span>
   
@@ -641,7 +596,7 @@
   
   
   <span class="md-ellipsis">
-    Build-Logic Conventions
+    Build Logic
     
   </span>
   
@@ -705,35 +660,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../kmp-targets-info/" class="md-nav__link">
+      <a href="../diagnostics/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Inspecting with kmpTargetsInfo
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../doctor-mode/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Doctor Mode
+    Diagnostics
     
   </span>
   
@@ -756,7 +688,7 @@
   
   
   <span class="md-ellipsis">
-    ABI Validation & Selection
+    ABI Validation
     
   </span>
   
@@ -779,53 +711,7 @@
   
   
   <span class="md-ellipsis">
-    CI Matrix
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../umbrella-tasks/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Umbrella Tasks
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../jvm-rename/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Renaming the JVM Target
+    CI
     
   </span>
   
@@ -878,6 +764,28 @@
   
   <span class="md-ellipsis">
     Compatibility
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../why-kmp-targets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Design
     
   </span>
   
@@ -1060,7 +968,7 @@
 
 
 <h1 id="selection-layers">Selection Layers<a class="headerlink" href="#selection-layers" title="Permanent link">&para;</a></h1>
-<p>The selection is <strong>global</strong> — one switch narrows the whole build. Its sources form <strong>three layers in increasing priority</strong>, the same model as Bazel's <code>.bazelrc</code> + <code>try-import user.bazelrc</code>:</p>
+<p>The selection is global — one switch narrows the whole build. Its sources form three layers in increasing priority:</p>
 <table>
 <thead>
 <tr>
@@ -1098,19 +1006,16 @@
 <li><code>local.properties</code> (per-developer, git-ignored)</li>
 </ol>
 <p>When no source provides a value, two <strong>fallbacks</strong> (not overrides — anything above beats them) apply: a project-wide <code>defaultSelection</code> set from build-logic, then the plugin default — every target the plugin knows about.</p>
-<div class="admonition note">
-<p class="admonition-title">Why the dedicated files beat <code>gradle.properties</code></p>
-<p>Once a team adopts the consolidation point, a stale key left behind in <code>gradle.properties</code> can't silently override it. One nuance: the rarer <code>-Dorg.gradle.project.kmptargets.targets</code> and <code>~/.gradle/gradle.properties</code> forms resolve at the <code>gradle.properties</code> layer, i.e. <em>below</em> the dedicated files.</p>
-</div>
+<p>The rarer <code>-Dorg.gradle.project.kmptargets.targets</code> and <code>~/.gradle/gradle.properties</code> forms resolve at the <code>gradle.properties</code> layer, below the dedicated files. Why the dedicated files outrank <code>gradle.properties</code>: <a href="../../why-kmp-targets/#selection-model">Design</a>.</p>
 <h2 id="the-config-files">The config files<a class="headerlink" href="#the-config-files" title="Permanent link">&para;</a></h2>
 <div class="language-properties highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># kmp-targets.properties — committed, team-shared</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="na">kmptargets.targets</span><span class="o">=</span><span class="s">jvm,iosArm64</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="na">kmptargets.hierarchyTemplate</span><span class="o">=</span><span class="s">true</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># kmptargets.hierarchyCollapse=false   # see &quot;No-Collapse Mode&quot;</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># kmptargets.hierarchyCollapse=false   # see &quot;Hierarchy&quot;</span>
 </span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># kmptargets.strict=true               # see &quot;Advisories &amp; Strict Mode&quot;</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># kmptargets.umbrellaTasks=true        # see &quot;Umbrella Tasks&quot;</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># kmptargets.umbrellaTasks=true        # see &quot;CI&quot;</span>
 </span></code></pre></div>
-<p><code>kmp-targets.local.properties</code> (git-ignored) mirrors <code>try-import</code>: absent it's ignored; present, its keys override the committed file's. Both files accept <strong>only</strong> known <code>kmptargets.*</code> keys — an unknown key fails the build with a "did you mean …?" suggestion, so a typo can't silently no-op. Both are tracked configuration-cache inputs: editing one invalidates the cache, leaving them untouched keeps cache hits.</p>
+<p><code>kmp-targets.local.properties</code> (git-ignored) is optional: absent it's ignored; present, its keys override the committed file's. Both files accept only known <code>kmptargets.*</code> keys — an unknown key fails the build with a "did you mean …?" suggestion. Both are tracked configuration-cache inputs: editing one invalidates the cache, leaving them untouched keeps cache hits.</p>
 <h2 id="selection-grammar">Selection grammar<a class="headerlink" href="#selection-grammar" title="Permanent link">&para;</a></h2>
 <div class="language-properties highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="na">kmptargets.targets</span><span class="o">=</span><span class="s">android,iosArm64        # explicit list</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="na">kmptargets.targets</span><span class="o">=</span><span class="s">appleMobile             # preset (iosArm64 + iosSimulatorArm64 + iosX64)</span>
@@ -1118,14 +1023,14 @@
 </span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="na">kmptargets.targets</span><span class="o">=</span><span class="s">apple,+android          # preset plus an addition</span>
 </span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="na">kmptargets.targets</span><span class="o">=</span><span class="s">ANDROID, ios-arm64      # aliases + case-insensitive</span>
 </span></code></pre></div>
-<p>Unknown tokens <strong>fail the build at configuration time</strong> with a "did you mean …?" suggestion — silently dropping a misspelled target in CI is the worst failure mode, so the parser is strict. Bare Apple sub-family names (<code>ios</code>, <code>macos</code>, <code>watchos</code>, <code>tvos</code>) are rejected with a hint pointing at the relevant leaf or <code>appleX</code> preset.</p>
+<p>Unknown tokens fail the build at configuration time with a "did you mean …?" suggestion (<a href="../../why-kmp-targets/#selection-model">why the parser is strict</a>). Bare Apple sub-family names (<code>ios</code>, <code>macos</code>, <code>watchos</code>, <code>tvos</code>) are rejected with a hint pointing at the relevant leaf or <code>appleX</code> preset.</p>
 <p>The full preset and leaf vocabulary lives in the <a href="../targets-reference/">Targets Reference</a>.</p>
 <div class="admonition warning">
 <p class="admonition-title">Breaking rename (pre-1.0)</p>
 <p>The selection key used to be <code>KMP_TARGETS</code> (env: <code>ORG_GRADLE_PROJECT_KMP_TARGETS</code> or bare <code>KMP_TARGETS</code>). It is now <code>kmptargets.targets</code> — the old key is <strong>not read at all</strong>; a build still setting only <code>KMP_TARGETS</code> falls through to <code>defaultSelection</code> / the plugin default.</p>
 </div>
 <h2 id="diagnosing-a-surprising-selection">Diagnosing a surprising selection<a class="headerlink" href="#diagnosing-a-surprising-selection" title="Permanent link">&para;</a></h2>
-<p><a href="../kmp-targets-info/"><code>kmpTargetsInfo</code></a> prints the resolved selection <strong>and the winning source by name</strong> — <code>command line (-Pkmptargets.targets)</code>, <code>kmp-targets.local.properties</code>, etc. One coarseness, stated in the label itself: values from <code>-Dorg.gradle.project.kmptargets.targets</code> and <code>~/.gradle/gradle.properties</code> are indistinguishable from root <code>gradle.properties</code>, so all three report as the fused <code>gradle.properties (...)</code> layer.</p>
+<p><a href="../diagnostics/#kmptargetsinfo"><code>kmpTargetsInfo</code></a> prints the resolved selection and the winning source by name — <code>command line (-Pkmptargets.targets)</code>, <code>kmp-targets.local.properties</code>, etc. Values from <code>-Dorg.gradle.project.kmptargets.targets</code> and <code>~/.gradle/gradle.properties</code> are indistinguishable from root <code>gradle.properties</code>; all three report as the fused <code>gradle.properties (...)</code> layer.</p>
 
 
 

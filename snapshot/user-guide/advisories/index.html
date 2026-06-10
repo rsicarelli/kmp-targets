@@ -18,7 +18,7 @@
         <link rel="prev" href="../recipes/">
       
       
-        <link rel="next" href="../kmp-targets-info/">
+        <link rel="next" href="../diagnostics/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -289,28 +289,6 @@
   
   
   
-    <li class="md-nav__item">
-      <a href="../../why-kmp-targets/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Why kmp-targets?
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
     
     
     
@@ -320,10 +298,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
         
           
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
             
   
   
@@ -336,8 +314,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             Get Started
           </label>
@@ -413,10 +391,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
             
   
   
@@ -429,8 +407,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_4">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             User Guide
           </label>
@@ -517,30 +495,7 @@
   
   
   <span class="md-ellipsis">
-    Hierarchy Template
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../no-collapse-mode/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    No-Collapse Mode
+    Hierarchy
     
   </span>
   
@@ -563,7 +518,7 @@
   
   
   <span class="md-ellipsis">
-    Build-Logic Conventions
+    Build Logic
     
   </span>
   
@@ -732,35 +687,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../kmp-targets-info/" class="md-nav__link">
+      <a href="../diagnostics/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Inspecting with kmpTargetsInfo
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../doctor-mode/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Doctor Mode
+    Diagnostics
     
   </span>
   
@@ -783,7 +715,7 @@
   
   
   <span class="md-ellipsis">
-    ABI Validation & Selection
+    ABI Validation
     
   </span>
   
@@ -806,53 +738,7 @@
   
   
   <span class="md-ellipsis">
-    CI Matrix
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../umbrella-tasks/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Umbrella Tasks
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../jvm-rename/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Renaming the JVM Target
+    CI
     
   </span>
   
@@ -905,6 +791,28 @@
   
   <span class="md-ellipsis">
     Compatibility
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../why-kmp-targets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Design
     
   </span>
   
@@ -1114,72 +1022,74 @@
 
 
 <h1 id="advisories-strict-mode">Advisories &amp; Strict Mode<a class="headerlink" href="#advisories-strict-mode" title="Permanent link">&para;</a></h1>
-<p>The plugin emits six configuration-time advisories. Five are <strong>signal only — never filtering</strong>; one (android-without-AGP) genuinely skips a leaf because the alternative is a raw KGP crash. <a href="#strict-mode">Strict mode</a> promotes all six to build failures with identical message text.</p>
-<div class="admonition tip">
-<p class="admonition-title">See the same findings explained, with fixes</p>
-<p><a href="../doctor-mode/"><code>kmpTargetsDoctor</code></a> renders each advisory below as a <code>[!]</code> finding (cause → effect → fix) plus a project-edge closure check — the triage surface for when a build broke and you want <em>why</em>.</p>
-</div>
+<p>The plugin emits six configuration-time advisories. Five are signal-only; one (android-without-AGP) skips a leaf — the reasoning is on the <a href="../../why-kmp-targets/#diagnostics-philosophy">Design page</a>. <a href="#strict-mode">Strict mode</a> promotes all six to build failures with identical message text. <a href="../diagnostics/#kmptargetsdoctor"><code>kmpTargetsDoctor</code></a> renders each advisory as a finding with the fix attached.</p>
 <h2 id="host-compatibility">Host compatibility<a class="headerlink" href="#host-compatibility" title="Permanent link">&para;</a></h2>
-<p>The registered set is <strong>host-blind by design</strong>: selecting <code>iosArm64</code> registers it on macOS, Linux, and Windows alike, so configuration-cache keys, task graphs, and published metadata stay identical across CI agents. But not every host can <em>compile</em> every native target. When the selection includes a native target the current host can't compile, the plugin warns — and <strong>still registers it</strong>:</p>
+<p>Fires when the selection includes a native target the current host can't compile. The target still registers (<a href="../../why-kmp-targets/#selection-model">host-blind registration</a>); compile/link tasks for it fail or are skipped on this host:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>kmp-targets: &#39;:shared&#39; selects [iosArm64] which cannot be compiled on this host (LINUX_X64) —
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>still registered (selection is host-independent), but compile/link tasks for them will fail or
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>be skipped here.
 </span></code></pre></div>
-<p>The host → target matrix comes from KGP's own encoding of <a href="https://kotlinlang.org/docs/native-target-support.html">Kotlin's native target support</a>, so it tracks your Kotlin version automatically. JVM and Web targets are host-agnostic and never warned. Fires at most once per target per module.</p>
+<p>The host → target matrix comes from KGP's encoding of <a href="https://kotlinlang.org/docs/native-target-support.html">Kotlin's native target support</a>, so it tracks your Kotlin version. JVM and Web targets are host-agnostic and never warned. Fires at most once per target per module. Per-host builds: <a href="../ci-matrix/">CI</a>.</p>
 <h2 id="deprecated-targets">Deprecated targets<a class="headerlink" href="#deprecated-targets" title="Permanent link">&para;</a></h2>
-<p>Kotlin marks <code>macosX64</code>, <code>watchosX64</code>, and <code>tvosX64</code> deprecated (since Kotlin 2.3.20), but KGP emits no configuration-time signal when they register. This plugin does:</p>
+<p>Kotlin marks <code>macosX64</code>, <code>watchosX64</code>, and <code>tvosX64</code> deprecated (since 2.3.20) but emits no configuration-time signal when they register. This plugin does:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>kmp-targets: &#39;:shared&#39; registers [macosX64] which Kotlin marks deprecated (since Kotlin 2.3.20,
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>see https://kotlinlang.org/docs/native-target-support.html) — still registered (selection is
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>unchanged), but consider migrating off them.
 </span></code></pre></div>
-<p>Signal only: deprecated leaves stay selectable, stay in every preset, and register exactly as selected. <a href="../kmp-targets-info/"><code>kmpTargetsInfo</code></a> marks the same leaves <code>(deprecated)</code> in its vocabulary listing. (<code>iosX64</code> is low-tier but <em>not</em> deprecated.)</p>
+<p>Deprecated leaves stay selectable, stay in every preset, and register as selected. <a href="../diagnostics/#kmptargetsinfo"><code>kmpTargetsInfo</code></a> marks them <code>(deprecated)</code>. <code>iosX64</code> is low-tier but not deprecated.</p>
 <h2 id="android-target-without-agp">Android target without AGP<a class="headerlink" href="#android-target-without-agp" title="Permanent link">&para;</a></h2>
-<p><code>androidTarget</code> is the one leaf whose registration needs more than KGP: <code>kotlin.androidTarget()</code> is a <strong>hard KGP failure</strong> (the FATAL <code>AndroidGradlePluginIsMissing</code> diagnostic) unless an Android Gradle plugin — <code>com.android.library</code>, <code>com.android.application</code>, or any other id KGP accepts — is already applied. So when a module both selects and supports <code>androidTarget</code> but no Android plugin is applied by the time <code>supports { }</code> runs, the plugin <strong>skips registering that leaf</strong> and says so:</p>
+<p><code>kotlin.androidTarget()</code> is a hard KGP failure unless an Android Gradle plugin is already applied. When a module selects and supports <code>androidTarget</code> but no Android plugin is applied by the time <code>supports { }</code> runs, the plugin skips that leaf:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>kmp-targets: &#39;:feature&#39; selects and supports [androidTarget] but no Android Gradle plugin is
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>applied — the target was not registered. Apply com.android.library or com.android.application
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>before supports { } — gate it on the selection (see
 </span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>https://rsicarelli.github.io/kmp-targets/user-guide/recipes/#selection-gated-eager-agp-application).
 </span></code></pre></div>
-<p>This is the one advisory that <strong>does filter</strong> — the alternative is KGP's raw crash with no module-level guidance, which during build-logic migrations reads as "kmp-targets dropped my target". The fix is an <strong>ordering rule</strong>: apply the Android plugin <em>before</em> <code>supports { }</code>. A later <code>supports { }</code> union re-checks, so AGP applied between two calls lets the later pass register the leaf normally. Everything else registers exactly as selected.</p>
-<p>To apply AGP only on Android lanes — without paying its configuration cost in every lane — gate it on the resolved selection: see <a href="../recipes/#selection-gated-eager-agp-application">Selection-gated eager AGP application</a>, which spells out the <code>KmpTarget.Jvm.Android in resolvedSelection()</code> gate, the <code>com.android.application</code> exemption, and the downstream-read gating the same predicate must guard.</p>
+<p>Fix: apply the Android plugin before <code>supports { }</code>. A later <code>supports { }</code> union re-checks, so AGP applied between two calls lets the later pass register the leaf. To apply AGP only on Android lanes, see <a href="../recipes/#selection-gated-eager-agp-application">Selection-gated eager AGP application</a>.</p>
 <h2 id="empty-overlap">Empty overlap<a class="headerlink" href="#empty-overlap" title="Permanent link">&para;</a></h2>
-<p>A non-empty selection that matches nothing a module <code>supports</code> (so the module registers zero targets) gets its own warning — the everyday symptom of a typo'd lane or an over-narrow selection.</p>
+<p>Fires when a non-empty selection matches nothing the module <code>supports</code> — the module registers zero targets. Typical cause: a typo'd lane or an over-narrow selection.</p>
 <h2 id="inert-modules">Inert modules<a class="headerlink" href="#inert-modules" title="Permanent link">&para;</a></h2>
-<p>A module that declared <code>supports { … }</code> can still register <strong>zero</strong> targets — disjoint selection, explicitly empty selection (<code>kmptargets.targets=jvm,-jvm</code>), or the only overlap being an AGP-skipped <code>androidTarget</code>. The trap: KGP still materializes the <strong>commonMain metadata compilation</strong> for every module applying <code>kotlin("multiplatform")</code>, and with no platform targets that compilation <strong>fails</strong> — any aggregate invocation (<code>build</code>, <code>check</code>, <code>publishToMavenLocal</code>) then trips over every inert module with an opaque compiler error. So the plugin names the consequence and the gate:</p>
+<p>A module that declared <code>supports { … }</code> can still register zero targets: disjoint selection, explicitly empty selection (<code>kmptargets.targets=jvm,-jvm</code>), or the only overlap being an AGP-skipped <code>androidTarget</code>. KGP materializes the commonMain metadata compilation even with zero platform targets, and it fails — every aggregate invocation (<code>build</code>, <code>check</code>) then trips over the module:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>kmp-targets: &#39;:shared&#39; declared supports { } but registered zero targets — the module is inert.
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>KGP still materializes the commonMain metadata compilation, which fails with no platform targets.
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>Gate it in build-logic when kmpTargets.registered().isEmpty().
 </span></code></pre></div>
-<p>The recommended gate lives in your build-logic, right after <code>supports { }</code>:</p>
+<p>The gate, right after <code>supports { }</code>:</p>
 <div class="language-kotlin highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">kmpTargets</span><span class="p">.</span><span class="na">registered</span><span class="p">().</span><span class="na">isEmpty</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="n">tasks</span><span class="p">.</span><span class="na">withType</span><span class="p">(</span><span class="n">KotlinCompilationTask</span><span class="o">::</span><span class="n">class</span><span class="p">.</span><span class="na">java</span><span class="p">).</span><span class="na">configureEach</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="w"> </span><span class="p">}</span>
 </span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="p">}</span>
 </span></code></pre></div>
-<p>A module that <strong>never calls</strong> <code>supports { }</code> registers nothing <em>by definition</em> and is deliberately not flagged — that's the explicit-selection baseline, not the trap. A later <code>supports { }</code> union that registers a leaf un-inerts the module permanently.</p>
+<p>A module that never calls <code>supports { }</code> registers nothing by definition and is not flagged. A later <code>supports { }</code> union that registers a leaf un-inerts the module.</p>
 <h2 id="native-only-metadata">Native-only metadata<a class="headerlink" href="#native-only-metadata" title="Permanent link">&para;</a></h2>
-<p>The consequence sibling of the inert trap, for a module that is <em>alive</em> but lopsided. A module that <strong>supports</strong> the JVM family yet, under this selection, registers no JVM-family leaf while registering at least one other target gets a JVM-less shared <code>commonMain</code>:</p>
+<p>Fires when a module supports the JVM family but, under this selection, registers no JVM-family leaf while registering at least one other target — <code>commonMain</code> becomes a JVM-less shared fragment:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>kmp-targets: &#39;:shared&#39; supports the JVM family but this selection registered no JVM-family
 </span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>target while other targets did — commonMain is now a JVM-less shared fragment. The platform
 </span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>klibs compile, but the *KotlinMetadata* compilations reject JVM-flavored constructs (e.g.
 </span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>@JvmInline): klibs build, metadata fails. Gate it in build-logic when
 </span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>kmpTargets.registered(jvmFamily).isEmpty(), disabling only the *KotlinMetadata* compilations.
 </span></code></pre></div>
-<p>The failure is paradoxical: every platform klib compiles, but the <code>*KotlinMetadata*</code> compilations reject JVM-flavored constructs (<code>@JvmInline</code> is the greppable token — named so a user arriving from the raw compiler error finds this advisory). Signal only, and <strong>cause-agnostic</strong>: a narrowed lane and an android-only <a href="#android-target-without-agp">AGP skip</a> fire it alike, so it deliberately names neither the selection nor the supported set. It is <strong>disjoint</strong> from the inert advisory — inert means <em>registered empty</em>, this means <em>registered non-empty but no JVM-family leaf</em>; at most one fires per module. Any single JVM-family leaf (<code>jvm</code> <strong>or</strong> <code>androidTarget</code> — Android is a JVM platform) defeats it. The gate it points at is the <em>scoped</em> sibling of inert's: disable only the metadata compilations, keep the live platform ones. See <a href="../recipes/#gate-compilation-on-inert-modules">Gate compilation on inert modules</a> for the build-logic shape.</p>
-<h2 id="strict-mode">Strict mode<a class="headerlink" href="#strict-mode" title="Permanent link">&para;</a></h2>
-<p>By default all six advisories are warnings — right for local iteration, easy to miss in CI, where a module silently building nothing is usually a real configuration bug.</p>
-<p><code>kmptargets.strict=true</code> promotes them to configuration-time <strong>build failures</strong> (<code>GradleException</code>) with the <strong>identical message text</strong> — severity changes, policy does not. It never changes <em>which</em> configurations are flagged and never changes <em>what registers</em> (the AGP skip happens with or without strict). Default <strong>off</strong>, deliberately. The flag resolves through the same <a href="../selection-layers/">precedence chain</a> as every <code>kmptargets.*</code> key; anything other than <code>true</code>/<code>false</code> (case-insensitive) is treated as unset.</p>
-<p>The recommended setup keeps local builds advisory and turns CI strict:</p>
-<div class="language-yaml highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># CI only — e.g. a GitHub Actions env block</span>
-</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="nt">env</span><span class="p">:</span>
-</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="nt">ORG_GRADLE_PROJECT_kmptargets.strict</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;true&quot;</span><span class="w">   </span><span class="c1"># or: ./gradlew build -Pkmptargets.strict=true</span>
+<p>Platform klibs compile; the <code>*KotlinMetadata*</code> compilations reject JVM-flavored constructs such as <code>@JvmInline</code>. Cause-agnostic: a narrowed lane and an android-only <a href="#android-target-without-agp">AGP skip</a> fire it alike. Disjoint from the inert advisory — inert means registered empty, this means registered non-empty with no JVM-family leaf; at most one fires per module. Any JVM-family leaf (<code>jvm</code> or <code>androidTarget</code>) defeats it.</p>
+<p>The gate is the scoped sibling of inert's — disable only the metadata compilations, keep the platform ones:</p>
+<div class="language-kotlin highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1">// after supports { } — drop the doomed metadata compilations, keep the platform klibs</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">kmpTargets</span><span class="p">.</span><span class="na">registered</span><span class="p">().</span><span class="na">isNotEmpty</span><span class="p">()</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">kmpTargets</span><span class="p">.</span><span class="na">registered</span><span class="p">(</span><span class="n">jvmFamily</span><span class="p">).</span><span class="na">isEmpty</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">    </span><span class="n">tasks</span><span class="p">.</span><span class="na">withType</span><span class="p">(</span><span class="n">KotlinCompilationTask</span><span class="o">::</span><span class="n">class</span><span class="p">.</span><span class="na">java</span><span class="p">)</span>
+</span><span id="__span-6-4"><a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="w">        </span><span class="p">.</span><span class="na">matching</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="nb">it</span><span class="p">.</span><span class="na">name</span><span class="p">.</span><span class="na">contains</span><span class="p">(</span><span class="s">&quot;KotlinMetadata&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
+</span><span id="__span-6-5"><a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="w">        </span><span class="p">.</span><span class="na">configureEach</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="w"> </span><span class="p">}</span>
+</span><span id="__span-6-6"><a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="p">}</span>
 </span></code></pre></div>
+<h2 id="strict-mode">Strict mode<a class="headerlink" href="#strict-mode" title="Permanent link">&para;</a></h2>
+<p><code>kmptargets.strict=true</code> promotes all six advisories to configuration-time build failures (<code>GradleException</code>) with identical message text. Severity changes; policy does not — it never changes which configurations are flagged or what registers (the AGP skip happens with or without strict). Default off. Recommended: strict in CI only:</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-7-1"><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># CI only — e.g. a GitHub Actions env block</span>
+</span><span id="__span-7-2"><a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nt">env</span><span class="p">:</span>
+</span><span id="__span-7-3"><a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="nt">ORG_GRADLE_PROJECT_kmptargets.strict</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;true&quot;</span><span class="w">   </span><span class="c1"># or: ./gradlew build -Pkmptargets.strict=true</span>
+</span></code></pre></div>
+<p>The flag resolves through the same <a href="../selection-layers/">precedence chain</a> as every <code>kmptargets.*</code> key; anything other than <code>true</code>/<code>false</code> (case-insensitive) is treated as unset.</p>
 <div class="admonition warning">
 <p class="admonition-title">Cross-host CI</p>
-<p>With strict on, a selection including targets the agent cannot compile (e.g. iOS leaves on a Linux runner) fails the build by design. Strict CI pairs with per-host selections — see <a href="../ci-matrix/">CI Matrix</a>.</p>
+<p>With strict on, a selection including targets the agent cannot compile fails the build by design. Pair strict CI with per-host selections — see <a href="../ci-matrix/">CI</a>.</p>
 </div>
 <div class="admonition warning">
 <p class="admonition-title">Explicitly-empty selections</p>
-<p>With strict on, a selection narrowed to nothing (<code>kmptargets.targets=jvm,-jvm</code>) makes the inert-module advisory fail <strong>every</strong> module that declares <code>supports { }</code>, by design — each carries a doomed metadata compilation. A build-nothing lane that wants to configure successfully should not pair the empty selection with strict.</p>
+<p>With strict on, a selection narrowed to nothing (<code>kmptargets.targets=jvm,-jvm</code>) makes the inert-module advisory fail every module that declares <code>supports { }</code>. A build-nothing lane should not pair the empty selection with strict.</p>
 </div>
 
 

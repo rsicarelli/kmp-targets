@@ -287,28 +287,6 @@
   
   
   
-    <li class="md-nav__item">
-      <a href="../../why-kmp-targets/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Why kmp-targets?
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
     
     
     
@@ -318,10 +296,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
         
           
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
             
   
   
@@ -334,8 +312,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_3">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             Get Started
           </label>
@@ -409,10 +387,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
             
   
   
@@ -425,8 +403,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_4">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             User Guide
           </label>
@@ -513,30 +491,7 @@
   
   
   <span class="md-ellipsis">
-    Hierarchy Template
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../user-guide/no-collapse-mode/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    No-Collapse Mode
+    Hierarchy
     
   </span>
   
@@ -559,7 +514,7 @@
   
   
   <span class="md-ellipsis">
-    Build-Logic Conventions
+    Build Logic
     
   </span>
   
@@ -623,35 +578,12 @@
   
   
     <li class="md-nav__item">
-      <a href="../../user-guide/kmp-targets-info/" class="md-nav__link">
+      <a href="../../user-guide/diagnostics/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
-    Inspecting with kmpTargetsInfo
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../user-guide/doctor-mode/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Doctor Mode
+    Diagnostics
     
   </span>
   
@@ -674,7 +606,7 @@
   
   
   <span class="md-ellipsis">
-    ABI Validation & Selection
+    ABI Validation
     
   </span>
   
@@ -697,53 +629,7 @@
   
   
   <span class="md-ellipsis">
-    CI Matrix
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../user-guide/umbrella-tasks/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Umbrella Tasks
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../../user-guide/jvm-rename/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Renaming the JVM Target
+    CI
     
   </span>
   
@@ -796,6 +682,28 @@
   
   <span class="md-ellipsis">
     Compatibility
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../why-kmp-targets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Design
     
   </span>
   
@@ -1058,7 +966,7 @@
 
 
 <h1 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h1>
-<p>First move for anything selection-shaped: <strong><a href="../../user-guide/kmp-targets-info/"><code>kmpTargetsInfo</code></a></strong> — it prints what resolved, which source won, and what registered, per module, at cache-hit speed.</p>
+<p>Start with <a href="../../user-guide/diagnostics/#kmptargetsinfo"><code>kmpTargetsInfo</code></a>: it prints what resolved, which source won, and what registered, per module. For findings with fixes attached, <a href="../../user-guide/diagnostics/#kmptargetsdoctor"><code>kmpTargetsDoctor</code></a>.</p>
 <h2 id="resolution-installation">Resolution &amp; installation<a class="headerlink" href="#resolution-installation" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -1098,8 +1006,8 @@
 <tbody>
 <tr>
 <td>Build fails at configuration: <code>Unknown target token '...' — did you mean ...?</code></td>
-<td>typo in <code>kmptargets.targets</code>; the parser is strict so CI can't silently drop a target</td>
-<td>accept the suggestion; vocabulary is in <a href="../../user-guide/kmp-targets-info/"><code>kmpTargetsInfo</code></a> or the <a href="../../user-guide/targets-reference/">reference</a></td>
+<td>typo in <code>kmptargets.targets</code>; the parser is strict</td>
+<td>accept the suggestion; vocabulary is in <a href="../../user-guide/diagnostics/#kmptargetsinfo"><code>kmpTargetsInfo</code></a> or the <a href="../../user-guide/targets-reference/">reference</a></td>
 </tr>
 <tr>
 <td>Build fails: unknown key in <code>kmp-targets.properties</code></td>
@@ -1123,8 +1031,8 @@
 </tr>
 <tr>
 <td>Every sync re-configures after changing selection</td>
-<td>each distinct value is its own configuration-cache entry — <strong>only the first</strong> build of a value misses</td>
-<td>expected; alternating between known values hits the cache (<a href="../../why-kmp-targets/#the-trade-off-stated-plainly">the trade-off</a>)</td>
+<td>each distinct value is its own configuration-cache entry — only the first build of a value misses</td>
+<td>expected; alternating between known values hits the cache (<a href="../../why-kmp-targets/#the-configuration-cache-trade-off">the trade-off</a>)</td>
 </tr>
 </tbody>
 </table>
@@ -1156,7 +1064,7 @@
 <tr>
 <td><code>targetName</code> throws</td>
 <td>called after <code>supports { }</code>, on a non-jvm leaf, or with a blank name</td>
-<td>rename <a href="../../user-guide/jvm-rename/">must precede registration and only applies to <code>jvm</code></a></td>
+<td>rename <a href="../../user-guide/selection-dsl/#renaming-the-jvm-target">must precede registration and only applies to <code>jvm</code></a></td>
 </tr>
 </tbody>
 </table>
@@ -1183,12 +1091,12 @@
 <tr>
 <td>Unresolved <code>expect</code> after narrowing to one iOS leaf</td>
 <td>minimal template collapsed the single-child <code>iosMain</code> your sources live in</td>
-<td><a href="../../user-guide/no-collapse-mode/">no-collapse mode</a></td>
+<td><a href="../../user-guide/hierarchy-template/#keeping-intermediates">no-collapse</a></td>
 </tr>
 <tr>
 <td>iOS compile/link fails on a Linux/Windows runner</td>
 <td>host can't compile the registered Apple target — registration is host-blind</td>
-<td>per-host selections (<a href="../../user-guide/ci-matrix/">CI matrix</a>); the <a href="../../user-guide/advisories/#host-compatibility">host advisory</a> names the mismatch</td>
+<td>per-host selections (<a href="../../user-guide/ci-matrix/">CI</a>); the <a href="../../user-guide/advisories/#host-compatibility">host advisory</a> names the mismatch</td>
 </tr>
 <tr>
 <td>CI job fails at configuration with an advisory's text</td>
