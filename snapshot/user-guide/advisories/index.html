@@ -12,28 +12,28 @@
         <meta name="author" content="Rodrigo Sicarelli">
       
       
-        <link rel="canonical" href="https://rsicarelli.github.io/kmp-targets/snapshot/user-guide/build-logic.html">
+        <link rel="canonical" href="https://rsicarelli.github.io/kmp-targets/snapshot/user-guide/advisories/">
       
       
-        <link rel="prev" href="no-collapse-mode.html">
+        <link rel="prev" href="../recipes/">
       
       
-        <link rel="next" href="recipes.html">
+        <link rel="next" href="../kmp-targets-info/">
       
       
-      <link rel="icon" href="../assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.16">
     
     
       
-        <title>Build-Logic Conventions - kmp-targets</title>
+        <title>Advisories & Strict Mode - kmp-targets</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.7e37652d.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.7e37652d.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
       
       
 
@@ -52,9 +52,9 @@
       
     
     
-      <link rel="stylesheet" href="../stylesheets/kmp-targets-brand.css">
+      <link rel="stylesheet" href="../../stylesheets/kmp-targets-brand.css">
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#build-logic-conventions" class="md-skip">
+        <a href="#advisories-strict-mode" class="md-skip">
           Skip to content
         </a>
       
@@ -100,7 +100,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../index.html" title="kmp-targets" class="md-header__button md-logo" aria-label="kmp-targets" data-md-component="logo">
+    <a href="../.." title="kmp-targets" class="md-header__button md-logo" aria-label="kmp-targets" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -120,7 +120,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Build-Logic Conventions
+              Advisories & Strict Mode
             
           </span>
         </div>
@@ -238,7 +238,7 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../index.html" title="kmp-targets" class="md-nav__button md-logo" aria-label="kmp-targets" data-md-component="logo">
+    <a href="../.." title="kmp-targets" class="md-nav__button md-logo" aria-label="kmp-targets" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -268,7 +268,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../index.html" class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -290,7 +290,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../why-kmp-targets.html" class="md-nav__link">
+      <a href="../../why-kmp-targets/" class="md-nav__link">
         
   
   
@@ -350,7 +350,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../get-started/index.html" class="md-nav__link">
+      <a href="../../get-started/" class="md-nav__link">
         
   
   
@@ -373,7 +373,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../get-started/quick-start.html" class="md-nav__link">
+      <a href="../../get-started/quick-start/" class="md-nav__link">
         
   
   
@@ -443,7 +443,7 @@
   
   
     <li class="md-nav__item">
-      <a href="selection-dsl.html" class="md-nav__link">
+      <a href="../selection-dsl/" class="md-nav__link">
         
   
   
@@ -466,7 +466,7 @@
   
   
     <li class="md-nav__item">
-      <a href="selection-layers.html" class="md-nav__link">
+      <a href="../selection-layers/" class="md-nav__link">
         
   
   
@@ -489,7 +489,7 @@
   
   
     <li class="md-nav__item">
-      <a href="targets-reference.html" class="md-nav__link">
+      <a href="../targets-reference/" class="md-nav__link">
         
   
   
@@ -512,7 +512,7 @@
   
   
     <li class="md-nav__item">
-      <a href="hierarchy-template.html" class="md-nav__link">
+      <a href="../hierarchy-template/" class="md-nav__link">
         
   
   
@@ -535,12 +535,58 @@
   
   
     <li class="md-nav__item">
-      <a href="no-collapse-mode.html" class="md-nav__link">
+      <a href="../no-collapse-mode/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     No-Collapse Mode
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../build-logic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Build-Logic Conventions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../recipes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Recipes
     
   </span>
   
@@ -572,7 +618,7 @@
   
   
   <span class="md-ellipsis">
-    Build-Logic Conventions
+    Advisories & Strict Mode
     
   </span>
   
@@ -580,12 +626,12 @@
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <a href="build-logic.html" class="md-nav__link md-nav__link--active">
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
   <span class="md-ellipsis">
-    Build-Logic Conventions
+    Advisories & Strict Mode
     
   </span>
   
@@ -608,45 +654,63 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#querying-what-registered" class="md-nav__link">
+  <a href="#host-compatibility" class="md-nav__link">
     <span class="md-ellipsis">
-      Querying what registered
+      Host compatibility
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#onregistered-the-ordering-immune-hook" class="md-nav__link">
+  <a href="#deprecated-targets" class="md-nav__link">
     <span class="md-ellipsis">
-      onRegistered — the ordering-immune hook
+      Deprecated targets
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#registeredtarget" class="md-nav__link">
+  <a href="#android-target-without-agp" class="md-nav__link">
     <span class="md-ellipsis">
-      RegisteredTarget
+      Android target without AGP
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#the-canonical-sample" class="md-nav__link">
+  <a href="#empty-overlap" class="md-nav__link">
     <span class="md-ellipsis">
-      The canonical sample
+      Empty overlap
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#related" class="md-nav__link">
+  <a href="#inert-modules" class="md-nav__link">
     <span class="md-ellipsis">
-      Related
+      Inert modules
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#native-only-metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      Native-only metadata
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#strict-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Strict mode
     </span>
   </a>
   
@@ -668,53 +732,7 @@
   
   
     <li class="md-nav__item">
-      <a href="recipes.html" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Recipes
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="advisories.html" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Advisories & Strict Mode
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="kmp-targets-info.html" class="md-nav__link">
+      <a href="../kmp-targets-info/" class="md-nav__link">
         
   
   
@@ -737,7 +755,7 @@
   
   
     <li class="md-nav__item">
-      <a href="doctor-mode.html" class="md-nav__link">
+      <a href="../doctor-mode/" class="md-nav__link">
         
   
   
@@ -760,7 +778,7 @@
   
   
     <li class="md-nav__item">
-      <a href="abi-validation.html" class="md-nav__link">
+      <a href="../abi-validation/" class="md-nav__link">
         
   
   
@@ -783,7 +801,7 @@
   
   
     <li class="md-nav__item">
-      <a href="ci-matrix.html" class="md-nav__link">
+      <a href="../ci-matrix/" class="md-nav__link">
         
   
   
@@ -806,7 +824,30 @@
   
   
     <li class="md-nav__item">
-      <a href="jvm-rename.html" class="md-nav__link">
+      <a href="../umbrella-tasks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Umbrella Tasks
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../jvm-rename/" class="md-nav__link">
         
   
   
@@ -836,7 +877,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../samples/index.html" class="md-nav__link">
+      <a href="../../samples/" class="md-nav__link">
         
   
   
@@ -858,7 +899,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../compatibility.html" class="md-nav__link">
+      <a href="../../compatibility/" class="md-nav__link">
         
   
   
@@ -918,7 +959,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../help/faq.html" class="md-nav__link">
+      <a href="../../help/faq/" class="md-nav__link">
         
   
   
@@ -941,7 +982,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../help/troubleshooting.html" class="md-nav__link">
+      <a href="../../help/troubleshooting/" class="md-nav__link">
         
   
   
@@ -991,45 +1032,63 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#querying-what-registered" class="md-nav__link">
+  <a href="#host-compatibility" class="md-nav__link">
     <span class="md-ellipsis">
-      Querying what registered
+      Host compatibility
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#onregistered-the-ordering-immune-hook" class="md-nav__link">
+  <a href="#deprecated-targets" class="md-nav__link">
     <span class="md-ellipsis">
-      onRegistered — the ordering-immune hook
+      Deprecated targets
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#registeredtarget" class="md-nav__link">
+  <a href="#android-target-without-agp" class="md-nav__link">
     <span class="md-ellipsis">
-      RegisteredTarget
+      Android target without AGP
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#the-canonical-sample" class="md-nav__link">
+  <a href="#empty-overlap" class="md-nav__link">
     <span class="md-ellipsis">
-      The canonical sample
+      Empty overlap
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#related" class="md-nav__link">
+  <a href="#inert-modules" class="md-nav__link">
     <span class="md-ellipsis">
-      Related
+      Inert modules
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#native-only-metadata" class="md-nav__link">
+    <span class="md-ellipsis">
+      Native-only metadata
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#strict-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Strict mode
     </span>
   </a>
   
@@ -1054,72 +1113,74 @@
   
 
 
-<h1 id="build-logic-conventions">Build-Logic Conventions<a class="headerlink" href="#build-logic-conventions" title="Permanent link">&para;</a></h1>
-<p>The plugin ships just one extension (<code>KmpTargetsExtension</code>) and one set of public types (<code>KmpTargetSet</code>, <code>KmpTarget</code>) — there are <strong>no bundled &ldquo;preset&rdquo; plugin ids</strong>. Teams that want <code>apply by id, no body</code> ergonomics build their own conventions in <code>build-logic/</code>:</p>
-<p>```kotlin<br />
-// build-logic/src/main/kotlin/my.mobile-module.gradle.kts<br />
-import com.rsicarelli.kmptargets.KmpTargetsExtension<br />
-import com.rsicarelli.kmptargets.model.KmpTargetSet</p>
-<p>plugins {<br />
-    kotlin(&ldquo;multiplatform&rdquo;)<br />
-    id(&ldquo;com.rsicarelli.kmptargets&rdquo;)<br />
-}</p>
-<p>extensions.configure<KmpTargetsExtension> {<br />
-    supports(KmpTargetSet.mobile)<br />
-}<br />
-```</p>
-<p><code>kotlin
-// feature-mobile/build.gradle.kts
-plugins { id("my.mobile-module") }</code></p>
-<p>This is how a team centralizes per-module shape vocabulary in their own naming, instead of taking a vocabulary baked into this plugin&rsquo;s artifact. The DSL stays the primitive; convention plugins are an optional layer you own.</p>
-<p>The build-logic build depends on the artifact directly:</p>
-<p><code>kotlin
-// build-logic/build.gradle.kts
-dependencies {
-    implementation("com.rsicarelli:kmp-targets-gradle-plugin:0.1.0-SNAPSHOT")
-}</code></p>
-<h2 id="querying-what-registered">Querying what registered<a class="headerlink" href="#querying-what-registered" title="Permanent link">&para;</a></h2>
-<p>Conventions routinely need to wire <em>per-target</em> things after registration — the canonical case is KSP, where each target gets its own configuration (<code>kspIosArm64</code>, <code>kspIosSimulatorArm64</code>, …). Without help, every convention re-derives family matching and name mangling from KGP internals:</p>
-<p><code>kotlin
-// Before — KGP konan types plus hand-rolled name mangling:
-kotlin.targets.withType&lt;KotlinNativeTarget&gt;()
-    .matching { it.konanTarget.family == Family.IOS }
-    .forEach { add("ksp${it.targetName.replaceFirstChar(Char::titlecase)}", dep) }</code></p>
-<p>The extension exposes the <strong>registered</strong> set directly, so build-logic never touches <code>konanTarget</code>:</p>
-<p>```kotlin<br />
-// After — per-leaf hook with the actual Gradle name, pre-mangled:<br />
-kmpTargets.onRegistered { add(&ldquo;ksp${it.gradleNameCapitalized}&rdquo;, dep) }</p>
-<p>// Snapshots, family-sliced with plain set algebra:<br />
-kmpTargets.registered()                          // everything registered so far, as KmpTargetSet<br />
-kmpTargets.registered(KmpTargetSet.appleMobile)  // just the registered iOS leaves<br />
-```</p>
-<h2 id="onregistered-the-ordering-immune-hook"><code>onRegistered</code> — the ordering-immune hook<a class="headerlink" href="#onregistered-the-ordering-immune-hook" title="Permanent link">&para;</a></h2>
-<p><code>onRegistered</code> has <code>configureEach</code> semantics:</p>
-<ul>
-<li>Hooked <strong>before</strong> the module&rsquo;s <code>supports { }</code>, it fires as each leaf registers.</li>
-<li>Hooked <strong>after</strong>, it replays for the leaves already registered.</li>
-<li>A later <code>supports { }</code> union fires only its delta.</li>
-</ul>
-<p>That makes it the right choice for convention plugins, which can&rsquo;t control where the consuming module places its blocks. The <code>registered()</code> snapshot is the simple read for build-script code that runs after <code>supports { }</code> — but remember it&rsquo;s a point-in-time value; a later <code>supports { }</code> call can union in more leaves.</p>
-<h2 id="registeredtarget"><code>RegisteredTarget</code><a class="headerlink" href="#registeredtarget" title="Permanent link">&para;</a></h2>
-<p>Each <code>onRegistered</code> callback receives a <code>RegisteredTarget</code>: the model leaf plus the Gradle target name registration <strong>actually used</strong>. A jvm leaf renamed via <a href="jvm-rename.html"><code>targetName(jvm, "desktop")</code></a> reports <code>gradleName == "desktop"</code>, so configuration wiring keeps working without the convention knowing about the rename.</p>
-<p><code>registered()</code> deliberately mirrors <strong>real registrations</strong>, not the abstract <code>selection ∩ supported</code> plan:</p>
-<ul>
-<li>without KGP applied it is empty (and <code>onRegistered</code> never fires)</li>
-<li>an <code>androidTarget</code> skipped by the <a href="advisories.html#android-target-without-agp">AGP guard</a> stays absent</li>
-</ul>
-<p>…so KSP wiring can never target a configuration that doesn&rsquo;t exist.</p>
-<div class="admonition warning">
-<p class="admonition-title">Configuration-time tool</p>
-<p>Like <code>supports</code>, the callback (and the extension itself) is a configuration-time API — never hold either from a task action; that breaks the configuration cache.</p>
+<h1 id="advisories-strict-mode">Advisories &amp; Strict Mode<a class="headerlink" href="#advisories-strict-mode" title="Permanent link">&para;</a></h1>
+<p>The plugin emits six configuration-time advisories. Five are <strong>signal only — never filtering</strong>; one (android-without-AGP) genuinely skips a leaf because the alternative is a raw KGP crash. <a href="#strict-mode">Strict mode</a> promotes all six to build failures with identical message text.</p>
+<div class="admonition tip">
+<p class="admonition-title">See the same findings explained, with fixes</p>
+<p><a href="../doctor-mode/"><code>kmpTargetsDoctor</code></a> renders each advisory below as a <code>[!]</code> finding (cause → effect → fix) plus a project-edge closure check — the triage surface for when a build broke and you want <em>why</em>.</p>
 </div>
-<h2 id="the-canonical-sample">The canonical sample<a class="headerlink" href="#the-canonical-sample" title="Permanent link">&para;</a></h2>
-<p>The <a href="../samples/index.html"><code>eager-conventions</code> sample</a> applies a <code>kmptargets.module</code> convention plugin from the sample&rsquo;s own <code>build-logic/</code>, using <code>onRegistered</code> as the canonical pattern — plus a regression gate (<code>verifyEagerTargets</code>) asserting exactly the expected leaves register.</p>
-<h2 id="related">Related<a class="headerlink" href="#related" title="Permanent link">&para;</a></h2>
-<ul>
-<li><a href="recipes.html">Recipes</a> — concrete convention patterns: KSP gates, inert-module gating, AGP ordering</li>
-<li><a href="advisories.html#inert-modules">Advisories</a> — the inert-module trap and its <code>registered().isEmpty()</code> gate</li>
-</ul>
+<h2 id="host-compatibility">Host compatibility<a class="headerlink" href="#host-compatibility" title="Permanent link">&para;</a></h2>
+<p>The registered set is <strong>host-blind by design</strong>: selecting <code>iosArm64</code> registers it on macOS, Linux, and Windows alike, so configuration-cache keys, task graphs, and published metadata stay identical across CI agents. But not every host can <em>compile</em> every native target. When the selection includes a native target the current host can't compile, the plugin warns — and <strong>still registers it</strong>:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>kmp-targets: &#39;:shared&#39; selects [iosArm64] which cannot be compiled on this host (LINUX_X64) —
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>still registered (selection is host-independent), but compile/link tasks for them will fail or
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>be skipped here.
+</span></code></pre></div>
+<p>The host → target matrix comes from KGP's own encoding of <a href="https://kotlinlang.org/docs/native-target-support.html">Kotlin's native target support</a>, so it tracks your Kotlin version automatically. JVM and Web targets are host-agnostic and never warned. Fires at most once per target per module.</p>
+<h2 id="deprecated-targets">Deprecated targets<a class="headerlink" href="#deprecated-targets" title="Permanent link">&para;</a></h2>
+<p>Kotlin marks <code>macosX64</code>, <code>watchosX64</code>, and <code>tvosX64</code> deprecated (since Kotlin 2.3.20), but KGP emits no configuration-time signal when they register. This plugin does:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>kmp-targets: &#39;:shared&#39; registers [macosX64] which Kotlin marks deprecated (since Kotlin 2.3.20,
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>see https://kotlinlang.org/docs/native-target-support.html) — still registered (selection is
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>unchanged), but consider migrating off them.
+</span></code></pre></div>
+<p>Signal only: deprecated leaves stay selectable, stay in every preset, and register exactly as selected. <a href="../kmp-targets-info/"><code>kmpTargetsInfo</code></a> marks the same leaves <code>(deprecated)</code> in its vocabulary listing. (<code>iosX64</code> is low-tier but <em>not</em> deprecated.)</p>
+<h2 id="android-target-without-agp">Android target without AGP<a class="headerlink" href="#android-target-without-agp" title="Permanent link">&para;</a></h2>
+<p><code>androidTarget</code> is the one leaf whose registration needs more than KGP: <code>kotlin.androidTarget()</code> is a <strong>hard KGP failure</strong> (the FATAL <code>AndroidGradlePluginIsMissing</code> diagnostic) unless an Android Gradle plugin — <code>com.android.library</code>, <code>com.android.application</code>, or any other id KGP accepts — is already applied. So when a module both selects and supports <code>androidTarget</code> but no Android plugin is applied by the time <code>supports { }</code> runs, the plugin <strong>skips registering that leaf</strong> and says so:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>kmp-targets: &#39;:feature&#39; selects and supports [androidTarget] but no Android Gradle plugin is
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>applied — the target was not registered. Apply com.android.library or com.android.application
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>before supports { } — gate it on the selection (see
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>https://rsicarelli.github.io/kmp-targets/user-guide/recipes/#selection-gated-eager-agp-application).
+</span></code></pre></div>
+<p>This is the one advisory that <strong>does filter</strong> — the alternative is KGP's raw crash with no module-level guidance, which during build-logic migrations reads as "kmp-targets dropped my target". The fix is an <strong>ordering rule</strong>: apply the Android plugin <em>before</em> <code>supports { }</code>. A later <code>supports { }</code> union re-checks, so AGP applied between two calls lets the later pass register the leaf normally. Everything else registers exactly as selected.</p>
+<p>To apply AGP only on Android lanes — without paying its configuration cost in every lane — gate it on the resolved selection: see <a href="../recipes/#selection-gated-eager-agp-application">Selection-gated eager AGP application</a>, which spells out the <code>KmpTarget.Jvm.Android in resolvedSelection()</code> gate, the <code>com.android.application</code> exemption, and the downstream-read gating the same predicate must guard.</p>
+<h2 id="empty-overlap">Empty overlap<a class="headerlink" href="#empty-overlap" title="Permanent link">&para;</a></h2>
+<p>A non-empty selection that matches nothing a module <code>supports</code> (so the module registers zero targets) gets its own warning — the everyday symptom of a typo'd lane or an over-narrow selection.</p>
+<h2 id="inert-modules">Inert modules<a class="headerlink" href="#inert-modules" title="Permanent link">&para;</a></h2>
+<p>A module that declared <code>supports { … }</code> can still register <strong>zero</strong> targets — disjoint selection, explicitly empty selection (<code>kmptargets.targets=jvm,-jvm</code>), or the only overlap being an AGP-skipped <code>androidTarget</code>. The trap: KGP still materializes the <strong>commonMain metadata compilation</strong> for every module applying <code>kotlin("multiplatform")</code>, and with no platform targets that compilation <strong>fails</strong> — any aggregate invocation (<code>build</code>, <code>check</code>, <code>publishToMavenLocal</code>) then trips over every inert module with an opaque compiler error. So the plugin names the consequence and the gate:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>kmp-targets: &#39;:shared&#39; declared supports { } but registered zero targets — the module is inert.
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>KGP still materializes the commonMain metadata compilation, which fails with no platform targets.
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>Gate it in build-logic when kmpTargets.registered().isEmpty().
+</span></code></pre></div>
+<p>The recommended gate lives in your build-logic, right after <code>supports { }</code>:</p>
+<div class="language-kotlin highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">kmpTargets</span><span class="p">.</span><span class="na">registered</span><span class="p">().</span><span class="na">isEmpty</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="n">tasks</span><span class="p">.</span><span class="na">withType</span><span class="p">(</span><span class="n">KotlinCompilationTask</span><span class="o">::</span><span class="n">class</span><span class="p">.</span><span class="na">java</span><span class="p">).</span><span class="na">configureEach</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="w"> </span><span class="p">}</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>A module that <strong>never calls</strong> <code>supports { }</code> registers nothing <em>by definition</em> and is deliberately not flagged — that's the explicit-selection baseline, not the trap. A later <code>supports { }</code> union that registers a leaf un-inerts the module permanently.</p>
+<h2 id="native-only-metadata">Native-only metadata<a class="headerlink" href="#native-only-metadata" title="Permanent link">&para;</a></h2>
+<p>The consequence sibling of the inert trap, for a module that is <em>alive</em> but lopsided. A module that <strong>supports</strong> the JVM family yet, under this selection, registers no JVM-family leaf while registering at least one other target gets a JVM-less shared <code>commonMain</code>:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>kmp-targets: &#39;:shared&#39; supports the JVM family but this selection registered no JVM-family
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>target while other targets did — commonMain is now a JVM-less shared fragment. The platform
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>klibs compile, but the *KotlinMetadata* compilations reject JVM-flavored constructs (e.g.
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>@JvmInline): klibs build, metadata fails. Gate it in build-logic when
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>kmpTargets.registered(jvmFamily).isEmpty(), disabling only the *KotlinMetadata* compilations.
+</span></code></pre></div>
+<p>The failure is paradoxical: every platform klib compiles, but the <code>*KotlinMetadata*</code> compilations reject JVM-flavored constructs (<code>@JvmInline</code> is the greppable token — named so a user arriving from the raw compiler error finds this advisory). Signal only, and <strong>cause-agnostic</strong>: a narrowed lane and an android-only <a href="#android-target-without-agp">AGP skip</a> fire it alike, so it deliberately names neither the selection nor the supported set. It is <strong>disjoint</strong> from the inert advisory — inert means <em>registered empty</em>, this means <em>registered non-empty but no JVM-family leaf</em>; at most one fires per module. Any single JVM-family leaf (<code>jvm</code> <strong>or</strong> <code>androidTarget</code> — Android is a JVM platform) defeats it. The gate it points at is the <em>scoped</em> sibling of inert's: disable only the metadata compilations, keep the live platform ones. See <a href="../recipes/#gate-compilation-on-inert-modules">Gate compilation on inert modules</a> for the build-logic shape.</p>
+<h2 id="strict-mode">Strict mode<a class="headerlink" href="#strict-mode" title="Permanent link">&para;</a></h2>
+<p>By default all six advisories are warnings — right for local iteration, easy to miss in CI, where a module silently building nothing is usually a real configuration bug.</p>
+<p><code>kmptargets.strict=true</code> promotes them to configuration-time <strong>build failures</strong> (<code>GradleException</code>) with the <strong>identical message text</strong> — severity changes, policy does not. It never changes <em>which</em> configurations are flagged and never changes <em>what registers</em> (the AGP skip happens with or without strict). Default <strong>off</strong>, deliberately. The flag resolves through the same <a href="../selection-layers/">precedence chain</a> as every <code>kmptargets.*</code> key; anything other than <code>true</code>/<code>false</code> (case-insensitive) is treated as unset.</p>
+<p>The recommended setup keeps local builds advisory and turns CI strict:</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># CI only — e.g. a GitHub Actions env block</span>
+</span><span id="__span-6-2"><a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a><span class="nt">env</span><span class="p">:</span>
+</span><span id="__span-6-3"><a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="w">  </span><span class="nt">ORG_GRADLE_PROJECT_kmptargets.strict</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;true&quot;</span><span class="w">   </span><span class="c1"># or: ./gradlew build -Pkmptargets.strict=true</span>
+</span></code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">Cross-host CI</p>
+<p>With strict on, a selection including targets the agent cannot compile (e.g. iOS leaves on a Linux runner) fails the build by design. Strict CI pairs with per-host selections — see <a href="../ci-matrix/">CI Matrix</a>.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Explicitly-empty selections</p>
+<p>With strict on, a selection narrowed to nothing (<code>kmptargets.targets=jvm,-jvm</code>) makes the inert-module advisory fail <strong>every</strong> module that declares <code>supports { }</code>, by design — each carries a doomed metadata compilation. A build-nothing lane that wants to configure successfully should not pair the empty selection with strict.</p>
+</div>
 
 
 
@@ -1174,10 +1235,10 @@ kmpTargets.registered(KmpTargetSet.appleMobile)  // just the registered iOS leav
     
     
       
-      <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy", "content.code.select", "search.suggest", "search.highlight", "content.tabs.link"], "search": "../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.copy", "content.code.select", "search.suggest", "search.highlight", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.50899def.min.js"></script>
+      <script src="../../assets/javascripts/bundle.50899def.min.js"></script>
       
     
   </body>

@@ -12,28 +12,28 @@
         <meta name="author" content="Rodrigo Sicarelli">
       
       
-        <link rel="canonical" href="https://rsicarelli.github.io/kmp-targets/snapshot/user-guide/abi-validation.html">
+        <link rel="canonical" href="https://rsicarelli.github.io/kmp-targets/snapshot/user-guide/selection-layers/">
       
       
-        <link rel="prev" href="doctor-mode.html">
+        <link rel="prev" href="../selection-dsl/">
       
       
-        <link rel="next" href="ci-matrix.html">
+        <link rel="next" href="../targets-reference/">
       
       
-      <link rel="icon" href="../assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.16">
     
     
       
-        <title>ABI Validation & Selection - kmp-targets</title>
+        <title>Selection Layers - kmp-targets</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.7e37652d.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.7e37652d.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
       
       
 
@@ -52,9 +52,9 @@
       
     
     
-      <link rel="stylesheet" href="../stylesheets/kmp-targets-brand.css">
+      <link rel="stylesheet" href="../../stylesheets/kmp-targets-brand.css">
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#abi-validation-selection" class="md-skip">
+        <a href="#selection-layers" class="md-skip">
           Skip to content
         </a>
       
@@ -100,7 +100,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../index.html" title="kmp-targets" class="md-header__button md-logo" aria-label="kmp-targets" data-md-component="logo">
+    <a href="../.." title="kmp-targets" class="md-header__button md-logo" aria-label="kmp-targets" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -120,7 +120,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              ABI Validation & Selection
+              Selection Layers
             
           </span>
         </div>
@@ -238,7 +238,7 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../index.html" title="kmp-targets" class="md-nav__button md-logo" aria-label="kmp-targets" data-md-component="logo">
+    <a href="../.." title="kmp-targets" class="md-nav__button md-logo" aria-label="kmp-targets" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -268,7 +268,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../index.html" class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -290,7 +290,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../why-kmp-targets.html" class="md-nav__link">
+      <a href="../../why-kmp-targets/" class="md-nav__link">
         
   
   
@@ -350,7 +350,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../get-started/index.html" class="md-nav__link">
+      <a href="../../get-started/" class="md-nav__link">
         
   
   
@@ -373,7 +373,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../get-started/quick-start.html" class="md-nav__link">
+      <a href="../../get-started/quick-start/" class="md-nav__link">
         
   
   
@@ -443,219 +443,12 @@
   
   
     <li class="md-nav__item">
-      <a href="selection-dsl.html" class="md-nav__link">
+      <a href="../selection-dsl/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     Selection DSL
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="selection-layers.html" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Selection Layers
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="targets-reference.html" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Targets Reference
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="hierarchy-template.html" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Hierarchy Template
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="no-collapse-mode.html" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    No-Collapse Mode
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="build-logic.html" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Build-Logic Conventions
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="recipes.html" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Recipes
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="advisories.html" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Advisories & Strict Mode
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="kmp-targets-info.html" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Inspecting with kmpTargetsInfo
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="doctor-mode.html" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    Doctor Mode
     
   </span>
   
@@ -687,7 +480,7 @@
   
   
   <span class="md-ellipsis">
-    ABI Validation & Selection
+    Selection Layers
     
   </span>
   
@@ -695,12 +488,12 @@
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <a href="abi-validation.html" class="md-nav__link md-nav__link--active">
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
   <span class="md-ellipsis">
-    ABI Validation & Selection
+    Selection Layers
     
   </span>
   
@@ -723,27 +516,36 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#the-blind-spot" class="md-nav__link">
+  <a href="#exact-precedence-highest-first" class="md-nav__link">
     <span class="md-ellipsis">
-      The blind spot
+      Exact precedence (highest first)
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#the-signal-kmp-targets-adds" class="md-nav__link">
+  <a href="#the-config-files" class="md-nav__link">
     <span class="md-ellipsis">
-      The signal kmp-targets adds
+      The config files
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#recommended-practice" class="md-nav__link">
+  <a href="#selection-grammar" class="md-nav__link">
     <span class="md-ellipsis">
-      Recommended practice
+      Selection grammar
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#diagnosing-a-surprising-selection" class="md-nav__link">
+    <span class="md-ellipsis">
+      Diagnosing a surprising selection
     </span>
   </a>
   
@@ -765,7 +567,214 @@
   
   
     <li class="md-nav__item">
-      <a href="ci-matrix.html" class="md-nav__link">
+      <a href="../targets-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Targets Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hierarchy-template/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Hierarchy Template
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../no-collapse-mode/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    No-Collapse Mode
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../build-logic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Build-Logic Conventions
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../recipes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Recipes
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advisories/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Advisories & Strict Mode
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../kmp-targets-info/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Inspecting with kmpTargetsInfo
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../doctor-mode/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Doctor Mode
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../abi-validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ABI Validation & Selection
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ci-matrix/" class="md-nav__link">
         
   
   
@@ -788,7 +797,30 @@
   
   
     <li class="md-nav__item">
-      <a href="jvm-rename.html" class="md-nav__link">
+      <a href="../umbrella-tasks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Umbrella Tasks
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../jvm-rename/" class="md-nav__link">
         
   
   
@@ -818,7 +850,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../samples/index.html" class="md-nav__link">
+      <a href="../../samples/" class="md-nav__link">
         
   
   
@@ -840,7 +872,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../compatibility.html" class="md-nav__link">
+      <a href="../../compatibility/" class="md-nav__link">
         
   
   
@@ -900,7 +932,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../help/faq.html" class="md-nav__link">
+      <a href="../../help/faq/" class="md-nav__link">
         
   
   
@@ -923,7 +955,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../help/troubleshooting.html" class="md-nav__link">
+      <a href="../../help/troubleshooting/" class="md-nav__link">
         
   
   
@@ -973,27 +1005,36 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#the-blind-spot" class="md-nav__link">
+  <a href="#exact-precedence-highest-first" class="md-nav__link">
     <span class="md-ellipsis">
-      The blind spot
+      Exact precedence (highest first)
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#the-signal-kmp-targets-adds" class="md-nav__link">
+  <a href="#the-config-files" class="md-nav__link">
     <span class="md-ellipsis">
-      The signal kmp-targets adds
+      The config files
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#recommended-practice" class="md-nav__link">
+  <a href="#selection-grammar" class="md-nav__link">
     <span class="md-ellipsis">
-      Recommended practice
+      Selection grammar
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#diagnosing-a-surprising-selection" class="md-nav__link">
+    <span class="md-ellipsis">
+      Diagnosing a surprising selection
     </span>
   </a>
   
@@ -1018,41 +1059,73 @@
   
 
 
-<h1 id="abi-validation-selection">ABI Validation &amp; Selection<a class="headerlink" href="#abi-validation-selection" title="Permanent link">&para;</a></h1>
-<p>Binary-compatibility tooling — the classic <a href="https://github.com/Kotlin/binary-compatibility-validator">kotlinx binary-compatibility-validator</a> (BCV) and Kotlin&rsquo;s built-in <code>abiValidation</code> — checks your public ABI against a committed reference dump. Both tools operate on the targets that <strong>exist in the build</strong>, which under kmp-targets means the targets the current selection registered (<code>selection ∩ supported</code>).</p>
-<p>That creates a blind spot.</p>
-<h2 id="the-blind-spot">The blind spot<a class="headerlink" href="#the-blind-spot" title="Permanent link">&para;</a></h2>
-<p>The committed dumps are generated under the full set of targets. Run an ABI task under a <strong>narrowed</strong> lane and it can only act on the registered targets:</p>
-<ul>
-<li><strong>An ABI update</strong> (<code>apiDump</code> / <code>updateKotlinAbi</code>) regenerates the dump from only the registered targets — <strong>dropping</strong> the unregistered targets&rsquo; declarations from the committed file.</li>
-<li><strong>An ABI check</strong> (<code>apiCheck</code> / <code>checkKotlinAbi</code>) covers only the registered subset. The two tools then diverge:<ul>
-<li>Kotlin&rsquo;s <strong>built-in</strong> <code>checkKotlinAbi</code> passes <strong>green</strong> — a silent false-green on the unregistered targets.</li>
-<li><strong>BCV</strong> <code>apiCheck</code> fails <strong>loud</strong> (its <code>klibApiCheck</code> diffs the committed klib dump against nothing) and suggests an <code>apiDump</code> that would <em>drop</em> those targets.</li>
-</ul>
-</li>
-</ul>
-<p>A developer on a <code>jvm</code>-only lane can break the <code>linuxX64</code> ABI and — with the built-in tool — commit a green-looking diff.</p>
-<h2 id="the-signal-kmp-targets-adds">The signal kmp-targets adds<a class="headerlink" href="#the-signal-kmp-targets-adds" title="Permanent link">&para;</a></h2>
-<p>The plugin <strong>depends on no ABI tool</strong>. It hooks the ABI lifecycle tasks <strong>by name</strong> (<code>apiDump</code>, <code>apiCheck</code>, <code>updateKotlinAbi</code>, <code>checkKotlinAbi</code>) — the only approach that catches <em>both</em> tools, since the built-in one has no separate plugin id — and gates on the diff it already owns: <code>resolvedSupported() − registered()</code>. When that is non-empty, the run under-covers, and the plugin warns at the moment the task runs:</p>
-<p><code>kmp-targets: ':lib' is running 'checkKotlinAbi' under a narrowed selection — it covers only the
-registered targets, so js, linuxX64 are NOT dumped/validated by this run. Run it under the full
-selection (or the lane that owns each target); your team's full-selection CI lane is the safety net.
-(strict mode fails this.)</code></p>
-<p>The gate is <strong>ABI-group-aware</strong>, so it doesn&rsquo;t cry wolf on the most common narrowing there is. A leaf is only flagged when its whole ABI group has <em>no</em> registered representative: with <code>iosArm64 + iosSimulatorArm64</code> supported but only <code>iosSimulatorArm64</code> registered, the iOS ABI surface is still dumped/validated by the simulator (KLIB dumps share declarations across a family), so <code>iosArm64</code> is <strong>not</strong> flagged. Drop a whole family — <code>linuxX64</code>/<code>js</code> while only <code>jvm</code> is registered — and it is. Native targets group by konan family (all iOS leaves, all linux leaves, the four androidNative arches); <code>jvm</code>, <code>androidTarget</code>, and each web leaf are distinct ABIs.</p>
-<p>It is deliberately <strong>signal-only and best-effort</strong>, not a guarantee:</p>
-<ul>
-<li>It compiles nothing, parses no dump files, and reads no <code>api/</code> directory — just a set difference the plugin already computes. Configuration-cache safe (the <code>doFirst</code> captures only strings).</li>
-<li>Under a <strong>full</strong> selection <code>supported − registered</code> is empty, so it is silent — zero noise in the common case.</li>
-<li>It does <strong>not</strong> replace the ABI check. Your team&rsquo;s full-selection CI lane is the authoritative gate; this exists so a local narrowed run is never silent.</li>
-<li>Under <a href="advisories.html">strict mode</a> (<code>kmptargets.strict=true</code>) the warning becomes a build failure.</li>
-</ul>
-<p>No new configuration key, no opt-in: if an ABI task exists and the lane is narrowed, you get the signal.</p>
-<h2 id="recommended-practice">Recommended practice<a class="headerlink" href="#recommended-practice" title="Permanent link">&para;</a></h2>
-<ul>
-<li>Run <code>apiDump</code>/<code>apiCheck</code> (or <code>updateKotlinAbi</code>/<code>checkKotlinAbi</code>) under the <strong>full</strong> selection, or in the lane that owns each target.</li>
-<li>Make CI&rsquo;s <strong>full-selection</strong> lane run the check explicitly — that is the one place the whole ABI is validated.</li>
-</ul>
-<p>See the <a href="../samples/index.html"><code>abi-bcv</code> and <code>abi-builtin</code> samples</a> for runnable, end-to-end proof with both tools — including the green-vs-loud contrast.</p>
+<h1 id="selection-layers">Selection Layers<a class="headerlink" href="#selection-layers" title="Permanent link">&para;</a></h1>
+<p>The selection is <strong>global</strong> — one switch narrows the whole build. Its sources form <strong>three layers in increasing priority</strong>, the same model as Bazel's <code>.bazelrc</code> + <code>try-import user.bazelrc</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Sources</th>
+<th>Who sets it</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Committed default</strong></td>
+<td><code>kmp-targets.properties</code> (and legacy root <code>gradle.properties</code>)</td>
+<td>the team, in git</td>
+</tr>
+<tr>
+<td><strong>Personal override</strong></td>
+<td><code>kmp-targets.local.properties</code> (and legacy <code>local.properties</code>) — git-ignored</td>
+<td>each developer, per machine</td>
+</tr>
+<tr>
+<td><strong>Per-invocation</strong></td>
+<td><code>-Pkmptargets.targets=…</code> CLI flag, <code>ORG_GRADLE_PROJECT_kmptargets.targets</code> env</td>
+<td>this one build — a terminal run, a CI job</td>
+</tr>
+</tbody>
+</table>
+<p><code>kmptargets.targets</code> is the <strong>single canonical key</strong> across every layer — the string you commit, the string you override locally, and the string a <a href="../ci-matrix/">CI matrix</a> passes per job are the same vocabulary.</p>
+<h2 id="exact-precedence-highest-first">Exact precedence (highest first)<a class="headerlink" href="#exact-precedence-highest-first" title="Permanent link">&para;</a></h2>
+<ol>
+<li><code>-Pkmptargets.targets=...</code> on the CLI</li>
+<li><code>ORG_GRADLE_PROJECT_kmptargets.targets</code> environment variable</li>
+<li><code>kmp-targets.local.properties</code> (per-developer, git-ignored)</li>
+<li><code>kmp-targets.properties</code> (committed, team-shared)</li>
+<li>the <strong>root</strong> <code>gradle.properties</code> (a <em>subproject's</em> <code>gradle.properties</code> is <strong>not</strong> a source — Gradle only reads root-level project properties)</li>
+<li><code>local.properties</code> (per-developer, git-ignored)</li>
+</ol>
+<p>When no source provides a value, two <strong>fallbacks</strong> (not overrides — anything above beats them) apply: a project-wide <code>defaultSelection</code> set from build-logic, then the plugin default — every target the plugin knows about.</p>
+<div class="admonition note">
+<p class="admonition-title">Why the dedicated files beat <code>gradle.properties</code></p>
+<p>Once a team adopts the consolidation point, a stale key left behind in <code>gradle.properties</code> can't silently override it. One nuance: the rarer <code>-Dorg.gradle.project.kmptargets.targets</code> and <code>~/.gradle/gradle.properties</code> forms resolve at the <code>gradle.properties</code> layer, i.e. <em>below</em> the dedicated files.</p>
+</div>
+<h2 id="the-config-files">The config files<a class="headerlink" href="#the-config-files" title="Permanent link">&para;</a></h2>
+<div class="language-properties highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># kmp-targets.properties — committed, team-shared</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="na">kmptargets.targets</span><span class="o">=</span><span class="s">jvm,iosArm64</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="na">kmptargets.hierarchyTemplate</span><span class="o">=</span><span class="s">true</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># kmptargets.hierarchyCollapse=false   # see &quot;No-Collapse Mode&quot;</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># kmptargets.strict=true               # see &quot;Advisories &amp; Strict Mode&quot;</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># kmptargets.umbrellaTasks=true        # see &quot;Umbrella Tasks&quot;</span>
+</span></code></pre></div>
+<p><code>kmp-targets.local.properties</code> (git-ignored) mirrors <code>try-import</code>: absent it's ignored; present, its keys override the committed file's. Both files accept <strong>only</strong> known <code>kmptargets.*</code> keys — an unknown key fails the build with a "did you mean …?" suggestion, so a typo can't silently no-op. Both are tracked configuration-cache inputs: editing one invalidates the cache, leaving them untouched keeps cache hits.</p>
+<h2 id="selection-grammar">Selection grammar<a class="headerlink" href="#selection-grammar" title="Permanent link">&para;</a></h2>
+<div class="language-properties highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="na">kmptargets.targets</span><span class="o">=</span><span class="s">android,iosArm64        # explicit list</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="na">kmptargets.targets</span><span class="o">=</span><span class="s">appleMobile             # preset (iosArm64 + iosSimulatorArm64 + iosX64)</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="na">kmptargets.targets</span><span class="o">=</span><span class="s">appleMobile,-iosArm64   # preset minus a leaf</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="na">kmptargets.targets</span><span class="o">=</span><span class="s">apple,+android          # preset plus an addition</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="na">kmptargets.targets</span><span class="o">=</span><span class="s">ANDROID, ios-arm64      # aliases + case-insensitive</span>
+</span></code></pre></div>
+<p>Unknown tokens <strong>fail the build at configuration time</strong> with a "did you mean …?" suggestion — silently dropping a misspelled target in CI is the worst failure mode, so the parser is strict. Bare Apple sub-family names (<code>ios</code>, <code>macos</code>, <code>watchos</code>, <code>tvos</code>) are rejected with a hint pointing at the relevant leaf or <code>appleX</code> preset.</p>
+<p>The full preset and leaf vocabulary lives in the <a href="../targets-reference/">Targets Reference</a>.</p>
+<div class="admonition warning">
+<p class="admonition-title">Breaking rename (pre-1.0)</p>
+<p>The selection key used to be <code>KMP_TARGETS</code> (env: <code>ORG_GRADLE_PROJECT_KMP_TARGETS</code> or bare <code>KMP_TARGETS</code>). It is now <code>kmptargets.targets</code> — the old key is <strong>not read at all</strong>; a build still setting only <code>KMP_TARGETS</code> falls through to <code>defaultSelection</code> / the plugin default.</p>
+</div>
+<h2 id="diagnosing-a-surprising-selection">Diagnosing a surprising selection<a class="headerlink" href="#diagnosing-a-surprising-selection" title="Permanent link">&para;</a></h2>
+<p><a href="../kmp-targets-info/"><code>kmpTargetsInfo</code></a> prints the resolved selection <strong>and the winning source by name</strong> — <code>command line (-Pkmptargets.targets)</code>, <code>kmp-targets.local.properties</code>, etc. One coarseness, stated in the label itself: values from <code>-Dorg.gradle.project.kmptargets.targets</code> and <code>~/.gradle/gradle.properties</code> are indistinguishable from root <code>gradle.properties</code>, so all three report as the fused <code>gradle.properties (...)</code> layer.</p>
 
 
 
@@ -1107,10 +1180,10 @@ selection (or the lane that owns each target); your team's full-selection CI lan
     
     
       
-      <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy", "content.code.select", "search.suggest", "search.highlight", "content.tabs.link"], "search": "../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.copy", "content.code.select", "search.suggest", "search.highlight", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.50899def.min.js"></script>
+      <script src="../../assets/javascripts/bundle.50899def.min.js"></script>
       
     
   </body>

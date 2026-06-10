@@ -12,28 +12,28 @@
         <meta name="author" content="Rodrigo Sicarelli">
       
       
-        <link rel="canonical" href="https://rsicarelli.github.io/kmp-targets/snapshot/user-guide/jvm-rename.html">
+        <link rel="canonical" href="https://rsicarelli.github.io/kmp-targets/snapshot/user-guide/abi-validation/">
       
       
-        <link rel="prev" href="ci-matrix.html">
+        <link rel="prev" href="../doctor-mode/">
       
       
-        <link rel="next" href="../samples/index.html">
+        <link rel="next" href="../ci-matrix/">
       
       
-      <link rel="icon" href="../assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.16">
     
     
       
-        <title>Renaming the JVM Target - kmp-targets</title>
+        <title>ABI Validation & Selection - kmp-targets</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.7e37652d.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.7e37652d.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
       
       
 
@@ -52,9 +52,9 @@
       
     
     
-      <link rel="stylesheet" href="../stylesheets/kmp-targets-brand.css">
+      <link rel="stylesheet" href="../../stylesheets/kmp-targets-brand.css">
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#renaming-the-jvm-target" class="md-skip">
+        <a href="#abi-validation-selection" class="md-skip">
           Skip to content
         </a>
       
@@ -100,7 +100,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="../index.html" title="kmp-targets" class="md-header__button md-logo" aria-label="kmp-targets" data-md-component="logo">
+    <a href="../.." title="kmp-targets" class="md-header__button md-logo" aria-label="kmp-targets" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -120,7 +120,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Renaming the JVM Target
+              ABI Validation & Selection
             
           </span>
         </div>
@@ -238,7 +238,7 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="../index.html" title="kmp-targets" class="md-nav__button md-logo" aria-label="kmp-targets" data-md-component="logo">
+    <a href="../.." title="kmp-targets" class="md-nav__button md-logo" aria-label="kmp-targets" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -268,7 +268,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../index.html" class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -290,7 +290,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../why-kmp-targets.html" class="md-nav__link">
+      <a href="../../why-kmp-targets/" class="md-nav__link">
         
   
   
@@ -350,7 +350,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../get-started/index.html" class="md-nav__link">
+      <a href="../../get-started/" class="md-nav__link">
         
   
   
@@ -373,7 +373,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../get-started/quick-start.html" class="md-nav__link">
+      <a href="../../get-started/quick-start/" class="md-nav__link">
         
   
   
@@ -443,7 +443,7 @@
   
   
     <li class="md-nav__item">
-      <a href="selection-dsl.html" class="md-nav__link">
+      <a href="../selection-dsl/" class="md-nav__link">
         
   
   
@@ -466,7 +466,7 @@
   
   
     <li class="md-nav__item">
-      <a href="selection-layers.html" class="md-nav__link">
+      <a href="../selection-layers/" class="md-nav__link">
         
   
   
@@ -489,7 +489,7 @@
   
   
     <li class="md-nav__item">
-      <a href="targets-reference.html" class="md-nav__link">
+      <a href="../targets-reference/" class="md-nav__link">
         
   
   
@@ -512,7 +512,7 @@
   
   
     <li class="md-nav__item">
-      <a href="hierarchy-template.html" class="md-nav__link">
+      <a href="../hierarchy-template/" class="md-nav__link">
         
   
   
@@ -535,7 +535,7 @@
   
   
     <li class="md-nav__item">
-      <a href="no-collapse-mode.html" class="md-nav__link">
+      <a href="../no-collapse-mode/" class="md-nav__link">
         
   
   
@@ -558,7 +558,7 @@
   
   
     <li class="md-nav__item">
-      <a href="build-logic.html" class="md-nav__link">
+      <a href="../build-logic/" class="md-nav__link">
         
   
   
@@ -581,7 +581,7 @@
   
   
     <li class="md-nav__item">
-      <a href="recipes.html" class="md-nav__link">
+      <a href="../recipes/" class="md-nav__link">
         
   
   
@@ -604,7 +604,7 @@
   
   
     <li class="md-nav__item">
-      <a href="advisories.html" class="md-nav__link">
+      <a href="../advisories/" class="md-nav__link">
         
   
   
@@ -627,7 +627,7 @@
   
   
     <li class="md-nav__item">
-      <a href="kmp-targets-info.html" class="md-nav__link">
+      <a href="../kmp-targets-info/" class="md-nav__link">
         
   
   
@@ -650,58 +650,12 @@
   
   
     <li class="md-nav__item">
-      <a href="doctor-mode.html" class="md-nav__link">
+      <a href="../doctor-mode/" class="md-nav__link">
         
   
   
   <span class="md-ellipsis">
     Doctor Mode
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="abi-validation.html" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    ABI Validation & Selection
-    
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="ci-matrix.html" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    CI Matrix
     
   </span>
   
@@ -733,7 +687,7 @@
   
   
   <span class="md-ellipsis">
-    Renaming the JVM Target
+    ABI Validation & Selection
     
   </span>
   
@@ -741,12 +695,12 @@
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <a href="jvm-rename.html" class="md-nav__link md-nav__link--active">
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
   <span class="md-ellipsis">
-    Renaming the JVM Target
+    ABI Validation & Selection
     
   </span>
   
@@ -769,18 +723,27 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#semantics" class="md-nav__link">
+  <a href="#the-blind-spot" class="md-nav__link">
     <span class="md-ellipsis">
-      Semantics
+      The blind spot
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#see-it-running" class="md-nav__link">
+  <a href="#the-signal-kmp-targets-adds" class="md-nav__link">
     <span class="md-ellipsis">
-      See it running
+      The signal kmp-targets adds
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recommended-practice" class="md-nav__link">
+    <span class="md-ellipsis">
+      Recommended practice
     </span>
   </a>
   
@@ -790,6 +753,75 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ci-matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CI Matrix
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../umbrella-tasks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Umbrella Tasks
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../jvm-rename/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Renaming the JVM Target
+    
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -809,7 +841,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../samples/index.html" class="md-nav__link">
+      <a href="../../samples/" class="md-nav__link">
         
   
   
@@ -831,7 +863,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../compatibility.html" class="md-nav__link">
+      <a href="../../compatibility/" class="md-nav__link">
         
   
   
@@ -891,7 +923,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../help/faq.html" class="md-nav__link">
+      <a href="../../help/faq/" class="md-nav__link">
         
   
   
@@ -914,7 +946,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../help/troubleshooting.html" class="md-nav__link">
+      <a href="../../help/troubleshooting/" class="md-nav__link">
         
   
   
@@ -964,18 +996,27 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#semantics" class="md-nav__link">
+  <a href="#the-blind-spot" class="md-nav__link">
     <span class="md-ellipsis">
-      Semantics
+      The blind spot
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#see-it-running" class="md-nav__link">
+  <a href="#the-signal-kmp-targets-adds" class="md-nav__link">
     <span class="md-ellipsis">
-      See it running
+      The signal kmp-targets adds
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#recommended-practice" class="md-nav__link">
+    <span class="md-ellipsis">
+      Recommended practice
     </span>
   </a>
   
@@ -1000,23 +1041,42 @@
   
 
 
-<h1 id="renaming-the-jvm-target">Renaming the JVM Target<a class="headerlink" href="#renaming-the-jvm-target" title="Permanent link">&para;</a></h1>
-<p>Codebases that grew up before the default-hierarchy era often register their JVM target under a custom name — most commonly <code>kotlin.jvm("desktop")</code> — and carry years of accumulated <code>src/desktopMain</code> source dirs, <code>-desktop</code> published artifact suffixes, and CI task names (<code>compileKotlinDesktop</code>) keyed off it. For them, adopting kmp-targets must not be a breaking rename.</p>
-<p><code>targetName</code> lets the jvm leaf register under that custom Gradle name:</p>
-<p><code>kotlin
-kmpTargets {
-    targetName(jvm, "desktop") // must come BEFORE supports { } — registration is eager and one-way
-    supports { mobile + jvm }
-}</code></p>
-<h2 id="semantics">Semantics<a class="headerlink" href="#semantics" title="Permanent link">&para;</a></h2>
+<h1 id="abi-validation-selection">ABI Validation &amp; Selection<a class="headerlink" href="#abi-validation-selection" title="Permanent link">&para;</a></h1>
+<p>Binary-compatibility tooling — the classic <a href="https://github.com/Kotlin/binary-compatibility-validator">kotlinx binary-compatibility-validator</a> (BCV) and Kotlin's built-in <code>abiValidation</code> — checks your public ABI against a committed reference dump. Both tools operate on the targets that <strong>exist in the build</strong>, which under kmp-targets means the targets the current selection registered (<code>selection ∩ supported</code>).</p>
+<p>That creates a blind spot.</p>
+<h2 id="the-blind-spot">The blind spot<a class="headerlink" href="#the-blind-spot" title="Permanent link">&para;</a></h2>
+<p>The committed dumps are generated under the full set of targets. Run an ABI task under a <strong>narrowed</strong> lane and it can only act on the registered targets:</p>
 <ul>
-<li><strong>Selection token unchanged.</strong> Builds still select it with <code>jvm</code> (or its <code>desktop</code> alias) — <code>kmptargets.targets=jvm,iosArm64</code> registers the renamed target. Only the registered Gradle target, its source sets (<code>desktopMain</code>), and the published artifact suffix follow the custom name.</li>
-<li><strong>jvm leaf only.</strong> <code>androidTarget</code>&rsquo;s name is fixed by AGP, and native/web names are derived by KGP — renaming them would break konan/source-set conventions. <code>targetName</code> fails loud on any other leaf (or a preset), on a blank name, and when called after <code>supports { }</code> already registered the jvm leaf (a late rename could never apply).</li>
-<li><strong>Hierarchy unaffected.</strong> KGP&rsquo;s hierarchy matchers (<code>withJvm()</code>) key off the platform type, not the target name, so the <a href="hierarchy-template.html">minimal template</a> attaches a renamed target exactly as it would a plain <code>jvm</code>.</li>
-<li><strong>Introspection.</strong> <a href="kmp-targets-info.html"><code>kmpTargetsInfo</code></a> surfaces the rename on the registered line: <code>jvm (registered as: desktop)</code>. Build-logic sees it through <a href="build-logic.html#registeredtarget"><code>RegisteredTarget.gradleName</code></a>, so <a href="build-logic.html"><code>onRegistered</code>-driven wiring</a> keeps working without knowing about the rename.</li>
+<li><strong>An ABI update</strong> (<code>apiDump</code> / <code>updateKotlinAbi</code>) regenerates the dump from only the registered targets — <strong>dropping</strong> the unregistered targets' declarations from the committed file.</li>
+<li><strong>An ABI check</strong> (<code>apiCheck</code> / <code>checkKotlinAbi</code>) covers only the registered subset. The two tools then diverge:<ul>
+<li>Kotlin's <strong>built-in</strong> <code>checkKotlinAbi</code> passes <strong>green</strong> — a silent false-green on the unregistered targets.</li>
+<li><strong>BCV</strong> <code>apiCheck</code> fails <strong>loud</strong> (its <code>klibApiCheck</code> diffs the committed klib dump against nothing) and suggests an <code>apiDump</code> that would <em>drop</em> those targets.</li>
 </ul>
-<h2 id="see-it-running">See it running<a class="headerlink" href="#see-it-running" title="Permanent link">&para;</a></h2>
-<p>The <a href="../samples/index.html"><code>desktop-named</code> sample</a> supports <code>jvm + iosArm64</code> with the jvm leaf renamed to <code>desktop</code> — <code>src/desktopMain</code> and <code>compileKotlinDesktop</code> work as in a legacy codebase.</p>
+</li>
+</ul>
+<p>A developer on a <code>jvm</code>-only lane can break the <code>linuxX64</code> ABI and — with the built-in tool — commit a green-looking diff.</p>
+<h2 id="the-signal-kmp-targets-adds">The signal kmp-targets adds<a class="headerlink" href="#the-signal-kmp-targets-adds" title="Permanent link">&para;</a></h2>
+<p>The plugin <strong>depends on no ABI tool</strong>. It hooks the ABI lifecycle tasks <strong>by name</strong> (<code>apiDump</code>, <code>apiCheck</code>, <code>updateKotlinAbi</code>, <code>checkKotlinAbi</code>) — the only approach that catches <em>both</em> tools, since the built-in one has no separate plugin id — and gates on the diff it already owns: <code>resolvedSupported() − registered()</code>. When that is non-empty, the run under-covers, and the plugin warns at the moment the task runs:</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>kmp-targets: &#39;:lib&#39; is running &#39;checkKotlinAbi&#39; under a narrowed selection — it covers only the
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>registered targets, so js, linuxX64 are NOT dumped/validated by this run. Run it under the full
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>selection (or the lane that owns each target); your team&#39;s full-selection CI lane is the safety net.
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>(strict mode fails this.)
+</span></code></pre></div>
+<p>The gate is <strong>ABI-group-aware</strong>, so it doesn't cry wolf on the most common narrowing there is. A leaf is only flagged when its whole ABI group has <em>no</em> registered representative: with <code>iosArm64 + iosSimulatorArm64</code> supported but only <code>iosSimulatorArm64</code> registered, the iOS ABI surface is still dumped/validated by the simulator (KLIB dumps share declarations across a family), so <code>iosArm64</code> is <strong>not</strong> flagged. Drop a whole family — <code>linuxX64</code>/<code>js</code> while only <code>jvm</code> is registered — and it is. Native targets group by konan family (all iOS leaves, all linux leaves, the four androidNative arches); <code>jvm</code>, <code>androidTarget</code>, and each web leaf are distinct ABIs.</p>
+<p>It is deliberately <strong>signal-only and best-effort</strong>, not a guarantee:</p>
+<ul>
+<li>It compiles nothing, parses no dump files, and reads no <code>api/</code> directory — just a set difference the plugin already computes. Configuration-cache safe (the <code>doFirst</code> captures only strings).</li>
+<li>Under a <strong>full</strong> selection <code>supported − registered</code> is empty, so it is silent — zero noise in the common case.</li>
+<li>It does <strong>not</strong> replace the ABI check. Your team's full-selection CI lane is the authoritative gate; this exists so a local narrowed run is never silent.</li>
+<li>Under <a href="../advisories/">strict mode</a> (<code>kmptargets.strict=true</code>) the warning becomes a build failure.</li>
+</ul>
+<p>No new configuration key, no opt-in: if an ABI task exists and the lane is narrowed, you get the signal.</p>
+<h2 id="recommended-practice">Recommended practice<a class="headerlink" href="#recommended-practice" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Run <code>apiDump</code>/<code>apiCheck</code> (or <code>updateKotlinAbi</code>/<code>checkKotlinAbi</code>) under the <strong>full</strong> selection, or in the lane that owns each target.</li>
+<li>Make CI's <strong>full-selection</strong> lane run the check explicitly — that is the one place the whole ABI is validated.</li>
+</ul>
+<p>See the <a href="../../samples/"><code>abi-bcv</code> and <code>abi-builtin</code> samples</a> for runnable, end-to-end proof with both tools — including the green-vs-loud contrast.</p>
 
 
 
@@ -1071,10 +1131,10 @@ kmpTargets {
     
     
       
-      <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy", "content.code.select", "search.suggest", "search.highlight", "content.tabs.link"], "search": "../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.copy", "content.code.select", "search.suggest", "search.highlight", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.50899def.min.js"></script>
+      <script src="../../assets/javascripts/bundle.50899def.min.js"></script>
       
     
   </body>
