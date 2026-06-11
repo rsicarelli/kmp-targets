@@ -1,0 +1,23 @@
+[versions]
+# Pinned to the plugin's Kotlin so the sample exercises kmp-targets under the same compiler.
+kotlin = "2.3.21"
+# AGP that supports Gradle 9.5.1 (the wrapper version used across this repo).
+agp = "9.2.1"
+# KSP 2.3.x line (decoupled KSP2 versioning) — pairs with Kotlin 2.3.x.
+ksp = "2.3.9"
+# ktorfit 2.7.1: Supported KSP >=2.0.2, Kotlin >=2.2.0, Ktor 3.3.3.
+ktorfit = "2.7.1"
+# For Kotlin 2.3.x the ktorfit compiler plugin must be set explicitly (see ktorfit compatibility table).
+ktorfitCompilerPlugin = "2.3.3"
+# The kmp-targets plugin under test (published to mavenLocal via `task publish-local`).
+kmpTargets = "0.1.0-SNAPSHOT"
+
+[libraries]
+ktorfit-lib = { module = "de.jensklingenberg.ktorfit:ktorfit-lib", version.ref = "ktorfit" }
+
+[plugins]
+kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+androidLibrary = { id = "com.android.library", version.ref = "agp" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+ktorfit = { id = "de.jensklingenberg.ktorfit", version.ref = "ktorfit" }
+kmpTargets = { id = "com.rsicarelli.kmptargets", version.ref = "kmpTargets" }
