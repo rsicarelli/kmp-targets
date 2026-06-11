@@ -3,9 +3,14 @@
 **Question:** does [ktorfit](https://foso.github.io/Ktorfit/) work with `kmp-targets` when a module
 selects **Android only (no iOS)**?
 
-**Answer: No — Android-only fails; the same API across Android + JVM works.** The break is not
-ktorfit being incompatible with `kmp-targets` in general; it is specific to a **single-target**
-selection.
+**Answer: Yes — with one caveat about *where* the ktorfit code lives.** ktorfit's KSP processor runs
+correctly for an Android-only `kmp-targets` selection and generates `createFakeApi()`. The only catch
+is the shape of a single-target KMP module: it has no `commonMain` metadata compilation, so the
+ktorfit interface + call site must live in the target's own source set (`androidMain`), **not**
+`commonMain`. Put it in `androidMain` and the Android-only build succeeds.
+
+This is **not** a `kmp-targets` bug — `kmp-targets` faithfully registers exactly the one target asked
+for. The constraint is entirely ktorfit/KSP's handling of a single-target KMP graph.
 
 ---
 
@@ -14,27 +19,33 @@ selection.
 A standalone build (consumes the plugin from `mavenLocal()`, like `samples/hello-world`) with the
 same fake ktorfit API in two modules:
 
-| Module | `kmpTargets { supports { … } }` | Result |
-| --- | --- | --- |
-| `:api-android-only` | `androidTarget` | **BUILD FAILED** — `Unresolved reference 'createFakeApi'` |
-| `:api-multiplatform` (control) | `androidTarget + jvm` | **BUILD SUCCESSFUL** |
+| Module | `kmpTargets { supports { … } }` | Source location | Result |
+| --- | --- | --- | --- |
+| `:api-android-only` | `androidTarget` | `androidMain` | **BUILD SUCCESSFUL** |
+| `:api-multiplatform` (control) | `androidTarget + jvm` | `commonMain` | **BUILD SUCCESSFUL** |
 
 The "API" is deliberately fake (`FakeApi.ping()`); its only job is to force ktorfit's KSP processor
-to generate the `createFakeApi()` extension. Whether that generated symbol is resolvable from
-`commonMain` *is* the test.
+to generate the `createFakeApi()` extension and prove the call site can resolve it.
 
-## Root cause
+## What works, and what doesn't
 
-ktorfit generates the `create<Api>()` extension via KSP. In a Kotlin Multiplatform build the common
-code is produced by the **`kspCommonMainKotlinMetadata`** task and emitted to
-`build/generated/ksp/metadata/commonMain/kotlin/…`, which is a source root of `commonMain`.
+ktorfit generates the `create<Api>()` extension via KSP. *Where* that generated symbol lands — and
+which compilation can see it — is the whole story:
 
-- **Control (Android + JVM):** `compileCommonMainKotlinMetadata` / `kspCommonMainKotlinMetadata`
-  exist → `createFakeApi` lands in `…/ksp/metadata/commonMain/…` → `commonMain` resolves it. ✅
-- **Android-only:** with a **single target**, KGP does **not** create a `commonMain` metadata
-  compilation, so `kspCommonMainKotlinMetadata` never exists. ktorfit's KSP only emits
-  `createFakeApi` into the per-target dir `build/generated/ksp/android/androidDebug/…`, which is
-  **not** on `commonMain`'s source path → the `commonMain` call site can't see it → compile fails. ❌
+- ✅ **Android-only, API in `androidMain`:** `kspDebugKotlinAndroid` emits `createFakeApi` into
+  `build/generated/ksp/android/androidDebug/…`, which the KSP plugin already wires into the Android
+  compilation. Interface + generated extension compile together. **Works.**
+- ✅ **Android + JVM (control), API in `commonMain`:** two targets ⇒ KGP creates a `commonMain`
+  metadata compilation ⇒ `kspCommonMainKotlinMetadata` runs and emits into
+  `build/generated/ksp/metadata/commonMain/kotlin/…`, on `commonMain`'s source path. **Works.**
+- ❌ **Android-only, API in `commonMain`:** a single target has **no** `commonMain` metadata
+  compilation, so there is no `kspCommonMainKotlinMetadata` task and nothing puts `createFakeApi` on
+  `commonMain`'s path. `compileKotlinMetadata` fails with `Unresolved reference 'createFakeApi'`.
+- ❌ **The "metadata task" workaround for the single-target case.** The commonly cited fix —
+  `dependsOn("kspCommonMainKotlinMetadata")` + add the metadata KSP dir to `commonMain` — cannot work
+  for a true single target, because that task does not exist. It fails at configuration with
+  `Task with name 'kspCommonMainKotlinMetadata' not found` (exactly
+  [#593](https://github.com/Foso/Ktorfit/issues/593)).
 
 This matches the known ktorfit issues for narrow/Android-only KMP setups:
 [#593](https://github.com/Foso/Ktorfit/issues/593) (`kspCommonMainKotlinMetadata` not found),
@@ -42,8 +53,19 @@ This matches the known ktorfit issues for narrow/Android-only KMP setups:
 target), and [#638](https://github.com/Foso/Ktorfit/issues/638) (ktorfit Gradle plugin vs. the
 Android KMP library plugin).
 
-It is **not** a `kmp-targets` bug: `kmp-targets` faithfully registers exactly the one target asked
-for. The single-target shape it produces is simply one ktorfit's KSP wiring does not handle.
+## If you need Android-only with ktorfit
+
+Two clean options — both ktorfit/KSP-side, neither a `kmp-targets` concern:
+
+1. **Keep the ktorfit interface + `create<Api>()` call site in the target source set (`androidMain`),
+   not `commonMain`.** With a single target there is no shared code to speak of, so this costs
+   nothing and is what `:api-android-only` does.
+2. **Give the build a second target** (e.g. `jvm`) so a `commonMain` metadata compilation — and thus
+   `kspCommonMainKotlinMetadata` — exists, and keep the API in `commonMain`. That is the control
+   module.
+
+Do **not** reach for the manual `kspCommonMainKotlinMetadata` wiring on a true single-target module:
+the task it hooks into is never created.
 
 ## Two AGP-9 caveats found along the way
 
@@ -78,19 +100,15 @@ task publish-local           # or: ./gradlew publishToMavenLocal
 # 2. Point at an Android SDK (compileSdk 36) — this sample's local.properties holds sdk.dir
 export ANDROID_HOME=/path/to/android-sdk
 
-# 3. Android-only → FAILS (Unresolved reference 'createFakeApi')
+# 3. Android-only → SUCCEEDS (API lives in androidMain)
 ./gradlew -p samples/ktorfit-android :api-android-only:build
 
-# 4. Control, Android + JVM → SUCCEEDS
+# 4. Control, Android + JVM → SUCCEEDS (API lives in commonMain)
 ./gradlew -p samples/ktorfit-android :api-multiplatform:build
 ```
 
+To see the failure for yourself, move
+`api-android-only/src/androidMain/kotlin/.../FakeApi.kt` back to `commonMain` and rebuild:
+`compileKotlinMetadata` fails with `Unresolved reference 'createFakeApi'`.
+
 > `local.properties` (the `sdk.dir`) is git-ignored — set `ANDROID_HOME` or create it locally.
-
-## If you actually need Android-only with ktorfit
-
-Give the KMP build a second target (e.g. `jvm`) so a `commonMain` metadata compilation exists, or
-apply the manual ktorfit single-target workaround (wire `kspCommonMainMetadata` and add
-`build/generated/ksp/metadata/commonMain/kotlin` to `commonMain`). Neither is a `kmp-targets`
-concern — both are about ktorfit's KSP wiring needing the metadata compilation that a single target
-doesn't produce.
