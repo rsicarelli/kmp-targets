@@ -6,7 +6,7 @@ Start with [`kmpTargetsInfo`](../user-guide/diagnostics.md#kmptargetsinfo): it p
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| `Could not find com.rsicarelli:kmp-targets-gradle-plugin:<v>` | repository list doesn't cover the version's home | releases live on `mavenCentral()`, `-SNAPSHOT`s only on `https://central.sonatype.com/repository/maven-snapshots/` — add the right repo to `pluginManagement` ([Installation](../get-started/index.md)) |
+| `Could not find com.rsicarelli:kmp-targets-gradle-plugin:0.1.0 | repository list doesn't cover the version's home | releases live on `mavenCentral()`, `-SNAPSHOT`s only on `https://central.sonatype.com/repository/maven-snapshots/` — add the right repo to `pluginManagement` ([Installation](../get-started/index.md)) |
 | Snapshot doesn't update | Gradle caches changing modules for 24h | `./gradlew build --refresh-dependencies` |
 | `Plugin [id: 'com.rsicarelli.kmptargets'] was not found` | `mavenCentral()` missing from `pluginManagement.repositories` (it's not on the Plugin Portal) | add it ([Installation](../get-started/index.md)) |
 

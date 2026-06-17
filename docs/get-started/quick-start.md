@@ -8,7 +8,7 @@ Five minutes from apply to a narrowed build.
 // feature-mobile/build.gradle.kts
 plugins {
     kotlin("multiplatform")
-    id("com.rsicarelli.kmptargets") version "0.1.0-SNAPSHOT"
+    id("com.rsicarelli.kmptargets") version "0.1.0"
 }
 
 kmpTargets {

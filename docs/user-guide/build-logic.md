@@ -29,7 +29,7 @@ The build-logic build depends on the artifact directly:
 ```kotlin
 // build-logic/build.gradle.kts
 dependencies {
-    implementation("com.rsicarelli:kmp-targets-gradle-plugin:0.1.0-SNAPSHOT")
+    implementation("com.rsicarelli:kmp-targets-gradle-plugin:0.1.0")
 }
 ```
 

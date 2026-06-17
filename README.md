@@ -22,7 +22,7 @@ Targets you don't select are never registered with KGP, so their compile/link/KS
 // build.gradle.kts
 plugins {
     kotlin("multiplatform")
-    id("com.rsicarelli.kmptargets") version "0.1.0-SNAPSHOT"
+    id("com.rsicarelli.kmptargets") version "0.1.0"
 }
 
 kmpTargets {
@@ -39,7 +39,7 @@ Published to Maven Central — group `com.rsicarelli`, artifact `kmp-targets-gra
 ```kotlin
 plugins {
     kotlin("multiplatform")
-    id("com.rsicarelli.kmptargets") version "0.1.0-SNAPSHOT"
+    id("com.rsicarelli.kmptargets") version "0.1.0"
 }
 ```
 

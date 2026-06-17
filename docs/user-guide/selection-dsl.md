@@ -5,7 +5,7 @@
 ```kotlin
 plugins {
     kotlin("multiplatform")
-    id("com.rsicarelli.kmptargets") version "0.1.0-SNAPSHOT"
+    id("com.rsicarelli.kmptargets") version "0.1.0"
 }
 
 kmpTargets {

@@ -30,7 +30,7 @@ Then apply it next to KGP in each module:
 // build.gradle.kts
 plugins {
     kotlin("multiplatform")
-    id("com.rsicarelli.kmptargets") version "0.1.0-SNAPSHOT"
+    id("com.rsicarelli.kmptargets") version "0.1.0"
 }
 
 kmpTargets {
@@ -44,7 +44,7 @@ kmpTargets {
     ```toml
     # gradle/libs.versions.toml
     [versions]
-    kmpTargets = "0.1.0-SNAPSHOT"
+    kmpTargets = "0.1.0"
 
     [plugins]
     kmpTargets = { id = "com.rsicarelli.kmptargets", version.ref = "kmpTargets" }
@@ -62,7 +62,7 @@ Build-logic that references the DSL types directly depends on the artifact:
 ```kotlin
 // build-logic/build.gradle.kts
 dependencies {
-    implementation("com.rsicarelli:kmp-targets-gradle-plugin:0.1.0-SNAPSHOT")
+    implementation("com.rsicarelli:kmp-targets-gradle-plugin:0.1.0")
 }
 ```
 
@@ -98,7 +98,7 @@ dependencyResolutionManagement {
     ./gradlew build --refresh-dependencies
     ```
 
-    If resolution fails with a bare `Could not find com.rsicarelli:kmp-targets-gradle-plugin:<version>`, the repository list is the first thing to check — snapshots only exist in the snapshots repo, releases only on Maven Central.
+    If resolution fails with a bare `Could not find com.rsicarelli:kmp-targets-gradle-plugin:0.1.0 the repository list is the first thing to check — snapshots only exist in the snapshots repo, releases only on Maven Central.
 
 ## Contributing / local development
 
