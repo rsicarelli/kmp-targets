@@ -13,6 +13,7 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.Framework
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
 import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
+import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFrameworkConfig
 
 /**
  * Public DSL surface exposed by the plugin as the `kmpTargets` extension.
@@ -363,11 +364,22 @@ public abstract class KmpTargetsExtension @Inject constructor(objects: ObjectFac
      * convention plugins declare frameworks without the type-safe DSL receiver. One framework per
      * module in v1 — a second call, a blank [baseName], or an [on] not ⊆ apple fails fast with the
      * offending ids.
+     *
+     * Set [xcframework] to `true` to also assemble the registered slices into one `.xcframework`
+     * (issue #106) — KGP registers `assemble<BaseName><BuildType>XCFramework` plus the parent
+     * `assemble<BaseName>XCFramework`. Opt-in, matching the umbrella-task precedent (#77): the
+     * `XCFrameworkConfig` is created **lazily on the first Apple attach**, so a jvm-only selection
+     * leaves zero dangling tasks. The shared-`baseName`/`buildTypes` invariant KGP demands holds by
+     * construction (one declaration feeds both the config and every `framework(buildTypes)`).
+     * Assembly tasks **execute** on a macOS host only (KGP shells out to `xcodebuild`);
+     * registration is host-blind, same as the link tasks, so selection stays host-independent
+     * (#32).
      */
     public fun appleFramework(
         baseName: String,
         on: KmpTargetSet = KmpTargetSet.apple,
         buildTypes: Collection<NativeBuildType> = NativeBuildType.DEFAULT_BUILD_TYPES,
+        xcframework: Boolean = false,
         configure: Framework.() -> Unit = {},
     ) {
         if (baseName.isBlank()) {
@@ -388,10 +400,27 @@ public abstract class KmpTargetsExtension @Inject constructor(objects: ObjectFac
             )
         }
         appleFrameworkDeclared = true
+        // Lazy XCFramework config (#106): created on the first Apple attach via the target's own
+        // project (AbstractKotlinTarget.getProject), so a selection that registers no Apple leaf
+        // never materializes an assemble…XCFramework task. onRegistered fires synchronously at
+        // configuration time, so the plain var needs no synchronization.
+        var xcframeworkConfig: XCFrameworkConfig? = null
         onAppleNativeTarget(on) {
+            val config =
+                if (xcframework) {
+                    xcframeworkConfig
+                        ?: XCFrameworkConfig(project, baseName, buildTypes.toSet()).also {
+                            xcframeworkConfig = it
+                        }
+                } else {
+                    null
+                }
             binaries.framework(buildTypes = buildTypes) {
                 this.baseName = baseName
                 configure()
+                // Add each per-buildType slice after its baseName is set; XCFrameworkConfig groups
+                // them into the assemble tasks and enforces the buildType match.
+                config?.add(this)
             }
         }
     }

@@ -57,7 +57,7 @@ Full story: [Compatibility](https://rsicarelli.github.io/kmp-targets/compatibili
 
 ## Documentation
 
-**Status:** alpha. Roadmap: user-defined hierarchy groups, XCFramework assembly (the [Apple framework](https://rsicarelli.github.io/kmp-targets/user-guide/apple-framework/) helper is the foundation).
+**Status:** alpha. Roadmap: user-defined hierarchy groups. The [Apple framework](https://rsicarelli.github.io/kmp-targets/user-guide/apple-framework/) helper now covers framework declaration and XCFramework assembly.
 
 Everything lives at **[rsicarelli.github.io/kmp-targets](https://rsicarelli.github.io/kmp-targets/)**:
 

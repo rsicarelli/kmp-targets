@@ -29,6 +29,24 @@ kmpTargets {
 - **Exports stay lazy.** A version-catalog `Provider` is realized by KGP at attach time, not at declaration.
 - **One per module** in v1 — a second call, a blank name, or `on ⊄ apple` fails fast. (Multiple frameworks need a `namePrefix` strategy; a follow-up.)
 
+## XCFramework assembly
+
+Set `xcframework = true` to also bundle the registered slices into one `.xcframework` (the artifact an Xcode app links):
+
+```kotlin
+kmpTargets {
+    supports { appleMobile }
+    appleFramework("KotlinShared", xcframework = true) { isStatic = false }
+}
+```
+
+KGP registers `assembleKotlinSharedDebugXCFramework`, `assembleKotlinSharedReleaseXCFramework`, and the parent `assembleKotlinSharedXCFramework`.
+
+- **Opt-in**, matching the umbrella-task precedent — assembly tasks add edges, so they're off by default.
+- **Lazy**: the `XCFrameworkConfig` is created on the first Apple attach, so a selection that registers no Apple leaf (e.g. a jvm-only lane) wires **zero** `assemble…XCFramework` tasks.
+- **Invariant-safe by construction**: KGP requires every framework in an XCFramework to share a `baseName` and match on `buildType` — both come from the single declaration, so there's nothing to maintain by hand. `buildTypes` flows through (`buildTypes = listOf(NativeBuildType.DEBUG)` produces only the Debug assemble variant).
+- **macOS to run, host-blind to register**: the assemble tasks shell out to `xcodebuild`, so they only *execute* on a macOS host. Registration is host-independent (same as the link tasks), so your selection stays host-blind.
+
 ## `onAppleTarget` — the no-magic primitive
 
 `appleFramework` is thin sugar over `onAppleTarget`, which hands you the live KGP `KotlinNativeTarget` for every registered Apple leaf. Reach for it for anything that isn't a single framework — multiple binaries, cinterops, linker options:
@@ -61,4 +79,4 @@ extensions.configure<KmpTargetsExtension> {
 
 ## Out of scope
 
-XCFramework assembly, an unattached-framework advisory, build types via a layered property, multiple frameworks per module, and non-Apple binaries (`sharedLib`/`staticLib`/`executable`) are deliberate follow-ups.
+An unattached-framework advisory, build types via a layered property, multiple frameworks per module (and aggregating several into one XCFramework), and non-Apple binaries (`sharedLib`/`staticLib`/`executable`) are deliberate follow-ups.

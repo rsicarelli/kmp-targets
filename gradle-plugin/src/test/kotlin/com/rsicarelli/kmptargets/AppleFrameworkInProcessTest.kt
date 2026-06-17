@@ -200,6 +200,60 @@ class AppleFrameworkInProcessTest {
         assertEquals(KmpTargetSet.empty, project.kmpTargets().registered())
     }
 
+    @Test
+    fun `given xcframework true and two ios leaves when declared then the assemble XCFramework tasks exist`(
+        @TempDir dir: Path
+    ) {
+        val project = projectWithSelection(dir, "iosArm64,iosSimulatorArm64")
+        project.kmpTargets().appleFramework("KotlinShared", xcframework = true)
+        project.kmpTargets().supports(KmpTargetSet.appleMobile)
+        // KGP also registers per-family fat-framework intermediates, so assert the canonical three
+        // are present rather than pinning the full set.
+        val tasks = project.xcframeworkTaskNames()
+        assertTrue("assembleKotlinSharedDebugXCFramework" in tasks, tasks.toString())
+        assertTrue("assembleKotlinSharedReleaseXCFramework" in tasks, tasks.toString())
+        assertTrue("assembleKotlinSharedXCFramework" in tasks, tasks.toString())
+    }
+
+    @Test
+    fun `given xcframework true but a jvm-only selection when declared then no XCFramework task is registered`(
+        @TempDir dir: Path
+    ) {
+        // Laziness: the config is created on the first Apple attach, which never happens here.
+        val project = projectWithSelection(dir, "jvm")
+        project.kmpTargets().appleFramework("KotlinShared", xcframework = true)
+        project.kmpTargets().supports(KmpTargetSet.of(KmpTarget.Jvm.Desktop))
+        assertEquals(emptySet(), project.xcframeworkTaskNames())
+    }
+
+    @Test
+    fun `given xcframework true with buildTypes narrowed to DEBUG when declared then only the debug assemble variant exists`(
+        @TempDir dir: Path
+    ) {
+        val project = projectWithSelection(dir, "iosArm64,iosSimulatorArm64")
+        project
+            .kmpTargets()
+            .appleFramework(
+                "KotlinShared",
+                buildTypes = listOf(NativeBuildType.DEBUG),
+                xcframework = true,
+            )
+        project.kmpTargets().supports(KmpTargetSet.appleMobile)
+        val tasks = project.xcframeworkTaskNames()
+        assertTrue("assembleKotlinSharedDebugXCFramework" in tasks, tasks.toString())
+        assertTrue("assembleKotlinSharedReleaseXCFramework" !in tasks, tasks.toString())
+    }
+
+    @Test
+    fun `given xcframework defaulting to false when declared then no XCFramework task is registered`(
+        @TempDir dir: Path
+    ) {
+        val project = projectWithSelection(dir, "iosArm64,iosSimulatorArm64")
+        project.kmpTargets().appleFramework("KotlinShared")
+        project.kmpTargets().supports(KmpTargetSet.appleMobile)
+        assertEquals(emptySet(), project.xcframeworkTaskNames())
+    }
+
     private fun projectWithSelection(dir: Path, selection: String): Project {
         dir.resolve("gradle.properties").writeText("kmptargets.targets=$selection\n")
         val project = ProjectBuilder.builder().withProjectDir(dir.toFile()).build()
@@ -219,4 +273,8 @@ class AppleFrameworkInProcessTest {
             .withType(KotlinNativeTarget::class.java)
             .associate { it.targetName to it.binaries.withType(Framework::class.java).toList() }
             .filterValues { it.isNotEmpty() }
+
+    /** The registered task names KGP's XCFrameworkConfig contributes (assemble…XCFramework). */
+    private fun Project.xcframeworkTaskNames(): Set<String> =
+        tasks.names.filter { it.endsWith("XCFramework") }.toSet()
 }
