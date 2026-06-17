@@ -604,6 +604,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#build-types-per-lane" class="md-nav__link">
+    <span class="md-ellipsis">
+      Build types per lane
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#onappletarget-the-no-magic-primitive" class="md-nav__link">
     <span class="md-ellipsis">
       onAppleTarget — the no-magic primitive
@@ -963,6 +972,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#build-types-per-lane" class="md-nav__link">
+    <span class="md-ellipsis">
+      Build types per lane
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#onappletarget-the-no-magic-primitive" class="md-nav__link">
     <span class="md-ellipsis">
       onAppleTarget — the no-magic primitive
@@ -1028,7 +1046,7 @@
 <ul>
 <li><strong><code>baseName</code></strong> is the first argument; KGP's <code>namePrefix</code> stays <code>""</code>, so link-task names (<code>linkDebugFrameworkIosSimulatorArm64</code>) and the <code>embedAndSign…</code> contract match plain KGP byte-for-byte.</li>
 <li><strong><code>on</code></strong> (default <code>apple</code>) narrows which Apple leaves attach, using the same target algebra as <code>supports</code>: <code>appleFramework("KotlinShared", on = KmpTargetSet.appleMobile) { … }</code>. An <code>on</code> not ⊆ <code>apple</code> fails at declaration, naming the offending ids.</li>
-<li><strong><code>buildTypes</code></strong> (default KGP's <code>NativeBuildType.DEFAULT_BUILD_TYPES</code> = DEBUG + RELEASE) is passed straight to KGP's <code>binaries.framework(buildTypes = …)</code> factory. The plugin never silently narrows a KGP default.</li>
+<li><strong><code>buildTypes</code></strong> (default KGP's <code>NativeBuildType.DEFAULT_BUILD_TYPES</code> = DEBUG + RELEASE) is passed straight to KGP's <code>binaries.framework(buildTypes = …)</code> factory. The plugin never silently narrows a KGP default — the declaration is the ceiling. A lane can narrow it globally with <a href="#build-types-per-lane"><code>kmptargets.framework.buildTypes</code></a> (<code>effective = property ∩ declared</code>).</li>
 <li><strong>Ordering-immune.</strong> <code>appleFramework</code> declared <em>before</em> or <em>after</em> <code>supports {}</code> behaves identically (it rides the <code>onRegistered</code> replay); a later <code>supports {}</code> union attaches only the delta.</li>
 <li><strong>Exports stay lazy.</strong> A version-catalog <code>Provider</code> is realized by KGP at attach time, not at declaration.</li>
 <li><strong>One per module</strong> in v1 — a second call, a blank name, or <code>on ⊄ apple</code> fails fast. (Multiple frameworks need a <code>namePrefix</code> strategy; a follow-up.)</li>
@@ -1048,29 +1066,44 @@
 <li><strong>Invariant-safe by construction</strong>: KGP requires every framework in an XCFramework to share a <code>baseName</code> and match on <code>buildType</code> — both come from the single declaration, so there's nothing to maintain by hand. <code>buildTypes</code> flows through (<code>buildTypes = listOf(NativeBuildType.DEBUG)</code> produces only the Debug assemble variant).</li>
 <li><strong>macOS to run, host-blind to register</strong>: the assemble tasks shell out to <code>xcodebuild</code>, so they only <em>execute</em> on a macOS host. Registration is host-independent (same as the link tasks), so your selection stays host-blind.</li>
 </ul>
+<h2 id="build-types-per-lane">Build types per lane<a class="headerlink" href="#build-types-per-lane" title="Permanent link">&para;</a></h2>
+<p>Build type is <strong>lane-shaped, not module-shaped</strong>: local dev wants DEBUG-only links (fast), the release lane wants RELEASE. So which <code>NativeBuildType</code>s a framework links is a global, layered input — <code>kmptargets.framework.buildTypes</code> — resolved through the <em>same</em> <a href="../selection-layers/">selection-sources chain</a> as <code>kmptargets.targets</code> (CLI <code>-P</code> → <code>ORG_GRADLE_PROJECT_*</code> env → <code>kmp-targets.local.properties</code> → <code>kmp-targets.properties</code> → <code>gradle.properties</code>), validated against the key registry, with the same did-you-mean on a typo.</p>
+<div class="language-properties highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="c1"># kmp-targets.properties — team default: fast local links</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="na">kmptargets.framework.buildTypes</span><span class="o">=</span><span class="s">debug</span>
+</span></code></pre></div>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># the release lane overrides it, exactly like the targets key</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>./gradlew<span class="w"> </span>assembleKotlinSharedXCFramework<span class="w"> </span>-Pkmptargets.framework.buildTypes<span class="o">=</span>release
+</span></code></pre></div>
+<ul>
+<li><strong>Effective = property ∩ declared</strong> — the <code>selection ∩ supported</code> shape on the build-type axis. The property only ever <strong>narrows</strong> what the module declared; it can never link a build type the declaration didn't list. Absent property → the declared value wins (no silent narrowing of a KGP default).</li>
+<li><strong>Grammar</strong>: a comma-separated, case-insensitive list of <code>debug</code> / <code>release</code> (KGP's closed <code>NativeBuildType</code> enum). A junk value (<code>relese</code>) fails the build with a did-you-mean.</li>
+<li><strong>Drives both</strong> the per-buildType framework link tasks <strong>and</strong> the XCFramework assemble variants: <code>=debug</code> leaves only <code>linkDebugFramework…</code> and <code>assemble…DebugXCFramework</code>.</li>
+<li><strong>Disjoint → nothing links.</strong> A module that declares <code>buildTypes = listOf(NativeBuildType.DEBUG)</code> under a <code>=release</code> lane has an empty effective set: no binary (or XCFramework slice) links, and the plugin emits the <a href="../advisories/#framework-build-types-disjoint">framework-build-types-disjoint advisory</a> (a configuration failure under <code>kmptargets.strict</code>).</li>
+<li><strong>Surfaced.</strong> <a href="../diagnostics/#kmptargetsinfo"><code>kmpTargetsInfo</code></a> prints the effective build types, the winning origin layer, and the declared set when a lane narrowed it.</li>
+</ul>
 <h2 id="onappletarget-the-no-magic-primitive"><code>onAppleTarget</code> — the no-magic primitive<a class="headerlink" href="#onappletarget-the-no-magic-primitive" title="Permanent link">&para;</a></h2>
 <p><code>appleFramework</code> is thin sugar over <code>onAppleTarget</code>, which hands you the live KGP <code>KotlinNativeTarget</code> for every registered Apple leaf. Reach for it for anything that isn't a single framework — multiple binaries, cinterops, linker options:</p>
-<div class="language-kotlin highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">kmpTargets</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">    </span><span class="n">supports</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">appleMobile</span><span class="w"> </span><span class="p">}</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">    </span><span class="n">onAppleTarget</span><span class="w"> </span><span class="p">{</span><span class="w">                            </span><span class="c1">// this: KotlinNativeTarget (real KGP)</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">        </span><span class="n">binaries</span><span class="p">.</span><span class="na">framework</span><span class="p">(</span><span class="s">&quot;KotlinShared&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">isStatic</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="w"> </span><span class="p">}</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">        </span><span class="n">compilations</span><span class="p">.</span><span class="na">getByName</span><span class="p">(</span><span class="s">&quot;main&quot;</span><span class="p">).</span><span class="na">cinterops</span><span class="p">.</span><span class="na">create</span><span class="p">(</span><span class="s">&quot;analytics&quot;</span><span class="p">)</span>
-</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">    </span><span class="p">}</span>
-</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="p">}</span>
+<div class="language-kotlin highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">kmpTargets</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="n">supports</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">appleMobile</span><span class="w"> </span><span class="p">}</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="w">    </span><span class="n">onAppleTarget</span><span class="w"> </span><span class="p">{</span><span class="w">                            </span><span class="c1">// this: KotlinNativeTarget (real KGP)</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a><span class="w">        </span><span class="n">binaries</span><span class="p">.</span><span class="na">framework</span><span class="p">(</span><span class="s">&quot;KotlinShared&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">isStatic</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="w"> </span><span class="p">}</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="w">        </span><span class="n">compilations</span><span class="p">.</span><span class="na">getByName</span><span class="p">(</span><span class="s">&quot;main&quot;</span><span class="p">).</span><span class="na">cinterops</span><span class="p">.</span><span class="na">create</span><span class="p">(</span><span class="s">&quot;analytics&quot;</span><span class="p">)</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="p">}</span>
 </span></code></pre></div>
 <p>Same replay/ordering guarantees as <code>onRegistered</code>; fires only when KGP is applied; runs at configuration time only (don't hold the target from a task action).</p>
 <h2 id="from-build-logic">From build-logic<a class="headerlink" href="#from-build-logic" title="Permanent link">&para;</a></h2>
 <p>Both are plain extension calls — no type-safe receiver to bypass — so a convention plugin uses them directly, and <code>on</code> already takes a raw <code>KmpTargetSet</code>:</p>
-<div class="language-kotlin highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="k">import</span><span class="w"> </span><span class="nn">com.rsicarelli.kmptargets.KmpTargetsExtension</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="k">import</span><span class="w"> </span><span class="nn">com.rsicarelli.kmptargets.model.KmpTargetSet</span>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">extensions</span><span class="p">.</span><span class="na">configure</span><span class="o">&lt;</span><span class="n">KmpTargetsExtension</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="n">appleFramework</span><span class="p">(</span><span class="s">&quot;KotlinShared&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">on</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">KmpTargetSet</span><span class="p">.</span><span class="na">appleMobile</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">isStatic</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="w"> </span><span class="p">}</span>
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="n">supports</span><span class="p">(</span><span class="n">KmpTargetSet</span><span class="p">.</span><span class="na">appleMobile</span><span class="p">)</span>
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="p">}</span>
+<div class="language-kotlin highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">import</span><span class="w"> </span><span class="nn">com.rsicarelli.kmptargets.KmpTargetsExtension</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="k">import</span><span class="w"> </span><span class="nn">com.rsicarelli.kmptargets.model.KmpTargetSet</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="n">extensions</span><span class="p">.</span><span class="na">configure</span><span class="o">&lt;</span><span class="n">KmpTargetsExtension</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="w">    </span><span class="n">appleFramework</span><span class="p">(</span><span class="s">&quot;KotlinShared&quot;</span><span class="p">,</span><span class="w"> </span><span class="n">on</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">KmpTargetSet</span><span class="p">.</span><span class="na">appleMobile</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">isStatic</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="w"> </span><span class="p">}</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">    </span><span class="n">supports</span><span class="p">(</span><span class="n">KmpTargetSet</span><span class="p">.</span><span class="na">appleMobile</span><span class="p">)</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="p">}</span>
 </span></code></pre></div>
 <h2 id="out-of-scope">Out of scope<a class="headerlink" href="#out-of-scope" title="Permanent link">&para;</a></h2>
-<p>Build types via a layered property, multiple frameworks per module (and aggregating several into one XCFramework), and non-Apple binaries (<code>sharedLib</code>/<code>staticLib</code>/<code>executable</code>) are deliberate follow-ups.</p>
+<p>Per-module build-type property variants, mapping Xcode's <code>CONFIGURATION</code> env var, and custom (non-DEBUG/RELEASE) build types are out of scope (KGP's enum is closed). Multiple frameworks per module (and aggregating several into one XCFramework), and non-Apple binaries (<code>sharedLib</code>/<code>staticLib</code>/<code>executable</code>) are deliberate follow-ups.</p>
 
 
 

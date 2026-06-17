@@ -1101,7 +1101,7 @@
 <li><strong><code>Selection</code></strong> — the resolved global selection and its winning <a href="../selection-layers/">layer</a> by name: <code>command line (-Pkmptargets.targets)</code>, <code>kmp-targets.local.properties</code>, <code>local.properties</code>, or the <code>defaultSelection</code> / built-in fallbacks. Values from <code>-Dorg.gradle.project.kmptargets.targets</code> and <code>~/.gradle/gradle.properties</code> report as the fused <code>gradle.properties (...)</code> layer.</li>
 <li><strong><code>Supported</code></strong> — whether the module declared <a href="../selection-dsl/"><code>supports { }</code></a> and what it expanded to.</li>
 <li><strong><code>Registered</code></strong> — the intersection that registered. Every empty case states its reason: no <code>supports { }</code> call, a selection narrowed to nothing, or a disjoint <code>selection ∩ supported</code>.</li>
-<li><strong><code>Apple framework</code></strong> — present when the module declares <a href="../apple-framework/"><code>appleFramework</code></a>: the declared name, the Apple leaves it attached to (<code>registered ∩ on</code>), its buildTypes, and whether XCFramework assembly is on. An empty <code>attached</code> is the <a href="../advisories/#framework-without-an-apple-target">framework-without-an-Apple-target</a> state — the framework never builds.</li>
+<li><strong><code>Apple framework</code></strong> — present when the module declares <a href="../apple-framework/"><code>appleFramework</code></a>: the declared name, the Apple leaves it attached to (<code>registered ∩ on</code>), its <strong>effective</strong> <a href="../apple-framework/#build-types-per-lane">build types</a> (and, when a lane narrowed them, the winning <code>kmptargets.framework.buildTypes</code> origin layer plus the declared set), and whether XCFramework assembly is on. An empty <code>attached</code> is the <a href="../advisories/#framework-without-an-apple-target">framework-without-an-Apple-target</a> state — the framework never builds.</li>
 <li><strong><code>Vocabulary</code></strong> — the parser's full preset and leaf list; a copy-paste surface for valid tokens.</li>
 </ul>
 <h3 id="per-leaf-annotations">Per-leaf annotations<a class="headerlink" href="#per-leaf-annotations" title="Permanent link">&para;</a></h3>
@@ -1180,6 +1180,10 @@
 <tr>
 <td><code>framework declared but unattached</code></td>
 <td><a href="../advisories/#framework-without-an-apple-target">framework without an Apple target</a></td>
+</tr>
+<tr>
+<td><code>framework build types disjoint</code></td>
+<td><a href="../advisories/#framework-build-types-disjoint">framework build types disjoint</a></td>
 </tr>
 <tr>
 <td><code>androidTarget skipped</code></td>

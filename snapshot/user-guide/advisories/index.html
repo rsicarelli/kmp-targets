@@ -695,6 +695,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#framework-build-types-disjoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      Framework build types disjoint
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#strict-mode" class="md-nav__link">
     <span class="md-ellipsis">
       Strict mode
@@ -1035,6 +1044,15 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#framework-build-types-disjoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      Framework build types disjoint
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#strict-mode" class="md-nav__link">
     <span class="md-ellipsis">
       Strict mode
@@ -1063,7 +1081,7 @@
 
 
 <h1 id="advisories-strict-mode">Advisories &amp; Strict Mode<a class="headerlink" href="#advisories-strict-mode" title="Permanent link">&para;</a></h1>
-<p>The plugin emits seven configuration-time advisories. Six are signal-only; one (android-without-AGP) skips a leaf — the reasoning is on the <a href="../../why-kmp-targets/#diagnostics-philosophy">Design page</a>. <a href="#strict-mode">Strict mode</a> promotes all seven to build failures with identical message text. <a href="../diagnostics/#kmptargetsdoctor"><code>kmpTargetsDoctor</code></a> renders each advisory as a finding with the fix attached.</p>
+<p>The plugin emits eight configuration-time advisories. Seven are signal-only; one (android-without-AGP) skips a leaf — the reasoning is on the <a href="../../why-kmp-targets/#diagnostics-philosophy">Design page</a>. <a href="#strict-mode">Strict mode</a> promotes all eight to build failures with identical message text. <a href="../diagnostics/#kmptargetsdoctor"><code>kmpTargetsDoctor</code></a> renders each advisory as a finding with the fix attached.</p>
 <h2 id="host-compatibility">Host compatibility<a class="headerlink" href="#host-compatibility" title="Permanent link">&para;</a></h2>
 <p>Fires when the selection includes a native target the current host can't compile. The target still registers (<a href="../../why-kmp-targets/#selection-model">host-blind registration</a>); compile/link tasks for it fail or are skipped on this host:</p>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>kmp-targets: &#39;:shared&#39; selects [iosArm64] which cannot be compiled on this host (LINUX_X64) —
@@ -1126,11 +1144,19 @@
 </span><span id="__span-7-5"><a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a>declaration in build-logic when kmpTargets.registered(apple).isEmpty().
 </span></code></pre></div>
 <p>Keyed off the leaves the framework <strong>actually attached to</strong> (<code>registered ∩ on ∩ apple</code>), not <code>registered(apple)</code> — so it is correct for an <code>on</code>-scoped framework even when other Apple leaves registered. A module that never calls <code>supports { }</code> is not flagged (explicit-selection doctrine), though <a href="../diagnostics/#kmptargetsdoctor"><code>kmpTargetsDoctor</code></a> still renders the declared-but-unattached state. Registration is one-way: a later <code>supports { }</code> union that attaches an Apple leaf resolves it permanently. Strict mode is the point here — a release lane with a misconfigured selection fails loudly at configuration instead of shipping a frameworkless artifact that breaks Xcode downstream.</p>
+<h2 id="framework-build-types-disjoint">Framework build types disjoint<a class="headerlink" href="#framework-build-types-disjoint" title="Permanent link">&para;</a></h2>
+<p>Fires when a framework attaches to ≥1 Apple leaf but the lane's <a href="../apple-framework/#build-types-per-lane"><code>kmptargets.framework.buildTypes</code></a> shares no <code>NativeBuildType</code> with what the module declared — so the effective set (<code>property ∩ declared</code>) is empty and no binary links, even though Apple targets registered. The build-type analog of <a href="#empty-overlap">empty overlap</a> on the <code>selection ∩ supported</code> axis. Typical cause: a module pinned to one build type (<code>appleFramework("KotlinShared", buildTypes = listOf(NativeBuildType.DEBUG))</code>) under the opposite lane (<code>-Pkmptargets.framework.buildTypes=release</code>):</p>
+<div class="language-text highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>kmp-targets: &#39;:shared&#39; — appleFramework(&quot;KotlinShared&quot;) declares build types [DEBUG] but
+</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>kmptargets.framework.buildTypes resolved to [RELEASE] for this lane; they do not overlap, so no
+</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>framework binary (or XCFramework slice) links and an Xcode build consuming it fails downstream. Set
+</span><span id="__span-8-4"><a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>kmptargets.framework.buildTypes to one of [DEBUG] (or widen the appleFramework(…) declaration).
+</span></code></pre></div>
+<p>Mutually exclusive with <a href="#framework-without-an-apple-target">framework-without-an-Apple-target</a> by construction: that one needs zero attached leaves, this one needs ≥1. Because the property only ever <strong>narrows</strong> the declaration, the fix is to align the lane with a declared build type (or widen the declaration). Fires at most once per module.</p>
 <h2 id="strict-mode">Strict mode<a class="headerlink" href="#strict-mode" title="Permanent link">&para;</a></h2>
-<p><code>kmptargets.strict=true</code> promotes all seven advisories to configuration-time build failures (<code>GradleException</code>) with identical message text. Severity changes; policy does not — it never changes which configurations are flagged or what registers (the AGP skip happens with or without strict). Default off. Recommended: strict in CI only:</p>
-<div class="language-yaml highlight"><pre><span></span><code><span id="__span-8-1"><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># CI only — e.g. a GitHub Actions env block</span>
-</span><span id="__span-8-2"><a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="nt">env</span><span class="p">:</span>
-</span><span id="__span-8-3"><a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="w">  </span><span class="nt">ORG_GRADLE_PROJECT_kmptargets.strict</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;true&quot;</span><span class="w">   </span><span class="c1"># or: ./gradlew build -Pkmptargets.strict=true</span>
+<p><code>kmptargets.strict=true</code> promotes all eight advisories to configuration-time build failures (<code>GradleException</code>) with identical message text. Severity changes; policy does not — it never changes which configurations are flagged or what registers (the AGP skip happens with or without strict). Default off. Recommended: strict in CI only:</p>
+<div class="language-yaml highlight"><pre><span></span><code><span id="__span-9-1"><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># CI only — e.g. a GitHub Actions env block</span>
+</span><span id="__span-9-2"><a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="nt">env</span><span class="p">:</span>
+</span><span id="__span-9-3"><a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="w">  </span><span class="nt">ORG_GRADLE_PROJECT_kmptargets.strict</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;true&quot;</span><span class="w">   </span><span class="c1"># or: ./gradlew build -Pkmptargets.strict=true</span>
 </span></code></pre></div>
 <p>The flag resolves through the same <a href="../selection-layers/">precedence chain</a> as every <code>kmptargets.*</code> key; anything other than <code>true</code>/<code>false</code> (case-insensitive) is treated as unset.</p>
 <div class="admonition warning">
