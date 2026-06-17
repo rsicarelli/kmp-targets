@@ -21,28 +21,30 @@ kmpTargets { supports { mobile } }   // androidTarget + all iOS
 
 Kotlin Multiplatform makes you declare every target up front, then builds them all on every sync. Kotlin's own docs tell you not to: *"[build only for necessary targets](https://kotlinlang.org/docs/native-improving-compilation-time.html#build-only-for-necessary-targets)."* The catch is that the only built-in way to do it is hand-editing `kotlin { }`.
 
-`kmp-targets` turns that into one property. Pick the set you want and the targets you skip never register, so their tasks never exist.
+`kmp-targets` splits what you *support* from what you *want to build*, and turns the choice into one property. Pick the set you want and the targets you skip never register, so their tasks never exist.
 
 ## ⚖️ Before / After
 
 ```kotlin
-// Before — plain KMP: all three targets build on every sync
+// Before: regular KMP. List every target, apply the default hierarchy template.
 kotlin {
     jvm()
     iosArm64()
     iosSimulatorArm64()
+    iosX64()
+    applyDefaultHierarchyTemplate()
 }
 ```
 ```kotlin
-// After — kmp-targets: declare the set once…
-kmpTargets { supports { jvm + iosArm64 + iosSimulatorArm64 } }
+// After: kmp-targets. Set algebra in, boilerplate out; the minimal hierarchy is automatic.
+kmpTargets { supports { appleMobile + jvm - iosX64 } }   // drop the Intel-Mac simulator
 ```
 ```bash
-# …then build only what you're working on. jvm + the simulator never register.
+# Build only what you're working on. The rest never register.
 ./gradlew build -Pkmptargets.targets=iosArm64
 ```
 
-The `jvm` and simulator tasks are never created — and it scales (see [📊 Impact](#-impact)).
+Set algebra instead of a target list, a minimal hierarchy instead of `applyDefaultHierarchyTemplate`'s redundant intermediates (see [🧩 Automatic hierarchy](#-automatic-hierarchy)), and the targets you skip never register (see [📊 Impact](#-impact)).
 
 ## 📊 Impact
 
