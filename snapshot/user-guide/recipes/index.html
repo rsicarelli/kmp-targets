@@ -595,9 +595,9 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#commonmain-ksp-needs-a-native-target" class="md-nav__link">
+  <a href="#commonmain-ksp-needs-two-targets" class="md-nav__link">
     <span class="md-ellipsis">
-      commonMain KSP needs a native target
+      commonMain KSP needs two targets
     </span>
   </a>
   
@@ -973,9 +973,9 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#commonmain-ksp-needs-a-native-target" class="md-nav__link">
+  <a href="#commonmain-ksp-needs-two-targets" class="md-nav__link">
     <span class="md-ellipsis">
-      commonMain KSP needs a native target
+      commonMain KSP needs two targets
     </span>
   </a>
   
@@ -1077,18 +1077,25 @@
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="n">tasks</span><span class="p">.</span><span class="na">withType</span><span class="p">(</span><span class="n">KotlinCompilationTask</span><span class="o">::</span><span class="n">class</span><span class="p">.</span><span class="na">java</span><span class="p">).</span><span class="na">configureEach</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="w"> </span><span class="p">}</span>
 </span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">}</span>
 </span></code></pre></div>
-<p>When only a native-wired codegen processor is at risk, gate on the narrower <code>kmpTargets.registered(KmpTargetSet.native).isEmpty()</code> — next recipe.</p>
-<h2 id="commonmain-ksp-needs-a-native-target">commonMain KSP needs a native target<a class="headerlink" href="#commonmain-ksp-needs-a-native-target" title="Permanent link">&para;</a></h2>
-<p>A processor that generates into <code>commonMain</code> runs on the commonMain metadata compilation (<code>kspCommonMainKotlinMetadata</code>). KSP only creates that task when a native target registers, so a native-less lane (<code>jvm</code>, <code>android,jvm</code>) skips generation — the failure ranges from unresolved references to a green build missing codegen. There is no per-platform workaround: K2 forbids <code>commonMain</code> from referencing platform-generated symbols. Gate right after <code>supports { }</code>:</p>
-<div class="language-kotlin highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">kmpTargets</span><span class="p">.</span><span class="na">registered</span><span class="p">(</span><span class="n">KmpTargetSet</span><span class="p">.</span><span class="na">native</span><span class="p">).</span><span class="na">isEmpty</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<p>When a <code>commonMain</code> codegen processor is at risk under narrowing, see the next recipe.</p>
+<h2 id="commonmain-ksp-needs-two-targets">commonMain KSP needs two targets<a class="headerlink" href="#commonmain-ksp-needs-two-targets" title="Permanent link">&para;</a></h2>
+<p>A processor that generates into <code>commonMain</code> runs on the commonMain metadata compilation (<code>kspCommonMainKotlinMetadata</code>). That task exists only when <strong>≥2 platform targets share <code>commonMain</code></strong> — exactly the rule for KGP's <code>compileCommonMainKotlinMetadata</code>. So a <strong>single-target</strong> lane (one leaf — <code>android</code>, <code>jvm</code>, or even <code>iosArm64</code> alone) has no <code>kspCommonMainKotlinMetadata</code>: the processor only emits into the per-target KSP dir, which the commonMain metadata compilation can't see. The failure ranges from unresolved references to a green build missing codegen.</p>
+<p>Native presence is <strong>not</strong> the trigger — target count is: <code>jvm,js</code> (no native) gets the route, while <code>iosArm64</code> alone (native) does not.</p>
+<p>Two fixes:</p>
+<ul>
+<li><strong>Single target on purpose</strong> (e.g. an Android-only lane): keep the codegen-consuming code in the target's own source set (<code>androidMain</code>), not <code>commonMain</code>. The per-target generated dir is already on that compilation's path. K2 forbids <code>commonMain</code> from referencing platform-generated symbols, so moving the code out of <code>commonMain</code> is the only correct option here — not a workaround inside it.</li>
+<li><strong>Want it common</strong>: register a second target so the shared commonMain metadata compilation exists.</li>
+</ul>
+<p>To warn when a lane silently drops the route, gate right after <code>supports { }</code> on a single registered target:</p>
+<div class="language-kotlin highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">kmpTargets</span><span class="p">.</span><span class="na">registered</span><span class="p">().</span><span class="na">size</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="m">2</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="n">logger</span><span class="p">.</span><span class="na">warn</span><span class="p">(</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">        </span><span class="s">&quot;ksp: &#39;:</span><span class="si">${</span><span class="n">project</span><span class="p">.</span><span class="na">name</span><span class="si">}</span><span class="s">&#39; generates commonMain code but no native target is &quot;</span><span class="w"> </span><span class="o">+</span>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">        </span><span class="s">&quot;registered — symbol processing is skipped for this selection.&quot;</span>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">    </span><span class="p">)</span>
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="n">tasks</span><span class="p">.</span><span class="na">withType</span><span class="p">(</span><span class="n">KotlinCompilationTask</span><span class="o">::</span><span class="n">class</span><span class="p">.</span><span class="na">java</span><span class="p">).</span><span class="na">configureEach</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="w"> </span><span class="p">}</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">        </span><span class="s">&quot;ksp: &#39;:</span><span class="si">${</span><span class="n">project</span><span class="p">.</span><span class="na">name</span><span class="si">}</span><span class="s">&#39; generates commonMain code but only one target is &quot;</span><span class="w"> </span><span class="o">+</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">        </span><span class="s">&quot;registered — the commonMain metadata route is absent for this selection. &quot;</span><span class="w"> </span><span class="o">+</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">        </span><span class="s">&quot;Move the code to the target source set, or register a second target.&quot;</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="p">)</span>
 </span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="p">}</span>
 </span></code></pre></div>
-<p>The gate is <code>native</code>, not the metadata compilation itself: <code>compileCommonMainKotlinMetadata</code> tracks a shared commonMain (≥2 platform targets), while KSP's commonMain route needs native presence specifically. <a href="../diagnostics/#kmptargetsinfo"><code>kmpTargetsInfo</code></a> shows what registered per lane.</p>
+<p><a href="../diagnostics/#kmptargetsinfo"><code>kmpTargetsInfo</code></a> shows what registered per lane, and <a href="../diagnostics/#findings">doctor</a> flags the single-target + KSP case directly.</p>
 <h2 id="per-target-configuration-wiring">Per-target configuration wiring<a class="headerlink" href="#per-target-configuration-wiring" title="Permanent link">&para;</a></h2>
 <p>The canonical <code>onRegistered</code> use — per-target configurations with the Gradle name pre-mangled, rename-proof because <a href="../build-logic/#configuration-name-helpers"><code>configurationName</code></a> follows <a href="../selection-dsl/#renaming-the-jvm-target"><code>targetName</code></a>:</p>
 <div class="language-kotlin highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">kmpTargets</span><span class="p">.</span><span class="na">onRegistered</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">add</span><span class="p">(</span><span class="nb">it</span><span class="p">.</span><span class="na">configurationName</span><span class="p">(</span><span class="s">&quot;ksp&quot;</span><span class="p">),</span><span class="w"> </span><span class="n">processorDep</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>

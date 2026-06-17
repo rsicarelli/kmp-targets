@@ -1160,12 +1160,16 @@
 <td><a href="../advisories/#deprecated-targets">deprecated targets</a></td>
 </tr>
 <tr>
+<td><code>single-target KSP</code></td>
+<td>the <a href="../recipes/#commonmain-ksp-needs-two-targets">commonMain-KSP trap</a> — doctor-only, no build-time advisory</td>
+</tr>
+<tr>
 <td><code>note: jvm (registered as: …)</code></td>
 <td>a <a href="../selection-dsl/#renaming-the-jvm-target">renamed target</a> — context, not a problem</td>
 </tr>
 </tbody>
 </table>
-<p>The commonMain-KSP trap has no finding: its trigger ("does this module run a commonMain metadata-route processor?") is not observable by the plugin. It stays a build-logic <a href="../recipes/#commonmain-ksp-needs-a-native-target">recipe</a>.</p>
+<p><code>single-target KSP</code> is doctor-only: it fires when a KSP plugin is applied and exactly one target is registered, so the commonMain metadata route (<code>kspCommonMainKotlinMetadata</code>, which needs <a href="../recipes/#commonmain-ksp-needs-two-targets">≥2 targets</a>) is absent. Whether the module <em>actually</em> generates into <code>commonMain</code> is unobservable, so the finding flags the risk rather than a certainty — and there is no build-time advisory or strict-mode escalation for it.</p>
 <h3 id="project-edge-closure">Project-edge closure<a class="headerlink" href="#project-edge-closure" title="Permanent link">&para;</a></h3>
 <p>Doctor also flags a <code>project(...)</code> dependency that registers none of the leaves this module needs (the failure in <a href="../recipes/#selection-vs-the-dependency-graph">Selection vs the dependency graph</a>):</p>
 <div class="language-console highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="go">kmp-targets doctor — :app-mobile</span>

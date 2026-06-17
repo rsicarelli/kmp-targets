@@ -1105,8 +1105,8 @@
 </tr>
 <tr>
 <td>KSP-generated symbols missing from commonMain</td>
-<td>no native target registered in this selection, so the processing compilation never ran</td>
-<td>gate + warn via <code>registered(KmpTargetSet.native)</code> (<a href="../../user-guide/recipes/#commonmain-ksp-needs-a-native-target">recipe</a>)</td>
+<td>only one target registered in this selection, so the shared commonMain metadata route (<code>kspCommonMainKotlinMetadata</code>) never ran</td>
+<td>move the codegen-consuming code to the target source set, or register a second target (<a href="../../user-guide/recipes/#commonmain-ksp-needs-two-targets">recipe</a>); <code>kmpTargetsDoctor</code> flags it as <code>single-target KSP</code></td>
 </tr>
 </tbody>
 </table>
