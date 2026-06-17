@@ -100,7 +100,7 @@ First public release of the `com.rsicarelli.kmptargets` Gradle plugin.
   module that registered nothing is a clean no-op. Depends on registered **platform** compilations
   only — never `compileCommonMainKotlinMetadata` — so it cannot re-introduce the inert ([#71]) or
   JVM-less-fragment ([#72]) failures. See
-  [README → CI → Lane-agnostic compilation](README.md#lane-agnostic-compilation).
+  [README → CI → Lane-agnostic compilation](https://rsicarelli.github.io/kmp-targets/user-guide/ci-matrix/).
 - **Per-target configuration-name helpers** ([#74]): `RegisteredTarget.configurationName(prefix)`
   and `RegisteredTarget.testConfigurationName(prefix)` build the `prefix + gradleNameCapitalized`
   (+ `"Test"`) Gradle configuration name a per-target tool publishes — `it.configurationName("ksp")`
@@ -192,16 +192,16 @@ First public release of the `com.rsicarelli.kmptargets` Gradle plugin.
   pre-registration hook would have to fire eagerly at call-site to keep AGP ahead of the eager
   `register()` — making it behaviorally identical to
   `if (KmpTarget.Jvm.Android in kmpTargets.resolvedSelection()) { … }` over the existing
-  [`resolvedSelection()`](#52) primitive, with zero added mechanism and a footgun (apply-late) it
+  [`resolvedSelection()`](https://github.com/rsicarelli/kmp-targets/issues/52) primitive, with zero added mechanism and a footgun (apply-late) it
   cannot remove by construction, and the `com.android.application` exemption is a build-logic decision
   the plugin cannot make one-module-at-a-time. So the deliverable is docs + signal: the
-  [recipe](docs/user-guide/recipes.md#selection-gated-eager-agp-application) now spells out the real
+  [recipe](https://rsicarelli.github.io/kmp-targets/user-guide/recipes/#selection-gated-eager-agp-application) now spells out the real
   `resolvedSelection()` gate, the application-module exemption (an app is always Android — never
   double-apply or gate it), the apply-before-`supports { }` ordering rule, the **downstream-read
   gating** (a `namespace`/manifest read crashes under non-Android selections unless guarded by the
   same predicate), and companion-plugin reactions via `pluginManager.withPlugin(...)`; the
   android-without-AGP advisory message now appends a one-line selection-gate hint and links that
-  recipe; and [advisories](docs/user-guide/advisories.md#android-target-without-agp) cross-links it.
+  recipe; and [advisories](https://rsicarelli.github.io/kmp-targets/user-guide/advisories/#android-target-without-agp) cross-links it.
 - **Selection vs the dependency graph — the android→jvm fallback rule** ([#80]). Selection is
   resolved per module, but its *validity* can depend on the cross-module dependency graph: an
   android-leaning module that consumes a `jvm`+native-only library resolves against that library's
@@ -213,10 +213,10 @@ First public release of the `com.rsicarelli.kmptargets` Gradle plugin.
   peer projects' registered sets at configuration time — forbidden by the plugin's
   configuration-cache and Isolated-Projects guarantees — and the canonical trigger is *external*
   published libraries the plugin cannot model one-module-at-a-time. So the deliverable is docs: the
-  [recipe](docs/user-guide/recipes.md) gains the asymmetric android→jvm case,
-  [troubleshooting](docs/help/troubleshooting.md) gains a `compileDependencyFiles` row, and the
+  [recipe](https://rsicarelli.github.io/kmp-targets/user-guide/recipes/) gains the asymmetric android→jvm case,
+  [troubleshooting](https://rsicarelli.github.io/kmp-targets/help/troubleshooting/) gains a `compileDependencyFiles` row, and the
   closure analysis is deferred to a future doctor mode ([#82]). Adjacent hygiene: the
-  [advisories](docs/user-guide/advisories.md) page now documents the **native-only-metadata**
+  [advisories](https://rsicarelli.github.io/kmp-targets/user-guide/advisories/) page now documents the **native-only-metadata**
   advisory ([#72]).
 - **commonMain-KSP recipe — corrected to the real rule, plus a doctor finding** ([#73]). A processor
   that generates into `commonMain` runs on the shared commonMain metadata route
