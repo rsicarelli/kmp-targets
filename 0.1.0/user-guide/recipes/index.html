@@ -1,0 +1,1270 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Dynamically select which Kotlin Multiplatform targets to build via the kmptargets.targets Gradle property">
+      
+      
+        <meta name="author" content="Rodrigo Sicarelli">
+      
+      
+        <link rel="canonical" href="https://rsicarelli.github.io/kmp-targets/0.1.0/user-guide/recipes/">
+      
+      
+        <link rel="prev" href="../xcode-environment/">
+      
+      
+        <link rel="next" href="../advisories/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.16">
+    
+    
+      
+        <title>Recipes - kmp-targets</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.7e37652d.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CFira+Code:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"Fira Code"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/kmp-targets-brand.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#recipes" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="kmp-targets" class="md-header__button md-logo" aria-label="kmp-targets" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            kmp-targets
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Recipes
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/rsicarelli/kmp-targets" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    kmp-targets
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="kmp-targets" class="md-nav__button md-logo" aria-label="kmp-targets" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    kmp-targets
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/rsicarelli/kmp-targets" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    kmp-targets
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Get Started
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Get Started
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../get-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../get-started/quick-start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quick Start
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    User Guide
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            User Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../selection-dsl/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Selection DSL
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../selection-layers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Selection Layers
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../targets-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Targets Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../hierarchy-template/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Hierarchy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../build-logic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Build Logic
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../apple-framework/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Apple Framework
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../xcode-environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Xcode Environment
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Recipes
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Recipes
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#gate-compilation-on-inert-modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      Gate compilation on inert modules
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#commonmain-ksp-needs-two-targets" class="md-nav__link">
+    <span class="md-ellipsis">
+      commonMain KSP needs two targets
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#per-target-configuration-wiring" class="md-nav__link">
+    <span class="md-ellipsis">
+      Per-target configuration wiring
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#selection-gated-eager-agp-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      Selection-gated eager AGP application
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lane-agnostic-ci-invocations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Lane-agnostic CI invocations
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#selection-vs-the-dependency-graph" class="md-nav__link">
+    <span class="md-ellipsis">
+      Selection vs the dependency graph
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Selection vs the dependency graph">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-asymmetric-case-android-and-the-jvm-fallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      The asymmetric case: android and the jvm fallback
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#binary-compatibility-validator-selection" class="md-nav__link">
+    <span class="md-ellipsis">
+      Binary-compatibility validator + selection
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting-first" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting first
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../advisories/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Advisories & Strict Mode
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../diagnostics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Diagnostics
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../abi-validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ABI Validation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ci-matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CI
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../samples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Samples
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../compatibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Compatibility
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../why-kmp-targets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Design
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Help
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            Help
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../help/faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FAQ
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../help/troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Troubleshooting
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#gate-compilation-on-inert-modules" class="md-nav__link">
+    <span class="md-ellipsis">
+      Gate compilation on inert modules
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#commonmain-ksp-needs-two-targets" class="md-nav__link">
+    <span class="md-ellipsis">
+      commonMain KSP needs two targets
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#per-target-configuration-wiring" class="md-nav__link">
+    <span class="md-ellipsis">
+      Per-target configuration wiring
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#selection-gated-eager-agp-application" class="md-nav__link">
+    <span class="md-ellipsis">
+      Selection-gated eager AGP application
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#lane-agnostic-ci-invocations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Lane-agnostic CI invocations
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#selection-vs-the-dependency-graph" class="md-nav__link">
+    <span class="md-ellipsis">
+      Selection vs the dependency graph
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Selection vs the dependency graph">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#the-asymmetric-case-android-and-the-jvm-fallback" class="md-nav__link">
+    <span class="md-ellipsis">
+      The asymmetric case: android and the jvm fallback
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#binary-compatibility-validator-selection" class="md-nav__link">
+    <span class="md-ellipsis">
+      Binary-compatibility validator + selection
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting-first" class="md-nav__link">
+    <span class="md-ellipsis">
+      Troubleshooting first
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="recipes">Recipes<a class="headerlink" href="#recipes" title="Permanent link">&para;</a></h1>
+<p>Build-logic patterns from real multi-module adoptions. Each is a few lines in a convention plugin, keyed off <a href="../build-logic/"><code>registered()</code> / <code>onRegistered</code></a> rather than KGP internals.</p>
+<h2 id="gate-compilation-on-inert-modules">Gate compilation on inert modules<a class="headerlink" href="#gate-compilation-on-inert-modules" title="Permanent link">&para;</a></h2>
+<p>A narrowed lane can leave a module with zero registered targets, and KGP's commonMain metadata compilation <a href="../advisories/#inert-modules">fails on a platform-less module</a>. Gate it right after <code>supports { }</code>:</p>
+<div class="language-kotlin highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">kmpTargets</span><span class="p">.</span><span class="na">registered</span><span class="p">().</span><span class="na">isEmpty</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">    </span><span class="n">tasks</span><span class="p">.</span><span class="na">withType</span><span class="p">(</span><span class="n">KotlinCompilationTask</span><span class="o">::</span><span class="n">class</span><span class="p">.</span><span class="na">java</span><span class="p">).</span><span class="na">configureEach</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="w"> </span><span class="p">}</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>When a <code>commonMain</code> codegen processor is at risk under narrowing, see the next recipe.</p>
+<h2 id="commonmain-ksp-needs-two-targets">commonMain KSP needs two targets<a class="headerlink" href="#commonmain-ksp-needs-two-targets" title="Permanent link">&para;</a></h2>
+<p>A processor that generates into <code>commonMain</code> runs on the commonMain metadata compilation (<code>kspCommonMainKotlinMetadata</code>). That task exists only when <strong>≥2 platform targets share <code>commonMain</code></strong> — exactly the rule for KGP's <code>compileCommonMainKotlinMetadata</code>. So a <strong>single-target</strong> lane (one leaf — <code>android</code>, <code>jvm</code>, or even <code>iosArm64</code> alone) has no <code>kspCommonMainKotlinMetadata</code>: the processor only emits into the per-target KSP dir, which the commonMain metadata compilation can't see. The failure ranges from unresolved references to a green build missing codegen.</p>
+<p>Native presence is <strong>not</strong> the trigger — target count is: <code>jvm,js</code> (no native) gets the route, while <code>iosArm64</code> alone (native) does not.</p>
+<p>Two fixes:</p>
+<ul>
+<li><strong>Single target on purpose</strong> (e.g. an Android-only lane): keep the codegen-consuming code in the target's own source set (<code>androidMain</code>), not <code>commonMain</code>. The per-target generated dir is already on that compilation's path. K2 forbids <code>commonMain</code> from referencing platform-generated symbols, so moving the code out of <code>commonMain</code> is the only correct option here — not a workaround inside it.</li>
+<li><strong>Want it common</strong>: register a second target so the shared commonMain metadata compilation exists.</li>
+</ul>
+<p>To warn when a lane silently drops the route, gate right after <code>supports { }</code> on a single registered target:</p>
+<div class="language-kotlin highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">kmpTargets</span><span class="p">.</span><span class="na">registered</span><span class="p">().</span><span class="na">size</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="m">2</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">    </span><span class="n">logger</span><span class="p">.</span><span class="na">warn</span><span class="p">(</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">        </span><span class="s">&quot;ksp: &#39;:</span><span class="si">${</span><span class="n">project</span><span class="p">.</span><span class="na">name</span><span class="si">}</span><span class="s">&#39; generates commonMain code but only one target is &quot;</span><span class="w"> </span><span class="o">+</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">        </span><span class="s">&quot;registered — the commonMain metadata route is absent for this selection. &quot;</span><span class="w"> </span><span class="o">+</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">        </span><span class="s">&quot;Move the code to the target source set, or register a second target.&quot;</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">    </span><span class="p">)</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="p">}</span>
+</span></code></pre></div>
+<p><a href="../diagnostics/#kmptargetsinfo"><code>kmpTargetsInfo</code></a> shows what registered per lane, and <a href="../diagnostics/#findings">doctor</a> flags the single-target + KSP case directly.</p>
+<h2 id="per-target-configuration-wiring">Per-target configuration wiring<a class="headerlink" href="#per-target-configuration-wiring" title="Permanent link">&para;</a></h2>
+<p>The canonical <code>onRegistered</code> use — per-target configurations with the Gradle name pre-mangled, rename-proof because <a href="../build-logic/#configuration-name-helpers"><code>configurationName</code></a> follows <a href="../selection-dsl/#renaming-the-jvm-target"><code>targetName</code></a>:</p>
+<div class="language-kotlin highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">kmpTargets</span><span class="p">.</span><span class="na">onRegistered</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">add</span><span class="p">(</span><span class="nb">it</span><span class="p">.</span><span class="na">configurationName</span><span class="p">(</span><span class="s">&quot;ksp&quot;</span><span class="p">),</span><span class="w"> </span><span class="n">processorDep</span><span class="p">)</span><span class="w"> </span><span class="p">}</span>
+</span></code></pre></div>
+<div class="admonition warning">
+<p class="admonition-title">Never snapshot <code>kotlin.targets</code> eagerly</p>
+<p><code>kotlin.targets.forEach { … }</code> in a convention plugin sees only what registered before that line ran. <code>onRegistered</code> replays past registrations and fires for future ones.</p>
+</div>
+<h2 id="selection-gated-eager-agp-application">Selection-gated eager AGP application<a class="headerlink" href="#selection-gated-eager-agp-application" title="Permanent link">&para;</a></h2>
+<p><code>androidTarget</code> needs an Android Gradle plugin applied before <code>supports { }</code> (<a href="../advisories/#android-target-without-agp">the ordering rule</a>). Applying AGP to every module wastes configuration time and creates Android tasks/configurations that are useless under android-less lanes. A <strong>library</strong> convention applies it only when Android is selected:</p>
+<div class="language-kotlin highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1">// in the LIBRARY convention plugin, BEFORE the supports { } block</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="kd">val</span><span class="w"> </span><span class="nv">androidSelected</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">KmpTarget</span><span class="p">.</span><span class="na">Jvm</span><span class="p">.</span><span class="na">Android</span><span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="n">kmpTargets</span><span class="p">.</span><span class="na">resolvedSelection</span><span class="p">()</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">androidSelected</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="w">    </span><span class="n">pluginManager</span><span class="p">.</span><span class="na">apply</span><span class="p">(</span><span class="s">&quot;com.android.library&quot;</span><span class="p">)</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="w">    </span><span class="c1">// configure AGP here, between apply and supports { } — also gated (see below)</span>
+</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a><span class="w">    </span><span class="n">extensions</span><span class="p">.</span><span class="na">configure</span><span class="o">&lt;</span><span class="n">com</span><span class="p">.</span><span class="na">android</span><span class="p">.</span><span class="na">build</span><span class="p">.</span><span class="na">api</span><span class="p">.</span><span class="na">dsl</span><span class="p">.</span><span class="na">LibraryExtension</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="w">        </span><span class="n">namespace</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;com.example.</span><span class="si">${</span><span class="n">project</span><span class="p">.</span><span class="na">name</span><span class="si">}</span><span class="s">&quot;</span>
+</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a><span class="p">}</span>
+</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>
+</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a><span class="n">kmpTargets</span><span class="p">.</span><span class="na">supports</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-3-12"><a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a><span class="w">    </span><span class="n">androidTarget</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">jvm</span><span class="w">    </span><span class="c1">// androidTarget registers iff AGP was applied above</span>
+</span><span id="__span-3-13"><a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>The gate is <code>KmpTarget.Jvm.Android in resolvedSelection()</code>: the same value registration intersects against, so gate and registration never disagree.</p>
+<div class="admonition warning">
+<p class="admonition-title">Apply AGP before <code>supports { }</code>, never after</p>
+<p><code>supports { }</code> checks for AGP at that instant and <a href="../advisories/#android-target-without-agp">skips <code>androidTarget</code></a> if absent. AGP applied after — or in <code>afterEvaluate</code> — misses registration with no error outside <a href="../advisories/#strict-mode">strict mode</a>.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Gate downstream AGP reads with the same predicate</p>
+<p>Any read of AGP-owned configuration (<code>android { }</code>, <code>compileSdk</code>, a <code>LibraryExtension</code> lookup) crashes under a non-Android selection if it runs unconditionally. Keep it inside the same <code>if (androidSelected)</code>.</p>
+</div>
+<div class="admonition note">
+<p class="admonition-title"><code>com.android.application</code> modules are exempt</p>
+<p>An app module gets AGP from its own plugin block. Do not apply <code>com.android.library</code> to it and do not gate its AGP behind the selection — this recipe is for library modules only.</p>
+</div>
+<p>A companion plugin that must run only when AGP is present should react to AGP instead of re-testing the selection:</p>
+<div class="language-kotlin highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">pluginManager</span><span class="p">.</span><span class="na">withPlugin</span><span class="p">(</span><span class="s">&quot;com.android.library&quot;</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="w">    </span><span class="n">pluginManager</span><span class="p">.</span><span class="na">apply</span><span class="p">(</span><span class="s">&quot;org.gradle.android.cache-fix&quot;</span><span class="p">)</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="p">}</span>
+</span></code></pre></div>
+<p>Confirm per lane with <a href="../diagnostics/#kmptargetsinfo"><code>kmpTargetsInfo</code></a>. There is no plugin hook for this — the gate is one <code>if</code> over <code>resolvedSelection()</code>, and the application-vs-library exemption is a build-logic decision (<a href="https://github.com/rsicarelli/kmp-targets/issues/76">#76</a>).</p>
+<h2 id="lane-agnostic-ci-invocations">Lane-agnostic CI invocations<a class="headerlink" href="#lane-agnostic-ci-invocations" title="Permanent link">&para;</a></h2>
+<p>Aggregate tasks (<code>build</code>, <code>check</code>) only cover registered targets, so the same invocation works in every lane:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>./gradlew<span class="w"> </span>check<span class="w"> </span><span class="s2">&quot;-Pkmptargets.targets=</span><span class="nv">$LANE_TARGETS</span><span class="s2">&quot;</span>
+</span></code></pre></div>
+<p>Avoid hardcoding per-target task names (<code>:m:iosArm64Test</code>): they break under renames and lane changes. For explicit compile/test umbrellas, opt into <a href="../ci-matrix/#umbrella-tasks"><code>kmpCompileAll</code> / <code>kmpTestAll</code></a>.</p>
+<h2 id="selection-vs-the-dependency-graph">Selection vs the dependency graph<a class="headerlink" href="#selection-vs-the-dependency-graph" title="Permanent link">&para;</a></h2>
+<p>Selection is intersected per module. If <code>:app</code> supports <code>jvm + iosArm64</code> and depends on <code>:lib</code> that only supports <code>jvm</code>, an <code>iosArm64</code> build of <code>:app</code> fails at variant resolution — <code>:lib</code> has no iOS variant. A module's supported set must cover every target its dependents build. Check both sides with <a href="../diagnostics/#kmptargetsinfo"><code>kmpTargetsInfo</code></a> and widen <code>:lib</code>'s <code>supports { }</code> (or narrow <code>:app</code>'s).</p>
+<h3 id="the-asymmetric-case-android-and-the-jvm-fallback">The asymmetric case: android and the jvm fallback<a class="headerlink" href="#the-asymmetric-case-android-and-the-jvm-fallback" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Symptom</strong>: Gradle's attribute-resolution error on a <code>*CompileDependencyFiles</code> configuration, listing producer variants and consumer attributes, with no mention of the selection.</li>
+<li><strong>Cause</strong>: an android consumer resolves against a producer's <code>jvm</code> variant when the producer ships no <code>androidTarget</code> (the jvm fallback). A pure-<code>android</code> selection (<code>kmptargets.targets=android</code>) stops those producers from registering <code>jvm</code>, removing the variant the android modules were resolving against.</li>
+<li><strong>Fix</strong>: co-select <code>jvm</code> with <code>android</code>:</li>
+</ul>
+<div class="language-properties highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="na">kmptargets.targets</span><span class="o">=</span><span class="s">android,jvm</span>
+</span></code></pre></div>
+<p>For a large android repo this is usually the right lane: <code>android,jvm</code>, not bare <code>android</code>.</p>
+<p>The conflict usually originates in external <code>jvm</code>-only libraries, which the plugin cannot model. <a href="../diagnostics/#project-edge-closure">Doctor</a> surfaces the <code>project(...)</code>-edge form of the gap; for external dependencies, co-selecting <code>jvm</code> is the rule.</p>
+<h2 id="binary-compatibility-validator-selection">Binary-compatibility validator + selection<a class="headerlink" href="#binary-compatibility-validator-selection" title="Permanent link">&para;</a></h2>
+<p>BCV writes one ABI dump per target. A narrowed lane running <code>apiCheck</code>/<code>apiDump</code> sees only the registered subset — committing dumps from a narrowed lane deletes the other targets' dumps. Run BCV tasks only from a full-selection lane (<code>kmptargets.targets=all</code> or your repo's full set), and gate <code>apiDump</code> in CI to that lane.</p>
+<h2 id="troubleshooting-first">Troubleshooting first<a class="headerlink" href="#troubleshooting-first" title="Permanent link">&para;</a></h2>
+<p>Symptom → cause → fix pairs for all of the above: <a href="../../help/troubleshooting/">Troubleshooting</a>.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 Rodrigo Sicarelli
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.copy", "content.code.select", "search.suggest", "search.highlight", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.50899def.min.js"></script>
+      
+    
+  </body>
+</html>
