@@ -77,6 +77,9 @@ markdown_extensions:
       repo: kmp-targets
   - pymdownx.mark
   - pymdownx.smartsymbols
+  - pymdownx.snippets:
+      base_path: ["."]
+      check_paths: true
   - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true
@@ -109,6 +112,7 @@ nav:
       - 'CI': user-guide/ci-matrix.md
   - 'Samples': samples/index.md
   - 'Compatibility': compatibility.md
+  - 'Changelog': changelog.md
   - 'Design': why-kmp-targets.md
   - 'Help':
       - 'FAQ': help/faq.md

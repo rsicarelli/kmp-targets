@@ -5,8 +5,74 @@ All notable changes to this project will be documented in this file. The format 
 
 ## [Unreleased]
 
+_Nothing yet — 0.2.0 in development._
+
+## [0.1.0] - 2026-06-17
+
+First public release of the `com.rsicarelli.kmptargets` Gradle plugin.
+
 ### Added
 
+- **Property-driven target selection** ([#5]): a single `kmptargets.targets` value decides which
+  KMP targets the whole build registers. The plugin registers `selection ∩ supported` per module;
+  targets you don't select are **never registered** with KGP, so their compile/link/KSP/publish
+  tasks never exist (not merely disabled) — the source of the sync- and build-time savings.
+  Selection is host-independent by design.
+- **Type-safe selection DSL** ([#14]): `kmpTargets { supports { … } }` declares a module's supported
+  set from presets and leaves composed as set algebra (`mobile + web - iosX64`) — no string
+  literals, no imports. `defaultSelection` provides a module/project fallback when no global
+  selection is set. The DSL is the sole public API; teams wanting `apply-by-id, no body` ergonomics
+  build conventions in their own `build-logic/`.
+- **Full KMP target vocabulary** ([#7]): every target KGP 2.3.21 ships — all JVM, Apple, Linux,
+  MinGW, Android Native and Web leaves (25 leaves), plus presets (`all`, `native`, `apple`,
+  `appleMobile`, `appleDesktop`, `appleWatch`, `appleTv`, `linux`, `mingw`, `windows`,
+  `androidNative`, `web`, `jvmFamily`, `mobile`). Parsing is case-insensitive with kebab-case
+  aliases and a "did you mean …?" suggestion on unknown tokens.
+- **Published to Maven Central** ([#59]): group `com.rsicarelli`, artifact
+  `kmp-targets-gradle-plugin`, plugin id `com.rsicarelli.kmptargets` (no Gradle Plugin Portal), with
+  a sources jar and full POM metadata. Consumers add `mavenCentral()` to
+  `pluginManagement.repositories`.
+- **Minimal source-set hierarchy template** ([#8]): replaces KGP's default hierarchy with only the
+  intermediate source sets the registered targets actually need, collapsing single-child groups to
+  drop redundant source sets and tasks. Global toggle `kmptargets.hierarchyTemplate`; the opt-in
+  no-collapse mode is [#50] below.
+- **`kmpTargetsInfo` introspection task** ([#40]): a read-only, per-module report (group `help`) of
+  the resolved selection and its winning source layer, the supported and registered sets, the full
+  preset/leaf vocabulary, and any Apple-framework facts — with per-leaf annotations for
+  host-incompatible and deprecated leaves, AGP-skipped `androidTarget`, and renamed targets.
+- **Strict mode** ([#41]): `kmptargets.strict=true` promotes every advisory to a configuration-time
+  build failure (`GradleException`) with identical message text — severity changes, policy does not.
+  Default off; recommended for CI only.
+- **Host-compatibility advisory** ([#32]): warns when the selection includes a native target the
+  current host cannot compile. The target still registers (selection is host-independent), but its
+  compile/link tasks fail or are skipped on this host; the host → target matrix tracks your Kotlin
+  version via KGP.
+- **Deprecated-targets advisory** ([#43]): warns when a Kotlin-deprecated native leaf (`macosX64`,
+  `watchosX64`, `tvosX64`, deprecated since Kotlin 2.3.20) registers. They stay selectable and in
+  every preset; `kmpTargetsInfo` marks them `(deprecated)`.
+- **Empty-overlap advisory** ([#10]): signals when a non-empty selection matches none of a module's
+  supported set, so the module registers zero targets — typically a typo'd lane or an over-narrow
+  selection.
+- **Apple framework helper** ([#105]): `appleFramework("Name") { … }` attaches the real KGP
+  `Framework` to every registered Apple leaf (routes to KGP, copies no API); `onAppleTarget { … }`
+  is the lower-level per-target primitive for cinterops, extra binaries, and linker options.
+- **XCFramework assembly** ([#106]): `appleFramework("Name", xcframework = true)` assembles the
+  per-leaf framework slices into a single `.xcframework`.
+- **Framework-without-an-Apple-target advisory** ([#107]): warns (and surfaces in `kmpTargetsInfo` /
+  `kmpTargetsDoctor`) when a module declares an `appleFramework` but the selection registers no Apple
+  target in its `on` scope — the framework attaches to nothing and never builds, which otherwise
+  surfaces only as a missing-framework error far downstream in Xcode.
+- **Per-lane framework build types** ([#108]): `kmptargets.framework.buildTypes` narrows a
+  framework's declared `NativeBuildType`s through the selection-sources chain
+  (`effective = property ∩ declared`); a disjoint result raises the framework-build-types-disjoint
+  advisory.
+- **Xcode-environment selection source** ([#109]): opt-in `kmptargets.xcodeEnv=true` maps Xcode's
+  own `SDK_NAME` / `ARCHS` / `CONFIGURATION` to the right leaf and build type, so an Xcode build
+  phase drives the selection with no `-P`. Off by default and never read otherwise.
+- **ABI-validation coverage signal** ([#81]): warns (and fails under strict) when an ABI task
+  (`apiCheck` / `apiDump` or the built-in `checkKotlinAbi` / `updateKotlinAbi`) runs under a narrowed
+  selection that leaves some targets unvalidated — ABI-group-aware, zero-config, and dependent on no
+  specific ABI tool.
 - **Doctor mode — `kmpTargetsDoctor`** ([#82], closes [#80]): a per-module *triage* report (group
   `help`) that complements the neutral `kmpTargetsInfo` state dump. It renders one `[!]` block per
   active advisory — cause → effect → fix — for inert ([#71]), JVM-less metadata ([#72]),
@@ -34,7 +100,7 @@ All notable changes to this project will be documented in this file. The format 
   module that registered nothing is a clean no-op. Depends on registered **platform** compilations
   only — never `compileCommonMainKotlinMetadata` — so it cannot re-introduce the inert ([#71]) or
   JVM-less-fragment ([#72]) failures. See
-  [README → CI → Lane-agnostic compilation](README.md#lane-agnostic-compilation).
+  [README → CI → Lane-agnostic compilation](https://rsicarelli.github.io/kmp-targets/user-guide/ci-matrix/).
 - **Per-target configuration-name helpers** ([#74]): `RegisteredTarget.configurationName(prefix)`
   and `RegisteredTarget.testConfigurationName(prefix)` build the `prefix + gradleNameCapitalized`
   (+ `"Test"`) Gradle configuration name a per-target tool publishes — `it.configurationName("ksp")`
@@ -126,16 +192,16 @@ All notable changes to this project will be documented in this file. The format 
   pre-registration hook would have to fire eagerly at call-site to keep AGP ahead of the eager
   `register()` — making it behaviorally identical to
   `if (KmpTarget.Jvm.Android in kmpTargets.resolvedSelection()) { … }` over the existing
-  [`resolvedSelection()`](#52) primitive, with zero added mechanism and a footgun (apply-late) it
+  [`resolvedSelection()`](https://github.com/rsicarelli/kmp-targets/issues/52) primitive, with zero added mechanism and a footgun (apply-late) it
   cannot remove by construction, and the `com.android.application` exemption is a build-logic decision
   the plugin cannot make one-module-at-a-time. So the deliverable is docs + signal: the
-  [recipe](docs/user-guide/recipes.md#selection-gated-eager-agp-application) now spells out the real
+  [recipe](https://rsicarelli.github.io/kmp-targets/user-guide/recipes/#selection-gated-eager-agp-application) now spells out the real
   `resolvedSelection()` gate, the application-module exemption (an app is always Android — never
   double-apply or gate it), the apply-before-`supports { }` ordering rule, the **downstream-read
   gating** (a `namespace`/manifest read crashes under non-Android selections unless guarded by the
   same predicate), and companion-plugin reactions via `pluginManager.withPlugin(...)`; the
   android-without-AGP advisory message now appends a one-line selection-gate hint and links that
-  recipe; and [advisories](docs/user-guide/advisories.md#android-target-without-agp) cross-links it.
+  recipe; and [advisories](https://rsicarelli.github.io/kmp-targets/user-guide/advisories/#android-target-without-agp) cross-links it.
 - **Selection vs the dependency graph — the android→jvm fallback rule** ([#80]). Selection is
   resolved per module, but its *validity* can depend on the cross-module dependency graph: an
   android-leaning module that consumes a `jvm`+native-only library resolves against that library's
@@ -147,11 +213,11 @@ All notable changes to this project will be documented in this file. The format 
   peer projects' registered sets at configuration time — forbidden by the plugin's
   configuration-cache and Isolated-Projects guarantees — and the canonical trigger is *external*
   published libraries the plugin cannot model one-module-at-a-time. So the deliverable is docs: the
-  [recipe](docs/user-guide/recipes.md) gains the asymmetric android→jvm case,
-  [troubleshooting](docs/help/troubleshooting.md) gains a `compileDependencyFiles` row, and the
+  [recipe](https://rsicarelli.github.io/kmp-targets/user-guide/recipes/) gains the asymmetric android→jvm case,
+  [troubleshooting](https://rsicarelli.github.io/kmp-targets/help/troubleshooting/) gains a `compileDependencyFiles` row, and the
   closure analysis is deferred to a future doctor mode ([#82]). Adjacent hygiene: the
-  [advisories](docs/user-guide/advisories.md) page now documents the **native-only-metadata**
-  advisory ([#72]) and counts six advisories, not five.
+  [advisories](https://rsicarelli.github.io/kmp-targets/user-guide/advisories/) page now documents the **native-only-metadata**
+  advisory ([#72]).
 - **commonMain-KSP recipe — corrected to the real rule, plus a doctor finding** ([#73]). A processor
   that generates into `commonMain` runs on the shared commonMain metadata route
   (`kspCommonMainKotlinMetadata`). The earlier guidance claimed that route "needs a **native**
@@ -181,15 +247,22 @@ All notable changes to this project will be documented in this file. The format 
   the POM stops declaring a toolchain-version stdlib. A new `verifyCompatFloors` task guards the
   floors on every `check`.
 
+[#5]: https://github.com/rsicarelli/kmp-targets/issues/5
+[#7]: https://github.com/rsicarelli/kmp-targets/issues/7
+[#8]: https://github.com/rsicarelli/kmp-targets/issues/8
 [#10]: https://github.com/rsicarelli/kmp-targets/issues/10
+[#14]: https://github.com/rsicarelli/kmp-targets/issues/14
 [#30]: https://github.com/rsicarelli/kmp-targets/issues/30
 [#32]: https://github.com/rsicarelli/kmp-targets/issues/32
+[#40]: https://github.com/rsicarelli/kmp-targets/issues/40
+[#41]: https://github.com/rsicarelli/kmp-targets/issues/41
 [#43]: https://github.com/rsicarelli/kmp-targets/issues/43
 [#48]: https://github.com/rsicarelli/kmp-targets/issues/48
 [#49]: https://github.com/rsicarelli/kmp-targets/issues/49
 [#50]: https://github.com/rsicarelli/kmp-targets/issues/50
 [#51]: https://github.com/rsicarelli/kmp-targets/issues/51
 [#52]: https://github.com/rsicarelli/kmp-targets/issues/52
+[#59]: https://github.com/rsicarelli/kmp-targets/issues/59
 [#71]: https://github.com/rsicarelli/kmp-targets/issues/71
 [#72]: https://github.com/rsicarelli/kmp-targets/issues/72
 [#73]: https://github.com/rsicarelli/kmp-targets/issues/73
@@ -197,4 +270,13 @@ All notable changes to this project will be documented in this file. The format 
 [#76]: https://github.com/rsicarelli/kmp-targets/issues/76
 [#77]: https://github.com/rsicarelli/kmp-targets/issues/77
 [#80]: https://github.com/rsicarelli/kmp-targets/issues/80
+[#81]: https://github.com/rsicarelli/kmp-targets/issues/81
 [#82]: https://github.com/rsicarelli/kmp-targets/issues/82
+[#105]: https://github.com/rsicarelli/kmp-targets/issues/105
+[#106]: https://github.com/rsicarelli/kmp-targets/issues/106
+[#107]: https://github.com/rsicarelli/kmp-targets/issues/107
+[#108]: https://github.com/rsicarelli/kmp-targets/issues/108
+[#109]: https://github.com/rsicarelli/kmp-targets/issues/109
+
+[Unreleased]: https://github.com/rsicarelli/kmp-targets/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/rsicarelli/kmp-targets/releases/tag/v0.1.0
