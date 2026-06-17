@@ -1,5 +1,5 @@
 [versions]
-kotlin = "2.3.21"
+kotlin = "2.4.0"
 junit = "6.1.0"
 ktfmt = "0.26.0"
 asm = "9.8"
