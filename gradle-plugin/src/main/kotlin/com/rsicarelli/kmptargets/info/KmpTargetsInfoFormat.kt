@@ -29,6 +29,8 @@ internal fun formatKmpTargetsInfo(
     frameworkBaseName: String = "",
     frameworkAttachedIds: List<String> = emptyList(),
     frameworkBuildTypes: List<String> = emptyList(),
+    frameworkBuildTypesDeclared: List<String> = emptyList(),
+    frameworkBuildTypesOrigin: String = "",
     frameworkXcframework: Boolean = false,
 ): String = buildString {
     appendLine("kmp-targets — $projectPath")
@@ -101,7 +103,14 @@ internal fun formatKmpTargetsInfo(
             "  attached:    " +
                 idsOrNone(frameworkAttachedIds, "no Apple target in its scope registered")
         )
-        appendLine("  buildTypes:  ${frameworkBuildTypes.joinToString(", ")}")
+        appendLine(
+            "  buildTypes:  " +
+                frameworkBuildTypesLine(
+                    frameworkBuildTypes,
+                    frameworkBuildTypesDeclared,
+                    frameworkBuildTypesOrigin,
+                )
+        )
         appendLine("  xcframework: ${if (frameworkXcframework) "on" else "off"}")
     }
     appendLine()
@@ -126,6 +135,30 @@ private fun annotated(plain: String, ids: List<String>, marker: (String) -> Stri
 
 private fun idsOrNone(ids: List<String>, emptyReason: String): String =
     if (ids.isEmpty()) "(none — $emptyReason)" else ids.joinToString(", ")
+
+/**
+ * The framework `buildTypes:` line (#108). Shows the **effective** set; when a global
+ * `kmptargets.framework.buildTypes` drove it ([origin] non-blank) it appends the winning layer (and
+ * the [declared] set when the lane narrowed it), so the report always names both the effective
+ * build types and their origin. A disjoint property ∩ declaration renders the explicit empty case —
+ * the framework links nothing for this lane. With no property the line is just the effective set,
+ * byte- identical to what it was before the property existed.
+ */
+private fun frameworkBuildTypesLine(
+    effective: List<String>,
+    declared: List<String>,
+    origin: String,
+): String =
+    when {
+        origin.isEmpty() -> effective.joinToString(", ")
+        effective.isEmpty() ->
+            "(none — $origin does not overlap the declared ${declared.joinToString(", ")}; " +
+                "nothing links)"
+        effective == declared -> "${effective.joinToString(", ")}  (source: $origin)"
+        else ->
+            "${effective.joinToString(", ")}  (source: $origin; declared " +
+                "${declared.joinToString(", ")})"
+    }
 
 /**
  * The registered line names *why* nothing registers, in precedence order: an empty selection and an

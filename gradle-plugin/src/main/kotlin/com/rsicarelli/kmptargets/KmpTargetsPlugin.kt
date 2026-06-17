@@ -14,8 +14,10 @@ import com.rsicarelli.kmptargets.info.KmpTargetsInfoTask
 import com.rsicarelli.kmptargets.info.OriginLabels
 import com.rsicarelli.kmptargets.model.KmpTarget
 import com.rsicarelli.kmptargets.model.KmpTargetSet
+import com.rsicarelli.kmptargets.parser.BuildTypesParseResult
 import com.rsicarelli.kmptargets.parser.ParseResult
 import com.rsicarelli.kmptargets.parser.didYouMean
+import com.rsicarelli.kmptargets.parser.parseBuildTypes
 import com.rsicarelli.kmptargets.parser.parseKmpTargets
 import com.rsicarelli.kmptargets.parser.presetNames
 import com.rsicarelli.kmptargets.source.ConfigFileValueSource
@@ -37,6 +39,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinMultiplatformExtension
 import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
 import org.jetbrains.kotlin.gradle.plugin.KotlinTarget
 import org.jetbrains.kotlin.gradle.plugin.KotlinTargetWithTests
+import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
 import org.jetbrains.kotlin.konan.target.HostManager
 
 public class KmpTargetsPlugin : Plugin<Project> {
@@ -74,6 +77,27 @@ public class KmpTargetsPlugin : Plugin<Project> {
         // origin either — the report then falls through to the defaultSelection/built-in labels.
         val configOrigin: String? = winner?.takeIf { it.second.isNotBlank() }?.first
 
+        // Global Apple-framework build types (#108): the build-type twin of the selection above,
+        // resolved through the IDENTICAL layered winner-walk so precedence and origin reporting
+        // match `kmptargets.targets` exactly. A blank/absent winner — or a present-but-empty parse
+        // (e.g. `","`) — leaves `globalBuildTypes` null, so the declared build types win (the
+        // property only ever narrows, never widens). Read once here as a primitive set of KGP's own
+        // enum, so no `Project` is captured.
+        val buildTypesWinner: Pair<String, String>? =
+            labeledSources(target, ConfigKeys.FRAMEWORK_BUILD_TYPES, personal, committed)
+                .firstNotNullOfOrNull { (label, source) ->
+                    source.read()?.let { value -> label to value }
+                }
+        var buildTypesOrigin: String? = null
+        val buildTypesRaw: String? = buildTypesWinner?.second
+        if (buildTypesRaw != null && buildTypesRaw.isNotBlank()) {
+            val parsed = parseBuildTypesOrThrow(buildTypesRaw, ConfigKeys.FRAMEWORK_BUILD_TYPES)
+            if (parsed.isNotEmpty()) {
+                ext.globalBuildTypes = parsed
+                buildTypesOrigin = buildTypesWinner.first
+            }
+        }
+
         // Global defaults for the hierarchy template and its collapse rule (issue #50), each read
         // once at apply time as a primitive.
         val globalHierarchyEnabled: Boolean? =
@@ -106,10 +130,11 @@ public class KmpTargetsPlugin : Plugin<Project> {
         ext.onAppleFrameworkDeclared = {
             target.pluginManager.withPlugin(KGP_ID) {
                 maybeWarnFrameworkUnattached(target, ext, strict)
+                maybeWarnFrameworkBuildTypesDisjoint(target, ext, strict)
             }
         }
 
-        registerInfoTask(target, ext, configOrigin)
+        registerInfoTask(target, ext, configOrigin, buildTypesOrigin)
         registerDoctorTask(target, ext)
 
         // ABI × selection advisory (#81): when an ABI-validation task (kotlinx BCV or the built-in
@@ -222,7 +247,12 @@ public class KmpTargetsPlugin : Plugin<Project> {
      * registered unconditionally (not gated on KGP): without KGP or `supports`, the report states
      * explicitly that nothing is declared and nothing registers.
      */
-    private fun registerInfoTask(target: Project, ext: KmpTargetsExtension, configOrigin: String?) {
+    private fun registerInfoTask(
+        target: Project,
+        ext: KmpTargetsExtension,
+        configOrigin: String?,
+        buildTypesOrigin: String?,
+    ) {
         val projectPath = target.path
         target.tasks.register("kmpTargetsInfo", KmpTargetsInfoTask::class.java) { task ->
             task.group = "help"
@@ -253,6 +283,8 @@ public class KmpTargetsPlugin : Plugin<Project> {
             task.frameworkBaseName.set(frameworkBaseNameProvider(target, ext))
             task.frameworkAttachedIds.set(frameworkAttachedIdsProvider(target, ext))
             task.frameworkBuildTypes.set(frameworkBuildTypesProvider(target, ext))
+            task.frameworkBuildTypesDeclared.set(frameworkBuildTypesDeclaredProvider(target, ext))
+            task.frameworkBuildTypesOrigin.set(buildTypesOrigin.orEmpty())
             task.frameworkXcframework.set(frameworkXcframeworkProvider(target, ext))
             // The config-layer origin is fixed at apply time, but the fallback labels must read
             // `defaultSelection` lazily — the body may override it after apply.
@@ -351,8 +383,10 @@ public class KmpTargetsPlugin : Plugin<Project> {
             task.frameworkBaseName.set(frameworkBaseNameProvider(target, ext))
             task.frameworkAttachedIds.set(frameworkAttachedIdsProvider(target, ext))
             task.frameworkBuildTypes.set(frameworkBuildTypesProvider(target, ext))
+            task.frameworkBuildTypesDeclared.set(frameworkBuildTypesDeclaredProvider(target, ext))
             task.frameworkXcframework.set(frameworkXcframeworkProvider(target, ext))
             task.frameworkUnattached.set(frameworkUnattachedProvider(target, ext))
+            task.frameworkBuildTypesDisjoint.set(frameworkBuildTypesDisjointProvider(target, ext))
             task.dependencyData.from(dependencyDataFiles)
         }
     }
@@ -448,6 +482,46 @@ public class KmpTargetsPlugin : Plugin<Project> {
                 project.logger.warn(it)
             }
             ext.frameworkUnattachedWarned = true
+        }
+    }
+
+    /**
+     * Fires the framework build-types-disjoint advisory (#108) at most once per module: a framework
+     * is declared, attached to ≥1 Apple leaf, yet `kmptargets.framework.buildTypes ∩ declared
+     * buildTypes` is empty — so no binary (or XCFramework slice) links despite Apple targets being
+     * registered. The build-type analog of the empty-overlap advisory (#10) on the `selection ∩
+     * supported` axis. Mutually exclusive with the unattached advisory (#107) by construction: that
+     * one requires zero attached leaves, this one requires ≥1. Shared by the end of [register] and
+     * the [appleFramework] replay hook; the dedup flag is set AFTER [warnOrFail] so a strict
+     * failure leaves no bookkeeping behind.
+     */
+    private fun maybeWarnFrameworkBuildTypesDisjoint(
+        project: Project,
+        ext: KmpTargetsExtension,
+        strict: Boolean,
+    ) {
+        val facts = ext.appleFrameworkFacts ?: return
+        if (
+            !ext.frameworkBuildTypesDisjointWarned &&
+                shouldWarnFrameworkBuildTypesDisjoint(
+                    ext.appleFrameworkDeclared,
+                    ext.globalBuildTypes,
+                    facts.buildTypes,
+                    ext.frameworkAttachedLeaves(),
+                )
+        ) {
+            warnOrFail(
+                strict,
+                frameworkBuildTypesDisjointWarning(
+                    project.path,
+                    facts.baseName,
+                    ext.globalBuildTypes.orEmpty(),
+                    facts.buildTypes,
+                ),
+            ) {
+                project.logger.warn(it)
+            }
+            ext.frameworkBuildTypesDisjointWarned = true
         }
     }
 
@@ -556,7 +630,19 @@ public class KmpTargetsPlugin : Plugin<Project> {
             ids(ext.frameworkAttachedLeaves())
         }
 
+    // The build types that actually link (#108): `kmptargets.framework.buildTypes ∩ declared`, the
+    // narrowed set the framework binaries and XCFramework slices are built for. Equals the declared
+    // set when the global property is absent, so the #107 surfaces are unchanged without a
+    // property.
     private fun frameworkBuildTypesProvider(target: Project, ext: KmpTargetsExtension) =
+        target.provider {
+            ext.appleFrameworkFacts?.effectiveBuildTypes?.map { it.name }?.sorted().orEmpty()
+        }
+
+    // The build types the module DECLARED (#108), before the global property narrows them — what
+    // `kmpTargetsInfo` shows as "declared …" when a lane narrowed the effective set, and what the
+    // disjoint doctor finding names as the fix target.
+    private fun frameworkBuildTypesDeclaredProvider(target: Project, ext: KmpTargetsExtension) =
         target.provider {
             ext.appleFrameworkFacts?.buildTypes?.map { it.name }?.sorted().orEmpty()
         }
@@ -572,6 +658,17 @@ public class KmpTargetsPlugin : Plugin<Project> {
                 shouldWarnFrameworkUnattached(
                     ext.appleFrameworkDeclared,
                     ext.supportsProperty.isPresent,
+                    ext.frameworkAttachedLeaves(),
+                )
+        }
+
+    private fun frameworkBuildTypesDisjointProvider(target: Project, ext: KmpTargetsExtension) =
+        target.provider {
+            hasKgp(target) &&
+                shouldWarnFrameworkBuildTypesDisjoint(
+                    ext.appleFrameworkDeclared,
+                    ext.globalBuildTypes,
+                    ext.appleFrameworkFacts?.buildTypes.orEmpty(),
                     ext.frameworkAttachedLeaves(),
                 )
         }
@@ -777,6 +874,13 @@ public class KmpTargetsPlugin : Plugin<Project> {
             is ParseResult.Err -> throw GradleException("$propertyName: ${r.message}")
         }
 
+    /** The [parseOrThrow] twin for `kmptargets.framework.buildTypes` (#108). */
+    private fun parseBuildTypesOrThrow(raw: String, propertyName: String): Set<NativeBuildType> =
+        when (val r = parseBuildTypes(raw)) {
+            is BuildTypesParseResult.Ok -> r.buildTypes
+            is BuildTypesParseResult.Err -> throw GradleException("$propertyName: ${r.message}")
+        }
+
     /**
      * Registers `selection ∩ supported`, emits the empty-overlap and host-impossible advisories,
      * and applies the minimal hierarchy template — all off the cumulative supported set, so
@@ -946,6 +1050,14 @@ public class KmpTargetsPlugin : Plugin<Project> {
         // and reads last. The helper is shared with the appleFramework() replay hook so the firing
         // is order-independent; it dedups and records bookkeeping AFTER warnOrFail.
         maybeWarnFrameworkUnattached(project, ext, strict)
+
+        // Framework build-types-disjoint advisory (#108): the framework attached to Apple leaves
+        // but
+        // `kmptargets.framework.buildTypes ∩ declared` is empty, so nothing links. Mutually
+        // exclusive with the unattached advisory above (that needs zero attached leaves, this needs
+        // ≥1), and shared with the appleFramework() replay hook so it fires regardless of
+        // declaration order.
+        maybeWarnFrameworkBuildTypesDisjoint(project, ext, strict)
 
         // Deliberately receives the unfiltered active set even when android was skipped above:
         // android is ungrouped in the hierarchy taxonomy (it attaches straight to common and
@@ -1230,6 +1342,52 @@ internal fun frameworkUnattachedWarning(path: String, baseName: String): String 
         "selection (or this module's supports { }) to register an Apple target in the framework's " +
         "`on` scope, or gate the appleFramework(…) declaration in build-logic when " +
         "kmpTargets.registered(apple).isEmpty()."
+
+/**
+ * Whether to emit [frameworkBuildTypesDisjointWarning] (#108): an `appleFramework` is declared and
+ * attached to ≥1 Apple leaf, but the global `kmptargets.framework.buildTypes` ([property], non-null
+ * only when the lane set one) shares no [NativeBuildType] with the module's [declared] set — so the
+ * effective build types are empty and nothing links. The build-type analog of
+ * [shouldWarnEmptyOverlap] on the `selection ∩ supported` axis. The [attachedLeaves]-non-empty
+ * conjunct makes this mutually exclusive with [shouldWarnFrameworkUnattached] (which requires zero
+ * attached leaves): exactly one of the two framework consequence advisories can fire per module.
+ * Pure over its inputs (KGP's enum and the plugin's own set), so it is unit-testable without
+ * Gradle; the same decision drives the doctor finding.
+ */
+internal fun shouldWarnFrameworkBuildTypesDisjoint(
+    frameworkDeclared: Boolean,
+    property: Set<NativeBuildType>?,
+    declared: Set<NativeBuildType>,
+    attachedLeaves: KmpTargetSet,
+): Boolean =
+    frameworkDeclared &&
+        property != null &&
+        declared.isNotEmpty() &&
+        attachedLeaves.isNotEmpty() &&
+        (property intersect declared).isEmpty()
+
+/**
+ * The framework build-types-disjoint advisory (#108). Like its siblings, one text serves both the
+ * warning and the strict-mode failure through [warnOrFail]. Names the module, the framework, the
+ * declared build types, the lane value that doesn't overlap them, the consequence (no binary or
+ * XCFramework slice links), and the fix. Strict mode is the point: a release lane that narrowed to
+ * a build type the module never declares fails loudly at configuration instead of shipping nothing.
+ */
+internal fun frameworkBuildTypesDisjointWarning(
+    path: String,
+    baseName: String,
+    property: Set<NativeBuildType>,
+    declared: Set<NativeBuildType>,
+): String =
+    "kmp-targets: '$path' — appleFramework(\"$baseName\") declares build types " +
+        "${buildTypeNames(declared)} but kmptargets.framework.buildTypes resolved to " +
+        "${buildTypeNames(property)} for this lane; they do not overlap, so no framework binary (or " +
+        "XCFramework slice) links and an Xcode build consuming it fails downstream. Set " +
+        "kmptargets.framework.buildTypes to one of ${buildTypeNames(declared)} (or widen the " +
+        "appleFramework(…) declaration)."
+
+private fun buildTypeNames(buildTypes: Set<NativeBuildType>): List<String> =
+    buildTypes.map { it.name }.sorted()
 
 /**
  * Whether the `single-target KSP` **doctor finding** fires: a KSP plugin is applied yet exactly one

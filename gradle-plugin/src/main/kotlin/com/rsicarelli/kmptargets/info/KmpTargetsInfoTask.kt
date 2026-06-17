@@ -109,8 +109,24 @@ public abstract class KmpTargetsInfoTask : DefaultTask() {
     /** Sorted ids of the Apple leaves the framework actually attached to (`registered ∩ on`). */
     @get:Internal public abstract val frameworkAttachedIds: ListProperty<String>
 
-    /** The framework's creation-time native build types (e.g. `DEBUG`, `RELEASE`), sorted. */
+    /**
+     * The framework's **effective** native build types (`property ∩ declared`, e.g. `DEBUG`),
+     * sorted (#108). Equals [frameworkBuildTypesDeclared] when no `kmptargets.framework.buildTypes`
+     * narrowed them; empty when the property and the declaration are disjoint.
+     */
     @get:Internal public abstract val frameworkBuildTypes: ListProperty<String>
+
+    /**
+     * The framework's **declared** native build types (#108), before any global narrowing — shown
+     * as "declared …" when a lane narrowed the effective set, and named as the fix on a disjoint.
+     */
+    @get:Internal public abstract val frameworkBuildTypesDeclared: ListProperty<String>
+
+    /**
+     * The config layer that supplied `kmptargets.framework.buildTypes` (#108), e.g. `command line
+     * (-Pkmptargets.framework.buildTypes)`; blank when no source set it (the declaration wins).
+     */
+    @get:Internal public abstract val frameworkBuildTypesOrigin: Property<String>
 
     /** Whether the framework opted into XCFramework assembly (#106). */
     @get:Internal public abstract val frameworkXcframework: Property<Boolean>
@@ -138,6 +154,8 @@ public abstract class KmpTargetsInfoTask : DefaultTask() {
                 frameworkBaseName = frameworkBaseName.get(),
                 frameworkAttachedIds = frameworkAttachedIds.get(),
                 frameworkBuildTypes = frameworkBuildTypes.get(),
+                frameworkBuildTypesDeclared = frameworkBuildTypesDeclared.get(),
+                frameworkBuildTypesOrigin = frameworkBuildTypesOrigin.get(),
                 frameworkXcframework = frameworkXcframework.get(),
             )
         )

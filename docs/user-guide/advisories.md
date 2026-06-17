@@ -1,6 +1,6 @@
 # Advisories & Strict Mode
 
-The plugin emits seven configuration-time advisories. Six are signal-only; one (android-without-AGP) skips a leaf — the reasoning is on the [Design page](../why-kmp-targets.md#diagnostics-philosophy). [Strict mode](#strict-mode) promotes all seven to build failures with identical message text. [`kmpTargetsDoctor`](diagnostics.md#kmptargetsdoctor) renders each advisory as a finding with the fix attached.
+The plugin emits eight configuration-time advisories. Seven are signal-only; one (android-without-AGP) skips a leaf — the reasoning is on the [Design page](../why-kmp-targets.md#diagnostics-philosophy). [Strict mode](#strict-mode) promotes all eight to build failures with identical message text. [`kmpTargetsDoctor`](diagnostics.md#kmptargetsdoctor) renders each advisory as a finding with the fix attached.
 
 ## Host compatibility
 
@@ -102,9 +102,22 @@ declaration in build-logic when kmpTargets.registered(apple).isEmpty().
 
 Keyed off the leaves the framework **actually attached to** (`registered ∩ on ∩ apple`), not `registered(apple)` — so it is correct for an `on`-scoped framework even when other Apple leaves registered. A module that never calls `supports { }` is not flagged (explicit-selection doctrine), though [`kmpTargetsDoctor`](diagnostics.md#kmptargetsdoctor) still renders the declared-but-unattached state. Registration is one-way: a later `supports { }` union that attaches an Apple leaf resolves it permanently. Strict mode is the point here — a release lane with a misconfigured selection fails loudly at configuration instead of shipping a frameworkless artifact that breaks Xcode downstream.
 
+## Framework build types disjoint
+
+Fires when a framework attaches to ≥1 Apple leaf but the lane's [`kmptargets.framework.buildTypes`](apple-framework.md#build-types-per-lane) shares no `NativeBuildType` with what the module declared — so the effective set (`property ∩ declared`) is empty and no binary links, even though Apple targets registered. The build-type analog of [empty overlap](#empty-overlap) on the `selection ∩ supported` axis. Typical cause: a module pinned to one build type (`appleFramework("KotlinShared", buildTypes = listOf(NativeBuildType.DEBUG))`) under the opposite lane (`-Pkmptargets.framework.buildTypes=release`):
+
+```
+kmp-targets: ':shared' — appleFramework("KotlinShared") declares build types [DEBUG] but
+kmptargets.framework.buildTypes resolved to [RELEASE] for this lane; they do not overlap, so no
+framework binary (or XCFramework slice) links and an Xcode build consuming it fails downstream. Set
+kmptargets.framework.buildTypes to one of [DEBUG] (or widen the appleFramework(…) declaration).
+```
+
+Mutually exclusive with [framework-without-an-Apple-target](#framework-without-an-apple-target) by construction: that one needs zero attached leaves, this one needs ≥1. Because the property only ever **narrows** the declaration, the fix is to align the lane with a declared build type (or widen the declaration). Fires at most once per module.
+
 ## Strict mode
 
-`kmptargets.strict=true` promotes all seven advisories to configuration-time build failures (`GradleException`) with identical message text. Severity changes; policy does not — it never changes which configurations are flagged or what registers (the AGP skip happens with or without strict). Default off. Recommended: strict in CI only:
+`kmptargets.strict=true` promotes all eight advisories to configuration-time build failures (`GradleException`) with identical message text. Severity changes; policy does not — it never changes which configurations are flagged or what registers (the AGP skip happens with or without strict). Default off. Recommended: strict in CI only:
 
 ```yaml
 # CI only — e.g. a GitHub Actions env block

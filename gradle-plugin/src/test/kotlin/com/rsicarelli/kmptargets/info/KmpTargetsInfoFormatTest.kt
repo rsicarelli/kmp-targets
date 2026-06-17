@@ -275,6 +275,41 @@ class KmpTargetsInfoFormatTest {
         assertFalse("Apple framework" in output, output)
     }
 
+    @Test
+    fun `given a lane that narrowed the build types when formatted then the line shows the effective set the origin and the declared set`() {
+        val output =
+            format(
+                registeredIds = listOf("iosArm64"),
+                frameworkDeclared = true,
+                frameworkBaseName = "KotlinShared",
+                frameworkAttachedIds = listOf("iosArm64"),
+                frameworkBuildTypes = listOf("DEBUG"),
+                frameworkBuildTypesDeclared = listOf("DEBUG", "RELEASE"),
+                frameworkBuildTypesOrigin = "command line (-Pkmptargets.framework.buildTypes)",
+            )
+        assertContains(
+            output,
+            "buildTypes:  DEBUG  (source: command line (-Pkmptargets.framework.buildTypes); " +
+                "declared DEBUG, RELEASE)",
+        )
+    }
+
+    @Test
+    fun `given a lane disjoint from the declaration when formatted then the build types line names the empty overlap`() {
+        val output =
+            format(
+                registeredIds = listOf("iosArm64"),
+                frameworkDeclared = true,
+                frameworkBaseName = "KotlinShared",
+                frameworkAttachedIds = listOf("iosArm64"),
+                frameworkBuildTypes = emptyList(),
+                frameworkBuildTypesDeclared = listOf("DEBUG"),
+                frameworkBuildTypesOrigin = "kmp-targets.properties",
+            )
+        assertContains(output, "buildTypes:  (none — kmp-targets.properties does not overlap")
+        assertContains(output, "nothing links)")
+    }
+
     private fun format(
         selectionIds: List<String> = listOf("jvm"),
         supportedIds: List<String> = listOf("jvm"),
@@ -292,6 +327,8 @@ class KmpTargetsInfoFormatTest {
         frameworkBaseName: String = "",
         frameworkAttachedIds: List<String> = emptyList(),
         frameworkBuildTypes: List<String> = emptyList(),
+        frameworkBuildTypesDeclared: List<String> = emptyList(),
+        frameworkBuildTypesOrigin: String = "",
         frameworkXcframework: Boolean = false,
     ): String =
         formatKmpTargetsInfo(
@@ -314,6 +351,8 @@ class KmpTargetsInfoFormatTest {
             frameworkBaseName = frameworkBaseName,
             frameworkAttachedIds = frameworkAttachedIds,
             frameworkBuildTypes = frameworkBuildTypes,
+            frameworkBuildTypesDeclared = frameworkBuildTypesDeclared,
+            frameworkBuildTypesOrigin = frameworkBuildTypesOrigin,
             frameworkXcframework = frameworkXcframework,
         )
 }

@@ -34,7 +34,7 @@ Because the plugin knows each module's registered set, it applies a [minimal tem
 
 ## Diagnostics philosophy
 
-- **Advisories are signal-only.** Six of the seven never change what registers. The exception is [android-without-AGP](user-guide/advisories.md#android-target-without-agp), which skips the leaf because the alternative is KGP's raw `AndroidGradlePluginIsMissing` crash with no module-level guidance — during build-logic migrations that crash reads as "kmp-targets dropped my target".
+- **Advisories are signal-only.** Seven of the eight never change what registers. The exception is [android-without-AGP](user-guide/advisories.md#android-target-without-agp), which skips the leaf because the alternative is KGP's raw `AndroidGradlePluginIsMissing` crash with no module-level guidance — during build-logic migrations that crash reads as "kmp-targets dropped my target".
 - **Strict mode changes severity, never policy.** `kmptargets.strict=true` turns the same advisories with the same text into failures. It never changes which configurations are flagged or what registers.
 - **Doctor renders, it does not own predicates.** Every [`kmpTargetsDoctor`](user-guide/diagnostics.md#kmptargetsdoctor) finding keys off the same decision its advisory used, so the report cannot disagree with what happened.
 
