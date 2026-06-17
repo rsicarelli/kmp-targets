@@ -67,6 +67,8 @@ Two clean options — both ktorfit/KSP-side, neither a `kmp-targets` concern:
 Do **not** reach for the manual `kspCommonMainKotlinMetadata` wiring on a true single-target module:
 the task it hooks into is never created.
 
+This is the same trap the plugin docs cover in [commonMain KSP needs two targets](../../docs/user-guide/recipes.md#commonmain-ksp-needs-two-targets); `kmpTargetsDoctor` flags it on this module as `single-target KSP`.
+
 ## Two AGP-9 caveats found along the way
 
 1. **`com.android.library` + KMP is rejected on AGP 9.0+.** `kmp-targets` registers Android via

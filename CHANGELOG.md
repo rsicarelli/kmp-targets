@@ -11,7 +11,8 @@ All notable changes to this project will be documented in this file. The format 
   `help`) that complements the neutral `kmpTargetsInfo` state dump. It renders one `[!]` block per
   active advisory — cause → effect → fix — for inert ([#71]), JVM-less metadata ([#72]),
   android-without-AGP ([#51]), host-impossible ([#32]), deprecated ([#43]) and empty-overlap
-  ([#10]); a clean bill when healthy; and an intentional-silence note for a module that never called
+  ([#10]), plus a doctor-only `single-target KSP` finding ([#73]); a clean bill when healthy; and an
+  intentional-silence note for a module that never called
   `supports { }`. **Doctor renders, it does not own predicates**: every finding is wired from the
   same decision function the advisory uses, so it can never re-detect or drift. It also flags
   **project-edge closure gaps** ([#80]) — a `project(...)` dependency that registers none of the
@@ -151,19 +152,24 @@ All notable changes to this project will be documented in this file. The format 
   closure analysis is deferred to a future doctor mode ([#82]). Adjacent hygiene: the
   [advisories](docs/user-guide/advisories.md) page now documents the **native-only-metadata**
   advisory ([#72]) and counts six advisories, not five.
-- **commonMain-KSP-needs-a-native-target recipe, hardened** ([#73]). A processor that generates
-  into `commonMain` runs on the shared commonMain metadata route (`kspCommonMainKotlinMetadata`),
-  which KSP only wires when the selection registers a **native** target — so a native-less lane
-  silently skips generation (worst case: a green build shipping missing codegen). **No new API**:
-  the trap's distinguishing fact ("this module runs a commonMain metadata-route processor") is one
-  the plugin cannot observe, so per the mechanism-vs-conventions split it stays in build-logic,
-  which gates on the existing `registered(KmpTargetSet.native)` primitive ([#52]). The user-guide
-  recipe now warns **and** disables the doomed compilations, notes that K2's strict fragment
-  resolution rules out a per-platform workaround, and is backed by two tests: one pinning the gate
-  predicate, one pinning the actual KGP 2.3.21 rule for `compileCommonMainKotlinMetadata` — which
-  tracks a *shared* commonMain (≥2 platform targets), **not** native presence (`jvm + js` has it
-  with zero native targets; a lone `iosArm64` does not). That invariant test is a tripwire: a KGP
-  bump that shifts the rule fails it loudly.
+- **commonMain-KSP recipe — corrected to the real rule, plus a doctor finding** ([#73]). A processor
+  that generates into `commonMain` runs on the shared commonMain metadata route
+  (`kspCommonMainKotlinMetadata`). The earlier guidance claimed that route "needs a **native**
+  target" and gated on `registered(KmpTargetSet.native).isEmpty()` — but that was an unverified
+  assumption, and it was **actively harmful** (it disabled compilation on working `jvm`/`android,jvm`
+  lanes). A real-KSP measurement (the ktorfit sample, KSP 2.3.9 / Kotlin 2.3.21) shows
+  `kspCommonMainKotlinMetadata` follows the **same ≥2-platform-targets rule** as KGP's
+  `compileCommonMainKotlinMetadata`: `jvm,js` (zero native) generates into
+  `build/generated/ksp/metadata/commonMain/`, while `iosArm64` alone (native) does not. The real
+  trap is a **single target**, native or not. The recipe now states the target-count rule, gates on
+  `registered().size < 2`, and gives the structural fix our sample proved — keep codegen-consuming
+  code in the target source set (e.g. `androidMain`), or register a second target. Because the
+  single-target + KSP-applied facts **are** observable (even though "generates into commonMain?" is
+  not), this adds a doctor-only `single-target KSP` finding (no build-time advisory, no strict
+  escalation). Backed by tests: the gate predicate (`CommonMainKspSingleTargetGateTest`), the
+  decision function, the finding prose, the in-process `compileCommonMainKotlinMetadata` invariant,
+  and a real-KSP tripwire pinning `kspCommonMainKotlinMetadata` to the ≥2-target rule — a KGP/KSP
+  bump that shifts it fails loudly.
 
 ### Fixed
 

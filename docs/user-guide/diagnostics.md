@@ -84,9 +84,10 @@ kmp-targets doctor — :jvm-tools
 | `androidTarget skipped` | [android without AGP](advisories.md#android-target-without-agp) |
 | `not compilable on this host` | [host compatibility](advisories.md#host-compatibility) |
 | `deprecated targets registered` | [deprecated targets](advisories.md#deprecated-targets) |
+| `single-target KSP` | the [commonMain-KSP trap](recipes.md#commonmain-ksp-needs-two-targets) — doctor-only, no build-time advisory |
 | `note: jvm (registered as: …)` | a [renamed target](selection-dsl.md#renaming-the-jvm-target) — context, not a problem |
 
-The commonMain-KSP trap has no finding: its trigger ("does this module run a commonMain metadata-route processor?") is not observable by the plugin. It stays a build-logic [recipe](recipes.md#commonmain-ksp-needs-a-native-target).
+`single-target KSP` is doctor-only: it fires when a KSP plugin is applied and exactly one target is registered, so the commonMain metadata route (`kspCommonMainKotlinMetadata`, which needs [≥2 targets](recipes.md#commonmain-ksp-needs-two-targets)) is absent. Whether the module *actually* generates into `commonMain` is unobservable, so the finding flags the risk rather than a certainty — and there is no build-time advisory or strict-mode escalation for it.
 
 ### Project-edge closure
 

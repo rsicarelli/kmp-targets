@@ -44,6 +44,9 @@ dependencies {
     // plugin classpath from the plugin-under-test metadata — without KGP there, Gradle cannot even
     // decorate KmpTargetsPlugin. Funnel it in through a dedicated resolvable configuration.
     testKitPluginClasspath(libs.kotlin.gradlePlugin)
+    // KSP joins the same classpath so CommonMainKspRouteFunctionalTest can apply a real KSP and pin
+    // that kspCommonMainKotlinMetadata follows the ≥2-platform-targets rule (#73).
+    testKitPluginClasspath(libs.ksp.gradlePlugin)
 }
 
 gradlePlugin {

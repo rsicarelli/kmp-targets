@@ -15,7 +15,8 @@ import org.gradle.work.DisableCachingByDefault
  * Triages what the plugin decided for this project and why — the *explanation* surface to
  * `kmpTargetsInfo`'s neutral *state dump*. It renders one `[!]` finding per active advisory
  * (inert #71, JVM-less #72, android-without-AGP #51, host-impossible #32, deprecated #43,
- * empty-overlap #10), a clean bill when healthy, and a project-edge **closure** section (#80).
+ * empty-overlap #10), plus the doctor-only `single-target KSP` finding (#73, no advisory), a clean
+ * bill when healthy, and a project-edge **closure** section (#80).
  *
  * Doctor *renders*, it does not *own* predicates: every single-module property below is wired from
  * the **same** provider/decision function the advisory and `kmpTargetsInfo` use, so it can never
@@ -63,6 +64,13 @@ public abstract class KmpTargetsDoctorTask : DefaultTask() {
     /** Sorted ids of registered leaves Kotlin marks deprecated (#43). */
     @get:Internal public abstract val registeredDeprecatedIds: ListProperty<String>
 
+    /**
+     * A KSP plugin is applied and exactly one target is registered, so the shared commonMain
+     * metadata route (`kspCommonMainKotlinMetadata`) is absent. Doctor-only — there is deliberately
+     * no build-time advisory, since whether the module generates into `commonMain` is unobservable.
+     */
+    @get:Internal public abstract val singleTargetKsp: Property<Boolean>
+
     /** Custom Gradle name the jvm leaf registered under (#49), or blank/unset for the default. */
     @get:Internal public abstract val jvmRegisteredAs: Property<String>
 
@@ -94,6 +102,7 @@ public abstract class KmpTargetsDoctorTask : DefaultTask() {
                 hostImpossibleIds = hostImpossibleIds.get(),
                 hostLabel = hostLabel.get(),
                 registeredDeprecatedIds = registeredDeprecatedIds.get(),
+                singleTargetKsp = singleTargetKsp.get(),
                 jvmRegisteredAs = jvmRegisteredAs.orNull?.takeIf { it.isNotBlank() },
                 closureDepCount = dependencies.size,
                 closureGaps = gaps,
