@@ -1,0 +1,1376 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="Dynamically select which Kotlin Multiplatform targets to build via the kmptargets.targets Gradle property">
+      
+      
+        <meta name="author" content="Rodrigo Sicarelli">
+      
+      
+        <link rel="canonical" href="https://rsicarelli.github.io/kmp-targets/snapshot/changelog/">
+      
+      
+        <link rel="prev" href="../compatibility/">
+      
+      
+        <link rel="next" href="../why-kmp-targets/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.16">
+    
+    
+      
+        <title>Changelog - kmp-targets</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.7e37652d.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Inter:300,300i,400,400i,700,700i%7CFira+Code:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Inter";--md-code-font:"Fira Code"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/kmp-targets-brand.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#changelog" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+      <div data-md-color-scheme="default" data-md-component="outdated" hidden>
+        
+      </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="kmp-targets" class="md-header__button md-logo" aria-label="kmp-targets" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            kmp-targets
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Changelog
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="custom"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/rsicarelli/kmp-targets" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    kmp-targets
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="kmp-targets" class="md-nav__button md-logo" aria-label="kmp-targets" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    kmp-targets
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/rsicarelli/kmp-targets" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.0.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path fill="currentColor" d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    kmp-targets
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Home
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Get Started
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Get Started
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../get-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Installation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../get-started/quick-start/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Quick Start
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    User Guide
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            User Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/selection-dsl/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Selection DSL
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/selection-layers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Selection Layers
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/targets-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Targets Reference
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/hierarchy-template/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Hierarchy
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/build-logic/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Build Logic
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/apple-framework/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Apple Framework
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/xcode-environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Xcode Environment
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/recipes/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Recipes
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/advisories/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Advisories & Strict Mode
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/diagnostics/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Diagnostics
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/abi-validation/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    ABI Validation
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/ci-matrix/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    CI
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../samples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Samples
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../compatibility/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Compatibility
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Changelog
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    Changelog
+    
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#unreleased" class="md-nav__link">
+    <span class="md-ellipsis">
+      Unreleased
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010-2026-06-17" class="md-nav__link">
+    <span class="md-ellipsis">
+      0.1.0 - 2026-06-17
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.1.0 - 2026-06-17">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added" class="md-nav__link">
+    <span class="md-ellipsis">
+      Added
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Documentation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fixed
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../why-kmp-targets/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Design
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" >
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    Help
+    
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            Help
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../help/faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    FAQ
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../help/troubleshooting/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Troubleshooting
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#unreleased" class="md-nav__link">
+    <span class="md-ellipsis">
+      Unreleased
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#010-2026-06-17" class="md-nav__link">
+    <span class="md-ellipsis">
+      0.1.0 - 2026-06-17
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="0.1.0 - 2026-06-17">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#added" class="md-nav__link">
+    <span class="md-ellipsis">
+      Added
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Documentation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#fixed" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fixed
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<!--
+  This page embeds the repository-root CHANGELOG.md verbatim via the
+  pymdownx.snippets extension (configured in mkdocs.yml) — single source of
+  truth, no drift. Edit CHANGELOG.md, not this file.
+-->
+
+<h1 id="changelog">Changelog<a class="headerlink" href="#changelog" title="Permanent link">&para;</a></h1>
+<p>All notable changes to this project will be documented in this file. The format is based on
+<a href="https://keepachangelog.com/en/1.1.0/">Keep a Changelog</a>.</p>
+<h2 id="unreleased"><a href="https://github.com/rsicarelli/kmp-targets/compare/v0.1.0...HEAD">Unreleased</a><a class="headerlink" href="#unreleased" title="Permanent link">&para;</a></h2>
+<p><em>Nothing yet — 0.2.0 in development.</em></p>
+<h2 id="010-2026-06-17"><a href="https://github.com/rsicarelli/kmp-targets/releases/tag/v0.1.0">0.1.0</a> - 2026-06-17<a class="headerlink" href="#010-2026-06-17" title="Permanent link">&para;</a></h2>
+<p>First public release of the <code>com.rsicarelli.kmptargets</code> Gradle plugin.</p>
+<h3 id="added">Added<a class="headerlink" href="#added" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Property-driven target selection</strong> (<a href="https://github.com/rsicarelli/kmp-targets/issues/5">#5</a>): a single <code>kmptargets.targets</code> value decides which
+  KMP targets the whole build registers. The plugin registers <code>selection ∩ supported</code> per module;
+  targets you don't select are <strong>never registered</strong> with KGP, so their compile/link/KSP/publish
+  tasks never exist (not merely disabled) — the source of the sync- and build-time savings.
+  Selection is host-independent by design.</li>
+<li><strong>Type-safe selection DSL</strong> (<a href="https://github.com/rsicarelli/kmp-targets/issues/14">#14</a>): <code>kmpTargets { supports { … } }</code> declares a module's supported
+  set from presets and leaves composed as set algebra (<code>mobile + web - iosX64</code>) — no string
+  literals, no imports. <code>defaultSelection</code> provides a module/project fallback when no global
+  selection is set. The DSL is the sole public API; teams wanting <code>apply-by-id, no body</code> ergonomics
+  build conventions in their own <code>build-logic/</code>.</li>
+<li><strong>Full KMP target vocabulary</strong> (<a href="https://github.com/rsicarelli/kmp-targets/issues/7">#7</a>): every target KGP 2.3.21 ships — all JVM, Apple, Linux,
+  MinGW, Android Native and Web leaves (25 leaves), plus presets (<code>all</code>, <code>native</code>, <code>apple</code>,
+  <code>appleMobile</code>, <code>appleDesktop</code>, <code>appleWatch</code>, <code>appleTv</code>, <code>linux</code>, <code>mingw</code>, <code>windows</code>,
+  <code>androidNative</code>, <code>web</code>, <code>jvmFamily</code>, <code>mobile</code>). Parsing is case-insensitive with kebab-case
+  aliases and a "did you mean …?" suggestion on unknown tokens.</li>
+<li><strong>Published to Maven Central</strong> (<a href="https://github.com/rsicarelli/kmp-targets/issues/59">#59</a>): group <code>com.rsicarelli</code>, artifact
+  <code>kmp-targets-gradle-plugin</code>, plugin id <code>com.rsicarelli.kmptargets</code> (no Gradle Plugin Portal), with
+  a sources jar and full POM metadata. Consumers add <code>mavenCentral()</code> to
+  <code>pluginManagement.repositories</code>.</li>
+<li><strong>Minimal source-set hierarchy template</strong> (<a href="https://github.com/rsicarelli/kmp-targets/issues/8">#8</a>): replaces KGP's default hierarchy with only the
+  intermediate source sets the registered targets actually need, collapsing single-child groups to
+  drop redundant source sets and tasks. Global toggle <code>kmptargets.hierarchyTemplate</code>; the opt-in
+  no-collapse mode is <a href="https://github.com/rsicarelli/kmp-targets/issues/50">#50</a> below.</li>
+<li><strong><code>kmpTargetsInfo</code> introspection task</strong> (<a href="https://github.com/rsicarelli/kmp-targets/issues/40">#40</a>): a read-only, per-module report (group <code>help</code>) of
+  the resolved selection and its winning source layer, the supported and registered sets, the full
+  preset/leaf vocabulary, and any Apple-framework facts — with per-leaf annotations for
+  host-incompatible and deprecated leaves, AGP-skipped <code>androidTarget</code>, and renamed targets.</li>
+<li><strong>Strict mode</strong> (<a href="https://github.com/rsicarelli/kmp-targets/issues/41">#41</a>): <code>kmptargets.strict=true</code> promotes every advisory to a configuration-time
+  build failure (<code>GradleException</code>) with identical message text — severity changes, policy does not.
+  Default off; recommended for CI only.</li>
+<li><strong>Host-compatibility advisory</strong> (<a href="https://github.com/rsicarelli/kmp-targets/issues/32">#32</a>): warns when the selection includes a native target the
+  current host cannot compile. The target still registers (selection is host-independent), but its
+  compile/link tasks fail or are skipped on this host; the host → target matrix tracks your Kotlin
+  version via KGP.</li>
+<li><strong>Deprecated-targets advisory</strong> (<a href="https://github.com/rsicarelli/kmp-targets/issues/43">#43</a>): warns when a Kotlin-deprecated native leaf (<code>macosX64</code>,
+  <code>watchosX64</code>, <code>tvosX64</code>, deprecated since Kotlin 2.3.20) registers. They stay selectable and in
+  every preset; <code>kmpTargetsInfo</code> marks them <code>(deprecated)</code>.</li>
+<li><strong>Empty-overlap advisory</strong> (<a href="https://github.com/rsicarelli/kmp-targets/issues/10">#10</a>): signals when a non-empty selection matches none of a module's
+  supported set, so the module registers zero targets — typically a typo'd lane or an over-narrow
+  selection.</li>
+<li><strong>Apple framework helper</strong> (<a href="https://github.com/rsicarelli/kmp-targets/issues/105">#105</a>): <code>appleFramework("Name") { … }</code> attaches the real KGP
+  <code>Framework</code> to every registered Apple leaf (routes to KGP, copies no API); <code>onAppleTarget { … }</code>
+  is the lower-level per-target primitive for cinterops, extra binaries, and linker options.</li>
+<li><strong>XCFramework assembly</strong> (<a href="https://github.com/rsicarelli/kmp-targets/issues/106">#106</a>): <code>appleFramework("Name", xcframework = true)</code> assembles the
+  per-leaf framework slices into a single <code>.xcframework</code>.</li>
+<li><strong>Framework-without-an-Apple-target advisory</strong> (<a href="https://github.com/rsicarelli/kmp-targets/issues/107">#107</a>): warns (and surfaces in <code>kmpTargetsInfo</code> /
+  <code>kmpTargetsDoctor</code>) when a module declares an <code>appleFramework</code> but the selection registers no Apple
+  target in its <code>on</code> scope — the framework attaches to nothing and never builds, which otherwise
+  surfaces only as a missing-framework error far downstream in Xcode.</li>
+<li><strong>Per-lane framework build types</strong> (<a href="https://github.com/rsicarelli/kmp-targets/issues/108">#108</a>): <code>kmptargets.framework.buildTypes</code> narrows a
+  framework's declared <code>NativeBuildType</code>s through the selection-sources chain
+  (<code>effective = property ∩ declared</code>); a disjoint result raises the framework-build-types-disjoint
+  advisory.</li>
+<li><strong>Xcode-environment selection source</strong> (<a href="https://github.com/rsicarelli/kmp-targets/issues/109">#109</a>): opt-in <code>kmptargets.xcodeEnv=true</code> maps Xcode's
+  own <code>SDK_NAME</code> / <code>ARCHS</code> / <code>CONFIGURATION</code> to the right leaf and build type, so an Xcode build
+  phase drives the selection with no <code>-P</code>. Off by default and never read otherwise.</li>
+<li><strong>ABI-validation coverage signal</strong> (<a href="https://github.com/rsicarelli/kmp-targets/issues/81">#81</a>): warns (and fails under strict) when an ABI task
+  (<code>apiCheck</code> / <code>apiDump</code> or the built-in <code>checkKotlinAbi</code> / <code>updateKotlinAbi</code>) runs under a narrowed
+  selection that leaves some targets unvalidated — ABI-group-aware, zero-config, and dependent on no
+  specific ABI tool.</li>
+<li><strong>Doctor mode — <code>kmpTargetsDoctor</code></strong> (<a href="https://github.com/rsicarelli/kmp-targets/issues/82">#82</a>, closes <a href="https://github.com/rsicarelli/kmp-targets/issues/80">#80</a>): a per-module <em>triage</em> report (group
+  <code>help</code>) that complements the neutral <code>kmpTargetsInfo</code> state dump. It renders one <code>[!]</code> block per
+  active advisory — cause → effect → fix — for inert (<a href="https://github.com/rsicarelli/kmp-targets/issues/71">#71</a>), JVM-less metadata (<a href="https://github.com/rsicarelli/kmp-targets/issues/72">#72</a>),
+  android-without-AGP (<a href="https://github.com/rsicarelli/kmp-targets/issues/51">#51</a>), host-impossible (<a href="https://github.com/rsicarelli/kmp-targets/issues/32">#32</a>), deprecated (<a href="https://github.com/rsicarelli/kmp-targets/issues/43">#43</a>) and empty-overlap
+  (<a href="https://github.com/rsicarelli/kmp-targets/issues/10">#10</a>), plus a doctor-only <code>single-target KSP</code> finding (<a href="https://github.com/rsicarelli/kmp-targets/issues/73">#73</a>); a clean bill when healthy; and an
+  intentional-silence note for a module that never called
+  <code>supports { }</code>. <strong>Doctor renders, it does not own predicates</strong>: every finding is wired from the
+  same decision function the advisory uses, so it can never re-detect or drift. It also flags
+  <strong>project-edge closure gaps</strong> (<a href="https://github.com/rsicarelli/kmp-targets/issues/80">#80</a>) — a <code>project(...)</code> dependency that registers none of the
+  leaves this module needs — via a companion <code>kmpTargetsDoctorData</code> emitter whose file dependents
+  consume through a lenient artifact view (file-only, never a peer <code>Project</code> read, so it is
+  configuration-cache- and <strong>Isolated Projects</strong>-safe). Two honest, permanent limits, printed
+  inline: no external-dependency coverage, and an approximate android→jvm fallback — best-effort
+  project-edge diagnostics, not a correctness guarantee. See
+  <a href="https://rsicarelli.github.io/kmp-targets/user-guide/diagnostics/">Diagnostics</a>.</li>
+<li><strong>Umbrella lifecycle tasks <code>kmpCompileAll</code> / <code>kmpTestAll</code></strong> (<a href="https://github.com/rsicarelli/kmp-targets/issues/77">#77</a>): one stable task name per
+  module that depends on the compile (resp. test) tasks of <strong>exactly the registered intersection</strong> —
+  selection-agnostic and rename-proof, the cure for hardcoded CI task lists that 404 under a narrowed
+  lane or silently match zero tasks under <code>targetName(jvm, "desktop")</code> (a literal <code>compileKotlinJvm</code>
+  compiling nothing while CI stays green). <strong>Opt-in</strong> via <code>kmptargets.umbrellaTasks=true</code> (default
+  off), since they add dependency edges most builds only want for CI. Wired off the live
+  <code>KotlinTarget</code>, so the dependency is the genuine task (<code>compileKotlinDesktop</code>, <code>desktopTest</code>), never
+  a name guess. When enabled they are registered in every module, so an unqualified
+  <code>./gradlew kmpCompileAll</code> from the root fans out to all of them with no cross-project wiring, and a
+  module that registered nothing is a clean no-op. Depends on registered <strong>platform</strong> compilations
+  only — never <code>compileCommonMainKotlinMetadata</code> — so it cannot re-introduce the inert (<a href="https://github.com/rsicarelli/kmp-targets/issues/71">#71</a>) or
+  JVM-less-fragment (<a href="https://github.com/rsicarelli/kmp-targets/issues/72">#72</a>) failures. See
+  <a href="https://rsicarelli.github.io/kmp-targets/user-guide/ci-matrix/">README → CI → Lane-agnostic compilation</a>.</li>
+<li><strong>Per-target configuration-name helpers</strong> (<a href="https://github.com/rsicarelli/kmp-targets/issues/74">#74</a>): <code>RegisteredTarget.configurationName(prefix)</code>
+  and <code>RegisteredTarget.testConfigurationName(prefix)</code> build the <code>prefix + gradleNameCapitalized</code>
+  (+ <code>"Test"</code>) Gradle configuration name a per-target tool publishes — <code>it.configurationName("ksp")</code>
+  / <code>it.testConfigurationName("ksp")</code> instead of hand-rolled <code>"ksp${it.gradleNameCapitalized}"</code> and
+  a hardcoded <code>kspJvmTest</code> that breaks with <em>Configuration 'kspJvmTest' not found</em> under
+  <code>targetName(jvm, "desktop")</code> (it becomes <code>kspDesktopTest</code>). Derived from <code>gradleName</code>, so the
+  names track the rename; tool-generic by design (<code>it.configurationName("kapt")</code> works too — the
+  plugin blesses no single processor); blank prefix fails loud. Built on the existing
+  <code>gradleNameCapitalized</code> primitive, so they stay config-cache trivial (pure functions on the
+  immutable carrier).</li>
+<li><strong>Native-only-metadata advisory</strong> (<a href="https://github.com/rsicarelli/kmp-targets/issues/72">#72</a>): when a module <strong>supports</strong> the JVM family
+  (<code>androidTarget</code>/<code>jvm</code>) yet a registration pass ends with <strong>no</strong> JVM-family target registered
+  while other targets did register, the plugin logs a one-line advisory. The module is alive — the
+  platform klibs compile — but commonMain collapses to a JVM-less shared fragment, so the
+  <code>*KotlinMetadata*</code> compilations reject JVM-flavored constructs (<code>@JvmInline</code> and friends): the
+  paradoxical "klibs build, metadata fails". Disjoint from the inert-module advisory by
+  construction (inert = zero registrations; this fires only when something <em>did</em> register —
+  exactly one of the two per module state). Signal only, never filtering; promoted to a build
+  failure under <code>kmptargets.strict=true</code> with the identical text (the cause advisories —
+  empty-overlap, android-without-AGP — are emitted first and win the strict exception where they
+  apply; an android leaf skipped by the AGP guard still counts as supported-but-unregistered, so
+  both fire in warn mode). The recommended build-logic gate disables only the metadata
+  compilations, keyed off <code>kmpTargets.registered(jvmFamily).isEmpty()</code>. Any single JVM-family leaf
+  registered defeats the predicate (android-only included; the renamed jvm leaf counts — the
+  predicate is leaf-based); fires at most once per module, and a later <code>supports { }</code> union that
+  registers a JVM-family leaf resolves it permanently. <code>kmpTargetsInfo</code> renders the same decision
+  as a <code>jvm-less:</code> line in its registered section.</li>
+<li><strong>Inert-module advisory</strong> (<a href="https://github.com/rsicarelli/kmp-targets/issues/71">#71</a>): when a module that declared <code>supports { }</code> ends a
+  registration pass with <strong>zero</strong> targets registered — a disjoint selection, an explicitly-empty
+  selection (<code>jvm,-jvm</code>, where the empty-overlap advisory is silent by design), or an android-only
+  overlap skipped by the AGP guard — the plugin logs a one-line advisory naming the consequence:
+  KGP still materializes the commonMain metadata compilation, which fails on a platform-less
+  module, and the recommended build-logic gate is <code>kmpTargets.registered().isEmpty()</code>. Signal
+  only, never filtering; promoted to a build failure under <code>kmptargets.strict=true</code> with the
+  identical text (the cause advisories — empty-overlap, android-without-AGP — are emitted first
+  and win the strict exception where they apply). Fires at most once per module (a later
+  <code>supports { }</code> union that registers a leaf un-inerts it permanently); a module that never calls
+  <code>supports { }</code> is deliberately not flagged. <code>kmpTargetsInfo</code> renders the same decision as an
+  <code>inert:</code> line in its registered section.</li>
+<li><strong>Per-module JVM target name override</strong> (<a href="https://github.com/rsicarelli/kmp-targets/issues/49">#49</a>): <code>kmpTargets { targetName(jvm, "desktop") }</code>
+  registers the jvm leaf under a custom Gradle target name, so legacy <code>jvm("desktop")</code> codebases
+  keep their <code>src/desktopMain</code> dirs, <code>-desktop</code> artifact suffixes, and <code>compileKotlinDesktop</code> task
+  names. jvm leaf only (androidTarget is named by AGP; native/web names are derived by KGP); must
+  be called <strong>before</strong> <code>supports { }</code> (eager one-way registration — fails fast otherwise); the
+  selection token stays <code>jvm</code>/<code>desktop</code>. The hierarchy template needs no change — KGP's <code>withJvm()</code>
+  matches by platform type, not name. <code>kmpTargetsInfo</code> annotates the registered line:
+  <code>jvm (registered as: desktop)</code>.</li>
+<li><strong>Dedicated root config files</strong> (<a href="https://github.com/rsicarelli/kmp-targets/issues/30">#30</a>): <code>kmp-targets.properties</code> (committed, team-shared) and
+  <code>kmp-targets.local.properties</code> (git-ignored personal override, Bazel <code>try-import</code> semantics) are
+  the consolidation point for global configuration. Full precedence chain (highest first): CLI <code>-P</code>
+  → <code>ORG_GRADLE_PROJECT_&lt;key&gt;</code> env → personal file → committed file → root <code>gradle.properties</code> →
+  <code>local.properties</code> → <code>defaultSelection</code> → built-in. Both global keys
+  (<code>kmptargets.targets</code>, <code>kmptargets.hierarchyTemplate</code>) read through the same chain.</li>
+<li><strong>Fail-loud key validation</strong>: an unknown key in either dedicated file fails the build at
+  configuration time with a "did you mean …?" suggestion.</li>
+<li>Both dedicated files are tracked configuration-cache inputs: edits invalidate the cache,
+  untouched files keep cache hits.</li>
+<li><strong>Opt-in no-collapse hierarchy mode</strong> (<a href="https://github.com/rsicarelli/kmp-targets/issues/50">#50</a>): <code>kmptargets.hierarchyCollapse=false</code> (global key)
+  or <code>kmpTargets { collapseHierarchy.set(false) }</code> (per-module, wins) makes a group materialize
+  with <strong>≥1</strong> present child instead of ≥2, so intermediates like <code>iosMain</code> survive a single-leaf
+  selection — for codebases with load-bearing <code>src/iosMain</code> dirs. Default unchanged (<code>true</code>,
+  collapse); never changes what registers; no-op when <code>kmptargets.hierarchyTemplate=false</code>.</li>
+<li><strong>Registered-targets query surface for build-logic</strong> (<a href="https://github.com/rsicarelli/kmp-targets/issues/52">#52</a>): <code>registered()</code> /
+  <code>registered(slice)</code> snapshot what the plugin <strong>actually registered</strong> as a <code>KmpTargetSet</code>
+  (family-sliceable with the existing presets: <code>registered(KmpTargetSet.appleMobile)</code>), and
+  <code>onRegistered { … }</code> delivers a <code>RegisteredTarget</code> per leaf with <code>configureEach</code> semantics
+  (replays for already-registered leaves, fires per delta of later <code>supports { }</code> unions) — so
+  per-target wiring like KSP's <code>ksp&lt;Target&gt;</code> configurations needs no KGP konan imports:
+  <code>onRegistered { add("ksp${it.gradleNameCapitalized}", dep) }</code>. The carrier's <code>gradleName</code> is the
+  name registration actually used (a renamed jvm reports <code>desktop</code>); <code>registered()</code> mirrors real
+  registrations, not the abstract plan — empty without KGP, and the <a class="magiclink magiclink-github magiclink-issue" href="https://github.com/rsicarelli/kmp-targets/issues/51" title="GitHub Issue: rsicarelli/kmp-targets #51">#51</a>-skipped <code>androidTarget</code>
+  stays absent.</li>
+<li><strong>Android-without-AGP advisory</strong> (<a href="https://github.com/rsicarelli/kmp-targets/issues/51">#51</a>): when a module both selects and supports
+  <code>androidTarget</code> but no Android Gradle plugin is applied by the time <code>supports { }</code> runs, the
+  plugin skips registering that leaf — the KGP alternative is the fatal
+  <code>AndroidGradlePluginIsMissing</code> crash — and logs a one-line advisory naming the module and the
+  fix (apply <code>com.android.library</code>/<code>com.android.application</code> before <code>supports { }</code>), promoted to
+  a build failure under <code>kmptargets.strict=true</code> with the identical text. The detection mirrors
+  KGP's full Android plugin id list, the advisory fires at most once per module, and
+  <code>kmpTargetsInfo</code> marks the leaf <code>androidTarget (skipped: no Android plugin applied)</code> while the
+  condition holds.</li>
+</ul>
+<h3 id="documentation">Documentation<a class="headerlink" href="#documentation" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Selection-gated eager AGP application — recipe concretized, advisory turned into a discovery
+  vehicle</strong> (<a href="https://github.com/rsicarelli/kmp-targets/issues/76">#76</a>). <code>androidTarget</code> registers only when an Android Gradle plugin is applied <em>before</em>
+  <code>supports { }</code>; applying AGP to every module is expensive, so the canonical pattern gates it on the
+  selection. <strong>No new API, by mechanism-vs-conventions, not omission</strong>: a <code>whenSelected { }</code>
+  pre-registration hook would have to fire eagerly at call-site to keep AGP ahead of the eager
+  <code>register()</code> — making it behaviorally identical to
+  <code>if (KmpTarget.Jvm.Android in kmpTargets.resolvedSelection()) { … }</code> over the existing
+  <a href="https://github.com/rsicarelli/kmp-targets/issues/52"><code>resolvedSelection()</code></a> primitive, with zero added mechanism and a footgun (apply-late) it
+  cannot remove by construction, and the <code>com.android.application</code> exemption is a build-logic decision
+  the plugin cannot make one-module-at-a-time. So the deliverable is docs + signal: the
+  <a href="https://rsicarelli.github.io/kmp-targets/user-guide/recipes/#selection-gated-eager-agp-application">recipe</a> now spells out the real
+  <code>resolvedSelection()</code> gate, the application-module exemption (an app is always Android — never
+  double-apply or gate it), the apply-before-<code>supports { }</code> ordering rule, the <strong>downstream-read
+  gating</strong> (a <code>namespace</code>/manifest read crashes under non-Android selections unless guarded by the
+  same predicate), and companion-plugin reactions via <code>pluginManager.withPlugin(...)</code>; the
+  android-without-AGP advisory message now appends a one-line selection-gate hint and links that
+  recipe; and <a href="https://rsicarelli.github.io/kmp-targets/user-guide/advisories/#android-target-without-agp">advisories</a> cross-links it.</li>
+<li><strong>Selection vs the dependency graph — the android→jvm fallback rule</strong> (<a href="https://github.com/rsicarelli/kmp-targets/issues/80">#80</a>). Selection is
+  resolved per module, but its <em>validity</em> can depend on the cross-module dependency graph: an
+  android-leaning module that consumes a <code>jvm</code>+native-only library resolves against that library's
+  <strong>jvm fallback</strong> variant, so a pure-<code>android</code> selection — which strips <code>jvm</code> from every producer —
+  removes the variant the android modules were resolving against. The failure surfaces as Gradle's
+  raw attribute-resolution wall of text on a <code>compileDependencyFiles</code> configuration, with no hint
+  the selection is the cause; the fix is to keep <code>jvm</code> <strong>co-selected</strong> (<code>kmptargets.targets=android,jvm</code>).
+  <strong>No new API, by feasibility, not omission</strong>: an accurate in-code closure check would have to read
+  peer projects' registered sets at configuration time — forbidden by the plugin's
+  configuration-cache and Isolated-Projects guarantees — and the canonical trigger is <em>external</em>
+  published libraries the plugin cannot model one-module-at-a-time. So the deliverable is docs: the
+  <a href="https://rsicarelli.github.io/kmp-targets/user-guide/recipes/">recipe</a> gains the asymmetric android→jvm case,
+  <a href="https://rsicarelli.github.io/kmp-targets/help/troubleshooting/">troubleshooting</a> gains a <code>compileDependencyFiles</code> row, and the
+  closure analysis is deferred to a future doctor mode (<a href="https://github.com/rsicarelli/kmp-targets/issues/82">#82</a>). Adjacent hygiene: the
+  <a href="https://rsicarelli.github.io/kmp-targets/user-guide/advisories/">advisories</a> page now documents the <strong>native-only-metadata</strong>
+  advisory (<a href="https://github.com/rsicarelli/kmp-targets/issues/72">#72</a>).</li>
+<li><strong>commonMain-KSP recipe — corrected to the real rule, plus a doctor finding</strong> (<a href="https://github.com/rsicarelli/kmp-targets/issues/73">#73</a>). A processor
+  that generates into <code>commonMain</code> runs on the shared commonMain metadata route
+  (<code>kspCommonMainKotlinMetadata</code>). The earlier guidance claimed that route "needs a <strong>native</strong>
+  target" and gated on <code>registered(KmpTargetSet.native).isEmpty()</code> — but that was an unverified
+  assumption, and it was <strong>actively harmful</strong> (it disabled compilation on working <code>jvm</code>/<code>android,jvm</code>
+  lanes). A real-KSP measurement (the ktorfit sample, KSP 2.3.9 / Kotlin 2.3.21) shows
+  <code>kspCommonMainKotlinMetadata</code> follows the <strong>same ≥2-platform-targets rule</strong> as KGP's
+  <code>compileCommonMainKotlinMetadata</code>: <code>jvm,js</code> (zero native) generates into
+  <code>build/generated/ksp/metadata/commonMain/</code>, while <code>iosArm64</code> alone (native) does not. The real
+  trap is a <strong>single target</strong>, native or not. The recipe now states the target-count rule, gates on
+  <code>registered().size &lt; 2</code>, and gives the structural fix our sample proved — keep codegen-consuming
+  code in the target source set (e.g. <code>androidMain</code>), or register a second target. Because the
+  single-target + KSP-applied facts <strong>are</strong> observable (even though "generates into commonMain?" is
+  not), this adds a doctor-only <code>single-target KSP</code> finding (no build-time advisory, no strict
+  escalation). Backed by tests: the gate predicate (<code>CommonMainKspSingleTargetGateTest</code>), the
+  decision function, the finding prose, the in-process <code>compileCommonMainKotlinMetadata</code> invariant,
+  and a real-KSP tripwire pinning <code>kspCommonMainKotlinMetadata</code> to the ≥2-target rule — a KGP/KSP
+  bump that shifts it fails loudly.</li>
+</ul>
+<h3 id="fixed">Fixed<a class="headerlink" href="#fixed" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Plugin jar is now consumable from Gradle 8.x <code>kotlin-dsl</code> build-logic and JDK 17 daemons</strong>
+  (<a href="https://github.com/rsicarelli/kmp-targets/issues/48">#48</a>). The jar previously carried Kotlin 2.3 metadata (rejected by the Gradle-embedded Kotlin
+  2.0.x compiler on Gradle 8.11–8.14) and Java 23 bytecode (unloadable on JDK 17). The build now
+  drops <code>jvmToolchain(23)</code> and pins the emitted output instead — <code>languageVersion</code>/<code>apiVersion</code>
+  2.0, <code>jvmTarget</code> 17 + <code>-Xjdk-release=17</code> / <code>--release 17</code>, and <code>coreLibrariesVersion</code> 2.0.21 so
+  the POM stops declaring a toolchain-version stdlib. A new <code>verifyCompatFloors</code> task guards the
+  floors on every <code>check</code>.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+  <script>var tabs=__md_get("__tabs");if(Array.isArray(tabs))e:for(var set of document.querySelectorAll(".tabbed-set")){var labels=set.querySelector(".tabbed-labels");for(var tab of tabs)for(var label of labels.getElementsByTagName("label"))if(label.innerText.trim()===tab){var input=document.getElementById(label.htmlFor);input.checked=!0;continue e}}</script>
+
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+    <div class="md-copyright__highlight">
+      Copyright &copy; 2026 Rodrigo Sicarelli
+    </div>
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy", "content.code.select", "search.suggest", "search.highlight", "content.tabs.link"], "search": "../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.50899def.min.js"></script>
+      
+    
+  </body>
+</html>
