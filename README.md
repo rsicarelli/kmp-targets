@@ -19,12 +19,11 @@ kmpTargets { supports { mobile } }   // androidTarget + all iOS
 
 ## 🤔 Why kmp-targets?
 
-- **Every target builds on every sync** — A mobile-only change still configures, compiles, links, and tests the web, desktop, and simulator targets you're not touching.
-- **JetBrains says don't** — Kotlin's official guide recommends *"[build only for necessary targets](https://kotlinlang.org/docs/native-improving-compilation-time.html#build-only-for-necessary-targets)"* — but doing it by hand means editing `kotlin { }` and breaking the build for your teammates.
-- **Commenting out targets doesn't scale** — Hand-edits churn git history, drift between machines, and turn "just build it" into a merge-conflict chore.
-- **Unused targets cost real time** — Every registered target adds compile, link, test, and KSP tasks to the graph — even platforms you never run on this machine.
-- **Selection is contextual, not structural** — What you build depends on what you're working on *right now*, not on what the module can theoretically produce.
-- **One property fixes it** — `kmptargets.targets` controls registration across the whole build; skipped targets never reach KGP, so their tasks never exist.
+- **Every target builds, every sync** — You're on iOS, but Gradle still configures and compiles JS, the JVM, and the simulators. Minutes you didn't ask for.
+- **JetBrains says don't** — *"[Build only for necessary targets](https://kotlinlang.org/docs/native-improving-compilation-time.html#build-only-for-necessary-targets)"* is official Kotlin advice — but the only built-in way to follow it is hand-editing `kotlin { }` and breaking the build for everyone else.
+- **Skipped targets still cost you** — Each one drags in compile, link, test, and KSP tasks, even for platforms this machine never runs.
+- **What to build is a right-now call** — It follows the task in front of you, not everything a module could produce.
+- **One property, done** — `kmptargets.targets` picks the set; the rest never reach KGP, so their tasks never exist.
 
 ## ⚖️ Before / After
 
