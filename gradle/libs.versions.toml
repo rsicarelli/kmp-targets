@@ -14,7 +14,7 @@ ksp = "2.3.9"
 # The plugin's own published version — single declaration point for the standalone samples
 # (they import this catalog and consume the plugin via `alias(libs.plugins.kmpTargets)`).
 # Kept in lockstep with `version=` in gradle.properties by .github/scripts/bump-version.main.kts.
-kmpTargets = "0.1.0-SNAPSHOT"
+kmpTargets = "0.0.0-SNAPSHOT"
 
 [libraries]
 kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
