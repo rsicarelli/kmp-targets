@@ -59,6 +59,12 @@ tasks:
     cmds:
       - "{{.GRADLE}} -p samples/abi-builtin checkKotlinAbi -Pkmptargets.targets=jvm"
 
+  sample:xcode-env:
+    desc: "Opt-in Xcode-environment selection (#109): kmpTargetsInfo over the committed fallback — set SDK_NAME/ARCHS/CONFIGURATION to see the narrowing (depends on publish-local)"
+    deps: [publish-local]
+    cmds:
+      - "{{.GRADLE}} -p samples/xcode-env kmpTargetsInfo"
+
   ci:
     desc: Full local CI dry-run (check + publish-local + samples)
     cmds:
@@ -68,6 +74,7 @@ tasks:
       - task: sample:isolated
       - task: sample:abi-bcv
       - task: sample:abi-builtin
+      - task: sample:xcode-env
 
   dod:
     desc: Definition of Done — fmt + build + test (run before committing)
@@ -106,6 +113,7 @@ tasks:
       - rm -rf samples/isolated-projects/build samples/isolated-projects/.gradle samples/isolated-projects/*/build
       - rm -rf samples/abi-bcv/build samples/abi-bcv/.gradle
       - rm -rf samples/abi-builtin/build samples/abi-builtin/.gradle
+      - rm -rf samples/xcode-env/build samples/xcode-env/.gradle
 
   fmt:
     desc: Format Kotlin sources with ktfmt (kotlinlang style) across the main build and both samples
@@ -115,6 +123,7 @@ tasks:
       - "{{.GRADLE}} -p samples/isolated-projects ktfmtFormat"
       - "{{.GRADLE}} -p samples/abi-bcv ktfmtFormat"
       - "{{.GRADLE}} -p samples/abi-builtin ktfmtFormat"
+      - "{{.GRADLE}} -p samples/xcode-env ktfmtFormat"
 
   fmt:check:
     desc: Verify Kotlin sources are ktfmt-formatted across the main build and both samples (run by `task check`)
@@ -124,3 +133,4 @@ tasks:
       - "{{.GRADLE}} -p samples/isolated-projects ktfmtCheck"
       - "{{.GRADLE}} -p samples/abi-bcv ktfmtCheck"
       - "{{.GRADLE}} -p samples/abi-builtin ktfmtCheck"
+      - "{{.GRADLE}} -p samples/xcode-env ktfmtCheck"

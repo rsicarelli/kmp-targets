@@ -23,6 +23,8 @@ When no source provides a value, two **fallbacks** (not overrides — anything a
 
 The rarer `-Dorg.gradle.project.kmptargets.targets` and `~/.gradle/gradle.properties` forms resolve at the `gradle.properties` layer, below the dedicated files. Why the dedicated files outrank `gradle.properties`: [Design](../why-kmp-targets.md#selection-model).
 
+With the opt-in [`kmptargets.xcodeEnv`](xcode-environment.md) flag on, an extra layer sits between **2** and **3** — Xcode's own `SDK_NAME`/`ARCHS` when it invokes Gradle — so an Xcode build needs no `-P`. The flag off, it does not exist.
+
 ## The config files
 
 ```properties

@@ -28,7 +28,7 @@ kmpTargets {
 
 The plugin registers `selection ∩ supported` per module: the module declares what it *can* build, the global selection decides what you *want* right now.
 
-**Status:** alpha. Roadmap: user-defined hierarchy groups, XCFramework helpers.
+**Status:** alpha. Roadmap: user-defined hierarchy groups. Apple support now covers the [framework helper](user-guide/apple-framework.md), XCFramework assembly, and the opt-in [Xcode environment](user-guide/xcode-environment.md) selection source.
 
 ## Documentation
 

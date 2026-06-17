@@ -100,4 +100,6 @@ extensions.configure<KmpTargetsExtension> {
 
 ## Out of scope
 
-Per-module build-type property variants, mapping Xcode's `CONFIGURATION` env var, and custom (non-DEBUG/RELEASE) build types are out of scope (KGP's enum is closed). Multiple frameworks per module (and aggregating several into one XCFramework), and non-Apple binaries (`sharedLib`/`staticLib`/`executable`) are deliberate follow-ups.
+Per-module build-type property variants and custom (non-DEBUG/RELEASE) build types are out of scope (KGP's enum is closed). Multiple frameworks per module (and aggregating several into one XCFramework), and non-Apple binaries (`sharedLib`/`staticLib`/`executable`) are deliberate follow-ups.
+
+Letting Xcode's own `SDK_NAME`/`ARCHS`/`CONFIGURATION` drive selection — so the Xcode build phase needs no `-P` — is the opt-in [Xcode Environment](xcode-environment.md) source.

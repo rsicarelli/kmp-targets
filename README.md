@@ -57,7 +57,7 @@ Full story: [Compatibility](https://rsicarelli.github.io/kmp-targets/compatibili
 
 ## Documentation
 
-**Status:** alpha. Roadmap: user-defined hierarchy groups. The [Apple framework](https://rsicarelli.github.io/kmp-targets/user-guide/apple-framework/) helper now covers framework declaration and XCFramework assembly.
+**Status:** alpha. Roadmap: user-defined hierarchy groups. The [Apple framework](https://rsicarelli.github.io/kmp-targets/user-guide/apple-framework/) helper covers framework declaration and XCFramework assembly, and the opt-in [Xcode environment](https://rsicarelli.github.io/kmp-targets/user-guide/xcode-environment/) source lets Xcode's `SDK_NAME`/`ARCHS`/`CONFIGURATION` drive selection with no `-P`.
 
 Everything lives at **[rsicarelli.github.io/kmp-targets](https://rsicarelli.github.io/kmp-targets/)**:
 
@@ -68,6 +68,7 @@ Everything lives at **[rsicarelli.github.io/kmp-targets](https://rsicarelli.gith
 - [Hierarchy](https://rsicarelli.github.io/kmp-targets/user-guide/hierarchy-template/) — minimal template, no-collapse
 - [Build Logic](https://rsicarelli.github.io/kmp-targets/user-guide/build-logic/) — conventions, `onRegistered`, helpers
 - [Apple Framework](https://rsicarelli.github.io/kmp-targets/user-guide/apple-framework/) — `appleFramework`, `onAppleTarget`, route-to-real-KGP
+- [Xcode Environment](https://rsicarelli.github.io/kmp-targets/user-guide/xcode-environment/) — opt-in `SDK_NAME`/`ARCHS`/`CONFIGURATION` selection, zero-`-P` Xcode builds
 - [Recipes](https://rsicarelli.github.io/kmp-targets/user-guide/recipes/) — KSP gates, AGP gating, dependency-graph rules
 - [Advisories & Strict Mode](https://rsicarelli.github.io/kmp-targets/user-guide/advisories/) — the eight advisories and CI strictness
 - [Diagnostics](https://rsicarelli.github.io/kmp-targets/user-guide/diagnostics/) — `kmpTargetsInfo` and `kmpTargetsDoctor`

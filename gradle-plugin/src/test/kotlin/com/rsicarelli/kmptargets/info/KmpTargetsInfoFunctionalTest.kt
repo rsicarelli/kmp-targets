@@ -62,6 +62,22 @@ class KmpTargetsInfoFunctionalTest {
     }
 
     @Test
+    fun `given the Xcode-env flag on and an Xcode sdk when kmpTargetsInfo runs then the output names the Xcode-environment source`(
+        @TempDir dir: Path
+    ) {
+        dir.resolve("settings.gradle.kts").writeText("rootProject.name = \"fixture\"\n")
+        dir.resolve("kmp-targets.properties")
+            .writeText("kmptargets.xcodeEnv=true\nkmptargets.targets=jvm\n")
+        dir.resolve("build.gradle.kts").writeText("plugins { id(\"com.rsicarelli.kmptargets\") }\n")
+        val result =
+            runner(dir, "kmpTargetsInfo", "-q")
+                .withEnvironment(mapOf("SDK_NAME" to "iphonesimulator18.0", "ARCHS" to "arm64"))
+                .build()
+        assertTrue("iosSimulatorArm64" in result.output, result.output)
+        assertTrue("source:   Xcode environment (SDK_NAME/ARCHS)" in result.output, result.output)
+    }
+
+    @Test
     fun `given a build that never requests the info task when run with configuration cache then the entry stores cleanly`(
         @TempDir dir: Path
     ) {

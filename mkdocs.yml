@@ -101,6 +101,7 @@ nav:
       - 'Hierarchy': user-guide/hierarchy-template.md
       - 'Build Logic': user-guide/build-logic.md
       - 'Apple Framework': user-guide/apple-framework.md
+      - 'Xcode Environment': user-guide/xcode-environment.md
       - 'Recipes': user-guide/recipes.md
       - 'Advisories & Strict Mode': user-guide/advisories.md
       - 'Diagnostics': user-guide/diagnostics.md

@@ -23,6 +23,14 @@ internal object OriginLabels {
         "environment variable ${ConfigKeys.ENV_PREFIX}$key"
 
     /**
+     * The opt-in Xcode-environment source (issue #109), naming the env vars it read —
+     * `SDK_NAME/ARCHS` for the selection, `CONFIGURATION` for the framework build types — so the
+     * origin is explicit in `kmpTargetsInfo` even though the values came from Xcode's ambient
+     * environment.
+     */
+    fun xcodeEnvironment(vars: String): String = "Xcode environment ($vars)"
+
+    /**
      * The fused `providers.gradleProperty` layer. CLI and env are caught by the dedicated layers
      * above it, but this provider cannot tell the remaining origins apart — root
      * `gradle.properties`, `-Dorg.gradle.project.<key>`, and `~/.gradle/gradle.properties` all
