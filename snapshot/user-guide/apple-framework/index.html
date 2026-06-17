@@ -1032,6 +1032,7 @@
 <li><strong>Ordering-immune.</strong> <code>appleFramework</code> declared <em>before</em> or <em>after</em> <code>supports {}</code> behaves identically (it rides the <code>onRegistered</code> replay); a later <code>supports {}</code> union attaches only the delta.</li>
 <li><strong>Exports stay lazy.</strong> A version-catalog <code>Provider</code> is realized by KGP at attach time, not at declaration.</li>
 <li><strong>One per module</strong> in v1 — a second call, a blank name, or <code>on ⊄ apple</code> fails fast. (Multiple frameworks need a <code>namePrefix</code> strategy; a follow-up.)</li>
+<li><strong>Attaches to nothing? You're warned.</strong> If the current selection registers no Apple target in the framework's <code>on</code> scope (a jvm-only lane, or an <code>on</code> narrower than what registered), the framework silently never builds and an Xcode consumer fails downstream — so the plugin emits the <a href="../advisories/#framework-without-an-apple-target">framework-without-an-Apple-target advisory</a> (a configuration failure under <code>kmptargets.strict</code>). <a href="../diagnostics/#kmptargetsinfo"><code>kmpTargetsInfo</code></a> and <a href="../diagnostics/#kmptargetsdoctor"><code>kmpTargetsDoctor</code></a> render the declared name and the leaves it attached to.</li>
 </ul>
 <h2 id="xcframework-assembly">XCFramework assembly<a class="headerlink" href="#xcframework-assembly" title="Permanent link">&para;</a></h2>
 <p>Set <code>xcframework = true</code> to also bundle the registered slices into one <code>.xcframework</code> (the artifact an Xcode app links):</p>
@@ -1069,7 +1070,7 @@
 </span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="p">}</span>
 </span></code></pre></div>
 <h2 id="out-of-scope">Out of scope<a class="headerlink" href="#out-of-scope" title="Permanent link">&para;</a></h2>
-<p>An unattached-framework advisory, build types via a layered property, multiple frameworks per module (and aggregating several into one XCFramework), and non-Apple binaries (<code>sharedLib</code>/<code>staticLib</code>/<code>executable</code>) are deliberate follow-ups.</p>
+<p>Build types via a layered property, multiple frameworks per module (and aggregating several into one XCFramework), and non-Apple binaries (<code>sharedLib</code>/<code>staticLib</code>/<code>executable</code>) are deliberate follow-ups.</p>
 
 
 
