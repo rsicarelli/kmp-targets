@@ -247,6 +247,26 @@ class KmpTargetsDoctorFormatTest {
     }
 
     @Test
+    fun `given a build-types-disjoint framework when formatted then it explains the empty overlap and names the declared set as the fix`() {
+        val output =
+            format(
+                selectionIds = listOf("iosArm64"),
+                supportedIds = listOf("iosArm64"),
+                registeredIds = listOf("iosArm64"),
+                frameworkDeclared = true,
+                frameworkBaseName = "KotlinShared",
+                frameworkAttachedIds = listOf("iosArm64"),
+                frameworkBuildTypes = emptyList(),
+                frameworkBuildTypesDeclared = listOf("DEBUG"),
+                frameworkBuildTypesDisjoint = true,
+            )
+        assertContains(output, "[!] framework build types disjoint")
+        assertContains(output, "kmptargets.framework.buildTypes")
+        assertContains(output, "DEBUG")
+        assertContains(output, "Xcode build consuming it fails downstream")
+    }
+
+    @Test
     fun `given identical inputs when formatted twice then the output is identical`() {
         // Config-cache contract: pure function of primitives.
         assertTrue(format() == format())
@@ -273,8 +293,10 @@ class KmpTargetsDoctorFormatTest {
         frameworkBaseName: String = "",
         frameworkAttachedIds: List<String> = emptyList(),
         frameworkBuildTypes: List<String> = emptyList(),
+        frameworkBuildTypesDeclared: List<String> = emptyList(),
         frameworkXcframework: Boolean = false,
         frameworkUnattached: Boolean = false,
+        frameworkBuildTypesDisjoint: Boolean = false,
     ): String =
         formatKmpTargetsDoctor(
             projectPath = projectPath,
@@ -297,7 +319,9 @@ class KmpTargetsDoctorFormatTest {
             frameworkBaseName = frameworkBaseName,
             frameworkAttachedIds = frameworkAttachedIds,
             frameworkBuildTypes = frameworkBuildTypes,
+            frameworkBuildTypesDeclared = frameworkBuildTypesDeclared,
             frameworkXcframework = frameworkXcframework,
             frameworkUnattached = frameworkUnattached,
+            frameworkBuildTypesDisjoint = frameworkBuildTypesDisjoint,
         )
 }

@@ -88,14 +88,31 @@ public abstract class KmpTargetsDoctorTask : DefaultTask() {
     /** Sorted ids of the Apple leaves the framework actually attached to (`registered ∩ on`). */
     @get:Internal public abstract val frameworkAttachedIds: ListProperty<String>
 
-    /** The framework's creation-time native build types (e.g. `DEBUG`, `RELEASE`), sorted. */
+    /**
+     * The framework's **effective** native build types (`property ∩ declared`, e.g. `DEBUG`),
+     * sorted (#108). Equals [frameworkBuildTypesDeclared] without a narrowing property; empty on a
+     * disjoint (the [frameworkBuildTypesDisjoint] finding then explains).
+     */
     @get:Internal public abstract val frameworkBuildTypes: ListProperty<String>
+
+    /**
+     * The framework's **declared** native build types (#108), before any global narrowing — named
+     * as the fix in the build-types-disjoint finding.
+     */
+    @get:Internal public abstract val frameworkBuildTypesDeclared: ListProperty<String>
 
     /** Whether the framework opted into XCFramework assembly (#106). */
     @get:Internal public abstract val frameworkXcframework: Property<Boolean>
 
     /** Same decision as the framework-unattached advisory (#107) — drives the `[!]` finding. */
     @get:Internal public abstract val frameworkUnattached: Property<Boolean>
+
+    /**
+     * Same decision as the framework build-types-disjoint advisory (#108) — drives the `[!]`
+     * finding. True when the framework attached but `kmptargets.framework.buildTypes ∩ declared` is
+     * empty, so nothing links.
+     */
+    @get:Internal public abstract val frameworkBuildTypesDisjoint: Property<Boolean>
 
     /**
      * The doctor-data files of this module's `project(...)` dependencies, resolved at execution
@@ -131,8 +148,10 @@ public abstract class KmpTargetsDoctorTask : DefaultTask() {
                 frameworkBaseName = frameworkBaseName.get(),
                 frameworkAttachedIds = frameworkAttachedIds.get(),
                 frameworkBuildTypes = frameworkBuildTypes.get(),
+                frameworkBuildTypesDeclared = frameworkBuildTypesDeclared.get(),
                 frameworkXcframework = frameworkXcframework.get(),
                 frameworkUnattached = frameworkUnattached.get(),
+                frameworkBuildTypesDisjoint = frameworkBuildTypesDisjoint.get(),
                 closureDepCount = dependencies.size,
                 closureGaps = gaps,
             )

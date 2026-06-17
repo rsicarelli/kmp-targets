@@ -43,8 +43,10 @@ internal fun formatKmpTargetsDoctor(
     frameworkBaseName: String = "",
     frameworkAttachedIds: List<String> = emptyList(),
     frameworkBuildTypes: List<String> = emptyList(),
+    frameworkBuildTypesDeclared: List<String> = emptyList(),
     frameworkXcframework: Boolean = false,
     frameworkUnattached: Boolean = false,
+    frameworkBuildTypesDisjoint: Boolean = false,
 ): String = buildString {
     appendLine("kmp-targets doctor — $projectPath")
     appendLine()
@@ -157,6 +159,21 @@ internal fun formatKmpTargetsDoctor(
                     "fix:    widen the selection (or supports { }) to register an Apple target in " +
                         "the framework's scope, or gate appleFramework(…) in build-logic when " +
                         "registered(apple).isEmpty()",
+                )
+            )
+        }
+        if (frameworkBuildTypesDisjoint) {
+            add(
+                finding(
+                    "framework build types disjoint",
+                    "why:    kmptargets.framework.buildTypes resolved to a set sharing no build " +
+                        "type with appleFramework(\"$frameworkBaseName\")'s declared " +
+                        "${render(frameworkBuildTypesDeclared)}, so the effective set is empty",
+                    "effect: no framework binary (or XCFramework slice) links though Apple targets " +
+                        "registered; an Xcode build consuming it fails downstream",
+                    "fix:    set kmptargets.framework.buildTypes to one of " +
+                        "${render(frameworkBuildTypesDeclared)}, or widen the appleFramework(…) " +
+                        "declaration",
                 )
             )
         }

@@ -32,6 +32,7 @@ kmptargets.hierarchyTemplate=true
 # kmptargets.hierarchyCollapse=false   # see "Hierarchy"
 # kmptargets.strict=true               # see "Advisories & Strict Mode"
 # kmptargets.umbrellaTasks=true        # see "CI"
+# kmptargets.framework.buildTypes=debug  # see "Apple Framework"
 ```
 
 `kmp-targets.local.properties` (git-ignored) is optional: absent it's ignored; present, its keys override the committed file's. Both files accept only known `kmptargets.*` keys — an unknown key fails the build with a "did you mean …?" suggestion. Both are tracked configuration-cache inputs: editing one invalidates the cache, leaving them untouched keeps cache hits.

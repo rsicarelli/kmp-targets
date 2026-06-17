@@ -158,6 +158,18 @@ public abstract class KmpTargetsExtension @Inject constructor(objects: ObjectFac
     internal var globalSelection: KmpTargetSet? = null
 
     /**
+     * The global Apple-framework build types resolved from `kmptargets.framework.buildTypes` at
+     * apply time, or `null` when no source provided one — the build-type twin of [globalSelection]
+     * (issue #108). When present, [appleFramework] links `property ∩ declared` (intersection only
+     * narrows, never widens; a disjoint pair links nothing and warns). Stored as an immutable set
+     * of KGP's own [NativeBuildType] enum, so it stays configuration-cache safe. A blank/absent
+     * property leaves this `null`, and a present-but-empty parse (e.g. `","`) is also treated as
+     * absent, so the declared build types win — symmetric with how a blank `kmptargets.targets`
+     * defers.
+     */
+    internal var globalBuildTypes: Set<NativeBuildType>? = null
+
+    /**
      * The selection actually used to register targets: the global `kmptargets.targets` if present,
      * otherwise [defaultSelection] (which itself defaults to [KmpTargetSet.all]). Public so
      * build-logic can read the resolved set (e.g. for conditional configuration).
@@ -255,6 +267,14 @@ public abstract class KmpTargetsExtension @Inject constructor(objects: ObjectFac
      * framework's scope attaches, the module can never become unattached again.
      */
     internal var frameworkUnattachedWarned: Boolean = false
+
+    /**
+     * True once the framework build-types-disjoint advisory (#108) fired, so it fires at most once
+     * per module. Mirrors [frameworkUnattachedWarned]: the global `kmptargets.framework.buildTypes`
+     * and the declared `buildTypes` are both fixed at apply/declaration time, so the disjoint
+     * verdict is permanent once the framework attaches to an Apple leaf.
+     */
+    internal var frameworkBuildTypesDisjointWarned: Boolean = false
 
     /**
      * Fired at the end of [appleFramework], once its attach subscription has replayed against any
@@ -444,7 +464,17 @@ public abstract class KmpTargetsExtension @Inject constructor(objects: ObjectFac
             )
         }
         appleFrameworkDeclared = true
-        appleFrameworkFacts = AppleFrameworkFacts(baseName, on, buildTypes.toSet(), xcframework)
+        // Effective build types (#108): the lane-shaped global `kmptargets.framework.buildTypes`
+        // intersected with what this module declared — the `selection ∩ supported` shape on the
+        // build-type axis. `null` global means "not set" → the declaration wins verbatim, so a KGP
+        // default is never silently narrowed. Intersection only narrows (it can never link a build
+        // type the module didn't declare); a disjoint pair yields an empty set — nothing links, and
+        // the build-types-disjoint advisory explains why.
+        val declaredBuildTypes = buildTypes.toSet()
+        val effectiveBuildTypes =
+            globalBuildTypes?.let { declaredBuildTypes intersect it } ?: declaredBuildTypes
+        appleFrameworkFacts =
+            AppleFrameworkFacts(baseName, on, declaredBuildTypes, xcframework, effectiveBuildTypes)
         // Lazy XCFramework config (#106): created on the first Apple attach via the target's own
         // project (AbstractKotlinTarget.getProject), so a selection that registers no Apple leaf
         // never materializes an assemble…XCFramework task. onRegistered fires synchronously at
@@ -454,18 +484,28 @@ public abstract class KmpTargetsExtension @Inject constructor(objects: ObjectFac
             // Record the genuine attach (#107): this block runs only once a registered Apple leaf
             // in
             // `on` resolved to a live KGP target, so the set is exactly what the framework built
-            // for.
+            // for. Recorded BEFORE the disjoint guard below, so an Apple leaf that registers but
+            // links nothing (disjoint build types) is still "attached" — that is what makes the
+            // unattached advisory (#107) and the build-types-disjoint advisory (#108) mutually
+            // exclusive.
             appleFrameworkAttachedLeaves += leaf
+            // Disjoint property ∩ declaration (#108): no build type survives, so there is nothing
+            // to
+            // link. Skip both the framework binaries and the XCFramework config (so no empty
+            // assemble…XCFramework task materializes); maybeWarnFrameworkBuildTypesDisjoint
+            // surfaces
+            // the consequence.
+            if (effectiveBuildTypes.isEmpty()) return@onAppleNativeTarget
             val config =
                 if (xcframework) {
                     xcframeworkConfig
-                        ?: XCFrameworkConfig(project, baseName, buildTypes.toSet()).also {
+                        ?: XCFrameworkConfig(project, baseName, effectiveBuildTypes).also {
                             xcframeworkConfig = it
                         }
                 } else {
                     null
                 }
-            binaries.framework(buildTypes = buildTypes) {
+            binaries.framework(buildTypes = effectiveBuildTypes) {
                 this.baseName = baseName
                 configure()
                 // Add each per-buildType slice after its baseName is set; XCFrameworkConfig groups
@@ -514,4 +554,12 @@ internal data class AppleFrameworkFacts(
     val on: KmpTargetSet,
     val buildTypes: Set<NativeBuildType>,
     val xcframework: Boolean,
+    /**
+     * The build types that actually link: `kmptargets.framework.buildTypes ∩ [buildTypes]`, or
+     * [buildTypes] verbatim when the global property is absent (issue #108). Defaults to
+     * [buildTypes] so call sites that don't narrow stay unchanged. Empty only when the global
+     * property and the declaration are disjoint — the state the build-types-disjoint advisory
+     * flags.
+     */
+    val effectiveBuildTypes: Set<NativeBuildType> = buildTypes,
 )

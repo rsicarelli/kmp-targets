@@ -34,9 +34,24 @@ internal object ConfigKeys {
      */
     const val UMBRELLA_TASKS: String = "kmptargets.umbrellaTasks"
 
+    /**
+     * Global Apple-framework build types — which `NativeBuildType`s the framework links *now*
+     * (`debug`/`release`, comma grammar, case-insensitive; see `parseBuildTypes`). Lane-shaped like
+     * [TARGETS]: the effective build types are `property ∩ appleFramework(buildTypes = …)`, so the
+     * property only ever narrows the module's declaration, never widens it (issue #108).
+     */
+    const val FRAMEWORK_BUILD_TYPES: String = "kmptargets.framework.buildTypes"
+
     /** Every key the dedicated config files may legally contain (unknown keys fail the build). */
     val ALL: Set<String> =
-        setOf(TARGETS, HIERARCHY_TEMPLATE, HIERARCHY_COLLAPSE, STRICT, UMBRELLA_TASKS)
+        setOf(
+            TARGETS,
+            HIERARCHY_TEMPLATE,
+            HIERARCHY_COLLAPSE,
+            STRICT,
+            UMBRELLA_TASKS,
+            FRAMEWORK_BUILD_TYPES,
+        )
 
     /** Committed, team-shared config file at the root of the build. */
     const val COMMITTED_FILE: String = "kmp-targets.properties"
