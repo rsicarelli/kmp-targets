@@ -21,6 +21,13 @@ updates:
       junit:
         patterns:
           - "org.junit*"
+    ignore:
+      # Kotlin is upgraded deliberately (toolchain + sample DSL migration), never as an automated
+      # bump — Kotlin 2.4.0 removed the built-in ABI-validation DSL the abi-builtin sample uses (#92).
+      - dependency-name: "org.jetbrains.kotlin*"
+      # Compose is upgraded deliberately in lockstep with the Kotlin / Compose-compiler toolchain.
+      - dependency-name: "org.jetbrains.compose*"
+      - dependency-name: "androidx.compose*"
 
   - package-ecosystem: github-actions
     directory: "/"
