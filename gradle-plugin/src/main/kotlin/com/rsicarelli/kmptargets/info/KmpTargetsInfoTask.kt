@@ -97,6 +97,24 @@ public abstract class KmpTargetsInfoTask : DefaultTask() {
      */
     @get:Internal public abstract val nativeOnlyMetadata: Property<Boolean>
 
+    /**
+     * Whether this module declared an `appleFramework` (#107) — gates the Apple framework section.
+     * The facts below render the same values `kmpTargetsDoctor` shows, from the same providers.
+     */
+    @get:Internal public abstract val frameworkDeclared: Property<Boolean>
+
+    /** The declared framework's baseName (#107); blank when no framework was declared. */
+    @get:Internal public abstract val frameworkBaseName: Property<String>
+
+    /** Sorted ids of the Apple leaves the framework actually attached to (`registered ∩ on`). */
+    @get:Internal public abstract val frameworkAttachedIds: ListProperty<String>
+
+    /** The framework's creation-time native build types (e.g. `DEBUG`, `RELEASE`), sorted. */
+    @get:Internal public abstract val frameworkBuildTypes: ListProperty<String>
+
+    /** Whether the framework opted into XCFramework assembly (#106). */
+    @get:Internal public abstract val frameworkXcframework: Property<Boolean>
+
     @TaskAction
     public fun report() {
         println(
@@ -116,6 +134,11 @@ public abstract class KmpTargetsInfoTask : DefaultTask() {
                 androidWithoutAgp = androidWithoutAgp.get(),
                 inertModule = inertModule.get(),
                 nativeOnlyMetadata = nativeOnlyMetadata.get(),
+                frameworkDeclared = frameworkDeclared.get(),
+                frameworkBaseName = frameworkBaseName.get(),
+                frameworkAttachedIds = frameworkAttachedIds.get(),
+                frameworkBuildTypes = frameworkBuildTypes.get(),
+                frameworkXcframework = frameworkXcframework.get(),
             )
         )
     }

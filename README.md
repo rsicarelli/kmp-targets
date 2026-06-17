@@ -69,7 +69,7 @@ Everything lives at **[rsicarelli.github.io/kmp-targets](https://rsicarelli.gith
 - [Build Logic](https://rsicarelli.github.io/kmp-targets/user-guide/build-logic/) — conventions, `onRegistered`, helpers
 - [Apple Framework](https://rsicarelli.github.io/kmp-targets/user-guide/apple-framework/) — `appleFramework`, `onAppleTarget`, route-to-real-KGP
 - [Recipes](https://rsicarelli.github.io/kmp-targets/user-guide/recipes/) — KSP gates, AGP gating, dependency-graph rules
-- [Advisories & Strict Mode](https://rsicarelli.github.io/kmp-targets/user-guide/advisories/) — the six advisories and CI strictness
+- [Advisories & Strict Mode](https://rsicarelli.github.io/kmp-targets/user-guide/advisories/) — the seven advisories and CI strictness
 - [Diagnostics](https://rsicarelli.github.io/kmp-targets/user-guide/diagnostics/) — `kmpTargetsInfo` and `kmpTargetsDoctor`
 - [CI](https://rsicarelli.github.io/kmp-targets/user-guide/ci-matrix/) — per-host matrix, umbrella tasks
 - [Design](https://rsicarelli.github.io/kmp-targets/why-kmp-targets/) — rationale and trade-offs

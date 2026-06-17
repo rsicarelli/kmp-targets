@@ -28,6 +28,7 @@ kmpTargets {
 - **Ordering-immune.** `appleFramework` declared *before* or *after* `supports {}` behaves identically (it rides the `onRegistered` replay); a later `supports {}` union attaches only the delta.
 - **Exports stay lazy.** A version-catalog `Provider` is realized by KGP at attach time, not at declaration.
 - **One per module** in v1 — a second call, a blank name, or `on ⊄ apple` fails fast. (Multiple frameworks need a `namePrefix` strategy; a follow-up.)
+- **Attaches to nothing? You're warned.** If the current selection registers no Apple target in the framework's `on` scope (a jvm-only lane, or an `on` narrower than what registered), the framework silently never builds and an Xcode consumer fails downstream — so the plugin emits the [framework-without-an-Apple-target advisory](advisories.md#framework-without-an-apple-target) (a configuration failure under `kmptargets.strict`). [`kmpTargetsInfo`](diagnostics.md#kmptargetsinfo) and [`kmpTargetsDoctor`](diagnostics.md#kmptargetsdoctor) render the declared name and the leaves it attached to.
 
 ## XCFramework assembly
 
@@ -79,4 +80,4 @@ extensions.configure<KmpTargetsExtension> {
 
 ## Out of scope
 
-An unattached-framework advisory, build types via a layered property, multiple frameworks per module (and aggregating several into one XCFramework), and non-Apple binaries (`sharedLib`/`staticLib`/`executable`) are deliberate follow-ups.
+Build types via a layered property, multiple frameworks per module (and aggregating several into one XCFramework), and non-Apple binaries (`sharedLib`/`staticLib`/`executable`) are deliberate follow-ups.

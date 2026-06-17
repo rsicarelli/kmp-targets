@@ -193,6 +193,60 @@ class KmpTargetsDoctorFormatTest {
     }
 
     @Test
+    fun `given an unattached framework when formatted then it explains the cause effect and fix`() {
+        val output =
+            format(
+                selectionIds = listOf("jvm"),
+                supportedIds = listOf("jvm"),
+                registeredIds = listOf("jvm"),
+                frameworkDeclared = true,
+                frameworkBaseName = "KotlinShared",
+                frameworkAttachedIds = emptyList(),
+                frameworkUnattached = true,
+            )
+        assertContains(output, "[!] framework declared but unattached")
+        assertContains(output, "KotlinShared")
+        assertContains(output, "missing-framework error")
+        assertContains(output, "registered(apple).isEmpty()")
+    }
+
+    @Test
+    fun `given a declared framework when formatted then the Apple framework facts render`() {
+        val output =
+            format(
+                registeredIds = listOf("iosArm64"),
+                frameworkDeclared = true,
+                frameworkBaseName = "KotlinShared",
+                frameworkAttachedIds = listOf("iosArm64"),
+                frameworkBuildTypes = listOf("DEBUG", "RELEASE"),
+                frameworkXcframework = true,
+            )
+        assertContains(output, "Apple framework")
+        assertContains(output, "name:        KotlinShared")
+        assertContains(output, "attached:    iosArm64")
+        assertContains(output, "buildTypes:  DEBUG, RELEASE")
+        assertContains(output, "xcframework: on")
+    }
+
+    @Test
+    fun `given a framework declared but supports never called when formatted then the facts render with no finding`() {
+        // Explicit-selection doctrine: no supports { } means no advisory, but the declared-but-
+        // unattached state is still surfaced — the facts render even though the report early-exits.
+        val output =
+            format(
+                supportsDeclared = false,
+                registeredIds = emptyList(),
+                frameworkDeclared = true,
+                frameworkBaseName = "KotlinShared",
+                frameworkAttachedIds = emptyList(),
+            )
+        assertContains(output, "Apple framework")
+        assertContains(output, "attached:    (none)")
+        assertContains(output, "never called supports { }")
+        assertFalse("[!]" in output, output)
+    }
+
+    @Test
     fun `given identical inputs when formatted twice then the output is identical`() {
         // Config-cache contract: pure function of primitives.
         assertTrue(format() == format())
@@ -215,6 +269,12 @@ class KmpTargetsDoctorFormatTest {
         jvmRegisteredAs: String? = null,
         closureDepCount: Int = 0,
         closureGaps: List<ClosureGap> = emptyList(),
+        frameworkDeclared: Boolean = false,
+        frameworkBaseName: String = "",
+        frameworkAttachedIds: List<String> = emptyList(),
+        frameworkBuildTypes: List<String> = emptyList(),
+        frameworkXcframework: Boolean = false,
+        frameworkUnattached: Boolean = false,
     ): String =
         formatKmpTargetsDoctor(
             projectPath = projectPath,
@@ -233,5 +293,11 @@ class KmpTargetsDoctorFormatTest {
             jvmRegisteredAs = jvmRegisteredAs,
             closureDepCount = closureDepCount,
             closureGaps = closureGaps,
+            frameworkDeclared = frameworkDeclared,
+            frameworkBaseName = frameworkBaseName,
+            frameworkAttachedIds = frameworkAttachedIds,
+            frameworkBuildTypes = frameworkBuildTypes,
+            frameworkXcframework = frameworkXcframework,
+            frameworkUnattached = frameworkUnattached,
         )
 }

@@ -75,6 +75,29 @@ public abstract class KmpTargetsDoctorTask : DefaultTask() {
     @get:Internal public abstract val jvmRegisteredAs: Property<String>
 
     /**
+     * Whether this module declared an `appleFramework` (#107). The four facts below render the same
+     * values `kmpTargetsInfo` shows, from the same providers, so the surfaces can never drift. They
+     * render even when `supports { }` was never declared — a declared-but-unattached framework is
+     * still reported (`attached: (none)`), distinct from the no-advisory state.
+     */
+    @get:Internal public abstract val frameworkDeclared: Property<Boolean>
+
+    /** The declared framework's baseName (#107); blank when no framework was declared. */
+    @get:Internal public abstract val frameworkBaseName: Property<String>
+
+    /** Sorted ids of the Apple leaves the framework actually attached to (`registered ∩ on`). */
+    @get:Internal public abstract val frameworkAttachedIds: ListProperty<String>
+
+    /** The framework's creation-time native build types (e.g. `DEBUG`, `RELEASE`), sorted. */
+    @get:Internal public abstract val frameworkBuildTypes: ListProperty<String>
+
+    /** Whether the framework opted into XCFramework assembly (#106). */
+    @get:Internal public abstract val frameworkXcframework: Property<Boolean>
+
+    /** Same decision as the framework-unattached advisory (#107) — drives the `[!]` finding. */
+    @get:Internal public abstract val frameworkUnattached: Property<Boolean>
+
+    /**
      * The doctor-data files of this module's `project(...)` dependencies, resolved at execution
      * time through the lenient ArtifactView. Declaring them as inputs wires the dependency emit
      * tasks, so a `kmpTargetsDoctor` run materializes its dependencies' data first.
@@ -104,6 +127,12 @@ public abstract class KmpTargetsDoctorTask : DefaultTask() {
                 registeredDeprecatedIds = registeredDeprecatedIds.get(),
                 singleTargetKsp = singleTargetKsp.get(),
                 jvmRegisteredAs = jvmRegisteredAs.orNull?.takeIf { it.isNotBlank() },
+                frameworkDeclared = frameworkDeclared.get(),
+                frameworkBaseName = frameworkBaseName.get(),
+                frameworkAttachedIds = frameworkAttachedIds.get(),
+                frameworkBuildTypes = frameworkBuildTypes.get(),
+                frameworkXcframework = frameworkXcframework.get(),
+                frameworkUnattached = frameworkUnattached.get(),
                 closureDepCount = dependencies.size,
                 closureGaps = gaps,
             )

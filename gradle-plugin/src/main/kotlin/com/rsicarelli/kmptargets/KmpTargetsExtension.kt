@@ -230,6 +230,50 @@ public abstract class KmpTargetsExtension @Inject constructor(objects: ObjectFac
     internal var appleFrameworkDeclared: Boolean = false
 
     /**
+     * Immutable facts captured the moment [appleFramework] is declared (#107): the baseName, the
+     * `on` scope, the creation-time buildTypes, and whether an XCFramework was requested. Null
+     * until a framework is declared. Config-cache safe — only immutable values (a String, a
+     * [KmpTargetSet] of `data object` leaves, a [NativeBuildType] enum set, a Boolean); no
+     * `Project` or task. The `kmpTargetsInfo`/`kmpTargetsDoctor` providers render these so the two
+     * surfaces can never drift from what was declared.
+     */
+    internal var appleFrameworkFacts: AppleFrameworkFacts? = null
+
+    /**
+     * The Apple leaves the declared framework was **actually attached to** — the ground truth of
+     * `registered ∩ on ∩ apple`, added in the [appleFramework] attach callback as each leaf
+     * resolves to its live KGP target (#107). The framework-unattached advisory keys off this being
+     * empty; info/doctor render it as the attached leaf ids. Mutated only from synchronous,
+     * configuration-time `onRegistered` actions, so the plain set needs no synchronization.
+     */
+    internal val appleFrameworkAttachedLeaves: MutableSet<KmpTarget> = mutableSetOf()
+
+    /**
+     * True once the framework-unattached advisory (#107) fired, so it fires at most once per
+     * module. A boolean (not a set), mirroring [inertWarned]/[nativeOnlyMetadataWarned]: being
+     * unattached is a whole-module property and registration is one-way — once an Apple leaf in the
+     * framework's scope attaches, the module can never become unattached again.
+     */
+    internal var frameworkUnattachedWarned: Boolean = false
+
+    /**
+     * Fired at the end of [appleFramework], once its attach subscription has replayed against any
+     * already-registered Apple leaves; the plugin wires this to re-evaluate the
+     * framework-unattached advisory (#107). Null until the plugin runs. The replay-path twin of
+     * [onSupports]: a framework declared AFTER a (say jvm-only) `supports { }` attaches nothing on
+     * replay, and only this hook — not another `supports { }` call — gives the advisory its chance
+     * to fire.
+     */
+    internal var onAppleFrameworkDeclared: (() -> Unit)? = null
+
+    /**
+     * Snapshot of [appleFrameworkAttachedLeaves] as a [KmpTargetSet] (#107) — what the advisory
+     * predicate and the info/doctor providers read, mirroring [registered]'s snapshot style.
+     */
+    internal fun frameworkAttachedLeaves(): KmpTargetSet =
+        KmpTargetSet.of(*appleFrameworkAttachedLeaves.toTypedArray())
+
+    /**
      * The per-module `kmpCompileAll` umbrella task (#77), registered unconditionally at apply time.
      * The eager registration loop appends one compile-task dependency per registered leaf, so the
      * umbrella ends up depending on exactly the registered intersection — selection-agnostic and
@@ -334,7 +378,7 @@ public abstract class KmpTargetsExtension @Inject constructor(objects: ObjectFac
      * the extension) from a task action.
      */
     public fun onAppleTarget(action: KotlinNativeTarget.() -> Unit): Unit =
-        onAppleNativeTarget(KmpTargetSet.apple, action)
+        onAppleNativeTarget(KmpTargetSet.apple) { action() }
 
     /**
      * Declares a Kotlin **Apple framework** once and attaches it to every registered Apple leaf in
@@ -400,12 +444,18 @@ public abstract class KmpTargetsExtension @Inject constructor(objects: ObjectFac
             )
         }
         appleFrameworkDeclared = true
+        appleFrameworkFacts = AppleFrameworkFacts(baseName, on, buildTypes.toSet(), xcframework)
         // Lazy XCFramework config (#106): created on the first Apple attach via the target's own
         // project (AbstractKotlinTarget.getProject), so a selection that registers no Apple leaf
         // never materializes an assemble…XCFramework task. onRegistered fires synchronously at
         // configuration time, so the plain var needs no synchronization.
         var xcframeworkConfig: XCFrameworkConfig? = null
-        onAppleNativeTarget(on) {
+        onAppleNativeTarget(on) { leaf ->
+            // Record the genuine attach (#107): this block runs only once a registered Apple leaf
+            // in
+            // `on` resolved to a live KGP target, so the set is exactly what the framework built
+            // for.
+            appleFrameworkAttachedLeaves += leaf
             val config =
                 if (xcframework) {
                     xcframeworkConfig
@@ -423,6 +473,12 @@ public abstract class KmpTargetsExtension @Inject constructor(objects: ObjectFac
                 config?.add(this)
             }
         }
+        // The subscription above replayed synchronously against any already-registered Apple
+        // leaves,
+        // so the attached-leaf set is now final for the current selection. Re-evaluate the
+        // framework-unattached advisory (#107): this is the only firing path when the framework is
+        // declared AFTER a supports { } that no longer re-runs register().
+        onAppleFrameworkDeclared?.invoke()
     }
 
     /**
@@ -431,11 +487,31 @@ public abstract class KmpTargetsExtension @Inject constructor(objects: ObjectFac
      * [KotlinNativeTarget] through [kotlinTargetByName] before invoking [block]. The null-safe
      * chain means it is inert until the plugin installs the resolver under `withPlugin(KGP_ID)`.
      */
-    private fun onAppleNativeTarget(within: KmpTargetSet, block: KotlinNativeTarget.() -> Unit) {
+    private fun onAppleNativeTarget(
+        within: KmpTargetSet,
+        block: KotlinNativeTarget.(KmpTarget) -> Unit,
+    ) {
         onRegistered { registered ->
-            if (registered.leaf is KmpTarget.Native.Apple && registered.leaf in within) {
-                (kotlinTargetByName?.invoke(registered.gradleName) as? KotlinNativeTarget)?.block()
+            val leaf = registered.leaf
+            if (leaf is KmpTarget.Native.Apple && leaf in within) {
+                (kotlinTargetByName?.invoke(registered.gradleName) as? KotlinNativeTarget)?.block(
+                    leaf
+                )
             }
         }
     }
 }
+
+/**
+ * Immutable snapshot of an [KmpTargetsExtension.appleFramework] declaration (#107), captured at
+ * declaration time so `kmpTargetsInfo`/`kmpTargetsDoctor` can render the framework facts without
+ * re-deriving them. Config-cache safe by construction: every field is an immutable value — no
+ * `Project`, task, or live KGP type is held. Mirrors the immutable-record style of
+ * [com.rsicarelli.kmptargets.model.RegisteredTarget].
+ */
+internal data class AppleFrameworkFacts(
+    val baseName: String,
+    val on: KmpTargetSet,
+    val buildTypes: Set<NativeBuildType>,
+    val xcframework: Boolean,
+)

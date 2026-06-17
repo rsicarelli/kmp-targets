@@ -39,9 +39,29 @@ internal fun formatKmpTargetsDoctor(
     jvmRegisteredAs: String?,
     closureDepCount: Int,
     closureGaps: List<ClosureGap>,
+    frameworkDeclared: Boolean = false,
+    frameworkBaseName: String = "",
+    frameworkAttachedIds: List<String> = emptyList(),
+    frameworkBuildTypes: List<String> = emptyList(),
+    frameworkXcframework: Boolean = false,
+    frameworkUnattached: Boolean = false,
 ): String = buildString {
     appendLine("kmp-targets doctor — $projectPath")
     appendLine()
+
+    // The Apple framework facts (#107) render BEFORE the supports early-exit, so a module that
+    // declared a framework but never called supports { } still reports its declared-but-unattached
+    // state (`attached: (none)`) — there is no advisory there, but the state is worth surfacing.
+    // The
+    // `[!]` framework finding below is separate and only fires when the advisory does.
+    if (frameworkDeclared) {
+        appendLine("Apple framework")
+        appendLine("  name:        $frameworkBaseName")
+        appendLine("  attached:    ${render(frameworkAttachedIds)}")
+        appendLine("  buildTypes:  ${render(frameworkBuildTypes)}")
+        appendLine("  xcframework: ${if (frameworkXcframework) "on" else "off"}")
+        appendLine()
+    }
 
     // A module that never declared supports { } registers nothing *intentionally* (explicit-
     // selection doctrine) — never a problem, and there is nothing downstream to check.
@@ -123,6 +143,20 @@ internal fun formatKmpTargetsDoctor(
                         "reject JVM-flavored constructs (e.g. @JvmInline)",
                     "fix:    gate on registered(jvmFamily).isEmpty() in build-logic, disabling " +
                         "only the *KotlinMetadata* compilations",
+                )
+            )
+        }
+        if (frameworkUnattached) {
+            add(
+                finding(
+                    "framework declared but unattached",
+                    "why:    appleFramework(\"$frameworkBaseName\") is declared but this selection " +
+                        "registered no Apple target in its scope",
+                    "effect: the framework attaches to nothing and never builds; an Xcode build " +
+                        "consuming it fails downstream with a missing-framework error",
+                    "fix:    widen the selection (or supports { }) to register an Apple target in " +
+                        "the framework's scope, or gate appleFramework(…) in build-logic when " +
+                        "registered(apple).isEmpty()",
                 )
             )
         }

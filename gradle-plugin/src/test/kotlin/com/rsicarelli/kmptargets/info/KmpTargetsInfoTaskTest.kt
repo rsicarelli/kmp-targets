@@ -37,6 +37,32 @@ class KmpTargetsInfoTaskTest {
     }
 
     @Test
+    fun `given a declared framework when the info task is realized then it exposes the framework facts`(
+        @TempDir dir: Path
+    ) {
+        // No KGP here, so nothing registers and the framework attaches to nothing — but the
+        // declared
+        // facts (name, buildTypes, xcframework) are captured at appleFramework() time regardless.
+        val project = newAppliedProject(dir)
+        project.extensions
+            .getByType(KmpTargetsExtension::class.java)
+            .appleFramework("KotlinShared", xcframework = true)
+        val task = infoTask(project)
+        assertTrue(task.frameworkDeclared.get())
+        assertEquals("KotlinShared", task.frameworkBaseName.get())
+        assertEquals(listOf("DEBUG", "RELEASE"), task.frameworkBuildTypes.get())
+        assertTrue(task.frameworkXcframework.get())
+        assertEquals(emptyList(), task.frameworkAttachedIds.get())
+    }
+
+    @Test
+    fun `given no declared framework when the info task is realized then frameworkDeclared is false`(
+        @TempDir dir: Path
+    ) {
+        assertFalse(infoTask(newAppliedProject(dir)).frameworkDeclared.get())
+    }
+
+    @Test
     fun `given defaultSelection overridden after apply when info task is realized then origin is the build-logic default`(
         @TempDir dir: Path
     ) {
