@@ -42,6 +42,16 @@ internal object ConfigKeys {
      */
     const val FRAMEWORK_BUILD_TYPES: String = "kmptargets.framework.buildTypes"
 
+    /**
+     * Global opt-in letting Xcode's own build environment drive selection (`true`/`false`, default
+     * off — issue #109). When on, an Xcode-environment source is slotted into the precedence chain
+     * (below CLI `-P`/env, above the dedicated files) for both [TARGETS] (from `SDK_NAME`+`ARCHS`)
+     * and [FRAMEWORK_BUILD_TYPES] (from `CONFIGURATION`), so an
+     * `embedAndSign…AppleFrameworkForXcode` build needs no `-P`. The committed flag is the explicit
+     * act; with it off the Xcode env vars are never read.
+     */
+    const val XCODE_ENV: String = "kmptargets.xcodeEnv"
+
     /** Every key the dedicated config files may legally contain (unknown keys fail the build). */
     val ALL: Set<String> =
         setOf(
@@ -51,6 +61,7 @@ internal object ConfigKeys {
             STRICT,
             UMBRELLA_TASKS,
             FRAMEWORK_BUILD_TYPES,
+            XCODE_ENV,
         )
 
     /** Committed, team-shared config file at the root of the build. */

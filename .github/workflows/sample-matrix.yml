@@ -9,6 +9,9 @@
 # its only selectable shape). Registration is host-blind by design — selecting iosArm64 on
 # Linux/Windows registers it with an advisory and KGP disables its compile tasks there.
 #
+# The macOS lane additionally validates the opt-in Xcode-environment source (#109) over the
+# standalone samples/xcode-env build — the only host that can link the framework Xcode would embed.
+#
 # Gradle comes from the committed wrapper (9.5.1) — no `gradle-version` override — and the JDK
 # matches .mise.toml (Temurin 23), so CI and local toolchains stay aligned.
 
@@ -74,3 +77,20 @@ jobs:
 
       - name: Build sample with host-appropriate selection
         run: ./gradlew -p samples/hello-world build "-Pkmptargets.targets=${{ matrix.targets }}"
+
+      # macOS only: the opt-in Xcode-environment source (#109). Exporting Xcode's real
+      # SDK_NAME/ARCHS/CONFIGURATION — exactly what Xcode sets before invoking Gradle for
+      # embedAndSign — exercises the zero-`-P` path end to end: with `kmptargets.xcodeEnv=true`
+      # committed in the sample, selection narrows to the one simulator leaf (asserted by
+      # verifyXcodeEnvNarrowed) and the framework links on a real Apple toolchain. No .xcodeproj
+      # needed; the env contract is KGP's own.
+      - name: Validate Xcode-environment selection (macOS)
+        if: runner.os == 'macOS'
+        env:
+          SDK_NAME: iphonesimulator
+          ARCHS: arm64
+          CONFIGURATION: Debug
+        run: |
+          ./gradlew -p samples/xcode-env :kmpTargetsInfo -q
+          ./gradlew -p samples/xcode-env verifyXcodeEnvNarrowed
+          ./gradlew -p samples/xcode-env linkDebugFrameworkIosSimulatorArm64

@@ -1,6 +1,6 @@
 # Samples
 
-Four standalone sample builds consume the plugin as an external project would: shared root version catalog, plugin resolved by version (mavenLocal in the dev loop, Maven Central for consumers).
+Five standalone sample builds consume the plugin as an external project would: shared root version catalog, plugin resolved by version (mavenLocal in the dev loop, Maven Central for consumers).
 
 ## hello-world — the multi-module showcase
 
@@ -40,6 +40,16 @@ Two single-module libraries that support `jvm + linuxX64 + js` and commit ABI du
 ./gradlew -p samples/abi-bcv     apiCheck                                   # full selection (recommended lane) → clean
 ```
 
+## xcode-env — Xcode drives selection
+
+[`samples/xcode-env`](https://github.com/rsicarelli/kmp-targets/tree/main/samples/xcode-env) is a single-module library shipping an iOS/macOS framework with `kmptargets.xcodeEnv=true` committed. With no Xcode env it builds the committed fallback; when Xcode's `SDK_NAME`/`ARCHS`/`CONFIGURATION` are present they narrow selection to the one leaf being built — no `-P`. Its `verifyXcodeEnvNarrowed` task pins the narrowing; the [Xcode Environment](../user-guide/xcode-environment.md) guide explains the mapping.
+
+```bash
+./gradlew -p samples/xcode-env kmpTargetsInfo                                   # committed fallback
+SDK_NAME=iphonesimulator ARCHS=arm64 CONFIGURATION=Debug \
+  ./gradlew -p samples/xcode-env verifyXcodeEnvNarrowed                         # narrows to iosSimulatorArm64
+```
+
 ## CI runs them
 
-[`ci.yml`](https://github.com/rsicarelli/kmp-targets/blob/main/.github/workflows/ci.yml) builds the samples on every push; [`sample-matrix.yml`](https://github.com/rsicarelli/kmp-targets/blob/main/.github/workflows/sample-matrix.yml) builds hello-world per host with host-appropriate selections — the [CI matrix](../user-guide/ci-matrix.md) pattern.
+[`ci.yml`](https://github.com/rsicarelli/kmp-targets/blob/main/.github/workflows/ci.yml) builds the samples on every push; [`sample-matrix.yml`](https://github.com/rsicarelli/kmp-targets/blob/main/.github/workflows/sample-matrix.yml) builds hello-world per host with host-appropriate selections — the [CI matrix](../user-guide/ci-matrix.md) pattern — and on macOS links the `xcode-env` framework from the real Xcode environment.

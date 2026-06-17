@@ -26,6 +26,8 @@ import com.rsicarelli.kmptargets.source.EnvironmentVariableSource
 import com.rsicarelli.kmptargets.source.GradlePropertySource
 import com.rsicarelli.kmptargets.source.LocalPropertyValueSource
 import com.rsicarelli.kmptargets.source.SelectionSource
+import com.rsicarelli.kmptargets.source.XcodeBuildTypesSource
+import com.rsicarelli.kmptargets.source.XcodeTargetsSource
 import com.rsicarelli.kmptargets.source.composeSelectionSources
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
@@ -56,6 +58,38 @@ public class KmpTargetsPlugin : Plugin<Project> {
         validateKnownKeys(personal, ConfigKeys.LOCAL_FILE)
         validateKnownKeys(committed, ConfigKeys.COMMITTED_FILE)
 
+        // Opt-in Xcode-environment source (#109): when `kmptargets.xcodeEnv=true`, Xcode's own
+        // SDK_NAME/ARCHS/CONFIGURATION env vars become a *declared* selection layer (slot 3 — below
+        // CLI -P/env, above the dedicated files), so an `embedAndSign…AppleFrameworkForXcode` build
+        // needs no -P. The flag is read once here as a primitive through the standard chain (so it
+        // is
+        // never itself Xcode-derived — no chicken-and-egg). When OFF the env-var sources are not
+        // even
+        // constructed, so `providers.environmentVariable(...)` is never called and NO config-cache
+        // inputs are added; when ON each variable is read lazily via a provider, so invalidation is
+        // correct per variable.
+        val xcodeEnvEnabled: Boolean = xcodeEnvEnabled(target, personal, committed)
+        val xcodeTargetsSource: Pair<String, SelectionSource>? =
+            if (xcodeEnvEnabled) {
+                OriginLabels.xcodeEnvironment("SDK_NAME/ARCHS") to
+                    XcodeTargetsSource(
+                        target.providers.environmentVariable("SDK_NAME"),
+                        target.providers.environmentVariable("ARCHS"),
+                    )
+            } else {
+                null
+            }
+        val xcodeBuildTypesSource: Pair<String, SelectionSource>? =
+            if (xcodeEnvEnabled) {
+                OriginLabels.xcodeEnvironment("CONFIGURATION") to
+                    XcodeBuildTypesSource(
+                        target.providers.environmentVariable("CONFIGURATION"),
+                        target.providers.environmentVariable("KOTLIN_FRAMEWORK_BUILD_TYPE"),
+                    )
+            } else {
+                null
+            }
+
         // Global selection: what the user wants to build now. A blank/absent property means "not
         // overriding" → defer to `defaultSelection`. A non-blank property that
         // resolves to an empty set via minus operators (e.g. `jvm,-jvm`) is an explicit "build
@@ -65,10 +99,10 @@ public class KmpTargetsPlugin : Plugin<Project> {
         // `composeSelectionSources` semantics (lower layers stay unread once one wins) while also
         // capturing WHICH layer won, for `kmpTargetsInfo`'s origin report (issue #33).
         val winner: Pair<String, String>? =
-            labeledSources(target, ConfigKeys.TARGETS, personal, committed).firstNotNullOfOrNull {
-                (label, source) ->
-                source.read()?.let { value -> label to value }
-            }
+            labeledSources(target, ConfigKeys.TARGETS, personal, committed, xcodeTargetsSource)
+                .firstNotNullOfOrNull { (label, source) ->
+                    source.read()?.let { value -> label to value }
+                }
         val raw: String? = winner?.second
         if (raw != null && raw.isNotBlank()) {
             ext.globalSelection = parseOrThrow(raw, ConfigKeys.TARGETS)
@@ -84,7 +118,13 @@ public class KmpTargetsPlugin : Plugin<Project> {
         // property only ever narrows, never widens). Read once here as a primitive set of KGP's own
         // enum, so no `Project` is captured.
         val buildTypesWinner: Pair<String, String>? =
-            labeledSources(target, ConfigKeys.FRAMEWORK_BUILD_TYPES, personal, committed)
+            labeledSources(
+                    target,
+                    ConfigKeys.FRAMEWORK_BUILD_TYPES,
+                    personal,
+                    committed,
+                    xcodeBuildTypesSource,
+                )
                 .firstNotNullOfOrNull { (label, source) ->
                     source.read()?.let { value -> label to value }
                 }
@@ -743,12 +783,18 @@ public class KmpTargetsPlugin : Plugin<Project> {
         key: String,
         personal: Map<String, String>?,
         committed: Map<String, String>?,
+        xcodeEnv: Pair<String, SelectionSource>? = null,
     ): List<Pair<String, SelectionSource>> {
         val cli: String? = target.gradle.startParameter.projectProperties[key]
-        return listOf(
+        // `xcodeEnv` slots in below CLI -P/env and above the dedicated files (#109), and is null
+        // for
+        // every key it does not serve and whenever the opt-in flag is off — `listOfNotNull` then
+        // leaves the existing chain byte-identical.
+        return listOfNotNull(
             OriginLabels.cli(key) to SelectionSource { cli },
             OriginLabels.environmentVariable(key) to
                 EnvironmentVariableSource(target.providers, ConfigKeys.ENV_PREFIX + key),
+            xcodeEnv,
             ConfigKeys.LOCAL_FILE to SelectionSource { personal?.get(key) },
             ConfigKeys.COMMITTED_FILE to SelectionSource { committed?.get(key) },
             OriginLabels.gradleProperties(key) to GradlePropertySource(target.providers, key),
@@ -826,6 +872,23 @@ public class KmpTargetsPlugin : Plugin<Project> {
         committed: Map<String, String>?,
     ): Boolean =
         configSources(target, ConfigKeys.UMBRELLA_TASKS, personal, committed)
+            .read()
+            ?.trim()
+            ?.lowercase()
+            ?.toBooleanStrictOrNull() ?: false
+
+    /**
+     * Reads the global `kmptargets.xcodeEnv` flag (#109) through the standard [configSources] chain
+     * (so the flag is never itself Xcode-derived). Opt-in: unset — or anything other than
+     * `true`/`false` (case-insensitive, per `toBooleanStrictOrNull`) — means OFF, so no Xcode-env
+     * source is composed and the Xcode env vars are never read.
+     */
+    private fun xcodeEnvEnabled(
+        target: Project,
+        personal: Map<String, String>?,
+        committed: Map<String, String>?,
+    ): Boolean =
+        configSources(target, ConfigKeys.XCODE_ENV, personal, committed)
             .read()
             ?.trim()
             ?.lowercase()
