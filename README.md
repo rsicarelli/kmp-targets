@@ -19,11 +19,9 @@ kmpTargets { supports { mobile } }   // androidTarget + all iOS
 
 ## 🤔 Why kmp-targets?
 
-- **Every target builds, every sync** — You're on iOS, but Gradle still configures and compiles JS, the JVM, and the simulators. Minutes you didn't ask for.
-- **JetBrains says don't** — *"[Build only for necessary targets](https://kotlinlang.org/docs/native-improving-compilation-time.html#build-only-for-necessary-targets)"* is official Kotlin advice — but the only built-in way to follow it is hand-editing `kotlin { }` and breaking the build for everyone else.
-- **Skipped targets still cost you** — Each one drags in compile, link, test, and KSP tasks, even for platforms this machine never runs.
-- **What to build is a right-now call** — It follows the task in front of you, not everything a module could produce.
-- **One property, done** — `kmptargets.targets` picks the set; the rest never reach KGP, so their tasks never exist.
+Kotlin Multiplatform makes you declare every target up front, then builds them all on every sync. Kotlin's own docs tell you not to: *"[build only for necessary targets](https://kotlinlang.org/docs/native-improving-compilation-time.html#build-only-for-necessary-targets)."* The catch is that the only built-in way to do it is hand-editing `kotlin { }`.
+
+`kmp-targets` turns that into one property. Pick the set you want and the targets you skip never register, so their tasks never exist.
 
 ## ⚖️ Before / After
 
