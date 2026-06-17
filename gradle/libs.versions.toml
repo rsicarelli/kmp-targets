@@ -7,6 +7,10 @@ mavenPublish = "0.35.0"
 # Sample-only: the classic kotlinx ABI tool, exercised by samples/abi-bcv to demonstrate the
 # selection × ABI-validation interaction (#81). The main build does not use it.
 binaryCompatibilityValidator = "0.18.1"
+# Test-only: KSP gradle plugin, injected into the TestKit plugin classpath so a functional test can
+# apply a real KSP and pin that `kspCommonMainKotlinMetadata` tracks the ≥2-platform-targets rule
+# (#73). Matched to the Kotlin version above (KSP 2.3.x pairs with Kotlin 2.3.x).
+ksp = "2.3.9"
 # The plugin's own published version — single declaration point for the standalone samples
 # (they import this catalog and consume the plugin via `alias(libs.plugins.kmpTargets)`).
 # Kept in lockstep with `version=` in gradle.properties by .github/scripts/bump-version.main.kts.
@@ -18,6 +22,7 @@ kmpTargets-gradlePlugin = { module = "com.rsicarelli:kmp-targets-gradle-plugin",
 kotlin-gradlePluginApi = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin-api", version.ref = "kotlin" }
 asm = { module = "org.ow2.asm:asm", version.ref = "asm" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
+ksp-gradlePlugin = { module = "com.google.devtools.ksp:symbol-processing-gradle-plugin", version.ref = "ksp" }
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

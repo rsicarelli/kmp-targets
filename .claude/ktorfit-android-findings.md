@@ -187,6 +187,27 @@ Resulting error:
 - There is no `kspCommonMainKotlinMetadata` with a single target, because KGP does not create the
   common metadata compilation. That is the root of all the confusion.
 
+### Verified matrix — when does `kspCommonMainKotlinMetadata` exist?
+
+Measured with a real KSP build (a temporary `jvm + js + iosArm64` probe module driven under different
+`-Pkmptargets.targets` selections; task existence is decided at configuration, so iOS/JS never
+compiled). For `jvm,js` the task was also *run*, generating `createFakeApi` into
+`build/generated/ksp/metadata/commonMain/kotlin/`.
+
+| Selection | platform targets | native? | `kspCommonMainKotlinMetadata` |
+|---|---|---|---|
+| `jvm` | 1 | no | **absent** |
+| `iosArm64` | 1 | **yes** | **absent** ← native alone is *not* enough |
+| `jvm,js` | 2 | **no** | **present** ← no native, yet it runs and generates |
+| `jvm,iosArm64` | 2 | yes | present |
+| `android,jvm` | 2 | no | present (confirmed via generated artifact) |
+| `android` | 1 | no | absent (single target) |
+
+**Rule:** `kspCommonMainKotlinMetadata` exists **iff ≥2 platform targets share `commonMain`** —
+identical to KGP's `compileCommonMainKotlinMetadata`. Native presence is neither necessary nor
+sufficient. This **disproves** the repo's prior "commonMain KSP needs a native target" guidance
+(`docs/user-guide/recipes.md`); the real trap is a **single target**, native or not.
+
 ## 8. Two AGP-9 caveats found along the way
 
 1. **`com.android.library` + KMP is rejected on AGP 9.0+.** `kmp-targets` registers Android via KGP's

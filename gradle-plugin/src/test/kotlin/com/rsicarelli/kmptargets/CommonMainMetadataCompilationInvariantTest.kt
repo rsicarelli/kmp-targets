@@ -25,11 +25,15 @@ import org.junit.jupiter.api.io.TempDir
  * - `jvm + js` → **present** (two non-native targets share commonMain)
  * - `jvm + iosArm64` → present
  *
- * So the native-gating the issue describes belongs to KSP's `kspCommonMainKotlinMetadata` route
- * (KSP's own multiplatform wiring), not to KGP's metadata compilation. The recipe therefore gates
- * conservatively on `registered(KmpTargetSet.native).isEmpty()` for native-wired processors rather
- * than claiming anything about the bare compilation. If a KGP bump changes the target-count rule
- * pinned below, this test fails loudly and the recipe's premise must be revisited.
+ * The #73 recipe originally *assumed* KSP's `kspCommonMainKotlinMetadata` route was different —
+ * native-gated — and so gated "conservatively" on `registered(KmpTargetSet.native).isEmpty()`. That
+ * assumption was never measured and is **wrong**: the ktorfit sample (KSP 2.3.9 / Kotlin 2.3.21)
+ * showed KSP's route tracks the very same compilation pinned here — `jvm,js` (no native) generates
+ * into `build/generated/ksp/metadata/commonMain/`, while `iosArm64` alone (native) generates
+ * nothing common. So the recipe now gates on the **target count** this test pins
+ * (`registered().size < 2`), and the doctor flags the single-target + KSP case (`single-target
+ * KSP`). If a KGP bump changes the target-count rule pinned below, this test fails loudly and the
+ * recipe's premise must be revisited.
  *
  * In-process via `evaluate()` (no compile, so the native leaf is cross-host safe); a real build is
  * unnecessary to observe task existence.

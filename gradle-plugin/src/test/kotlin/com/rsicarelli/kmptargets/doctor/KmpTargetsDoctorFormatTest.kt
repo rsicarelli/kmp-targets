@@ -103,6 +103,20 @@ class KmpTargetsDoctorFormatTest {
     }
 
     @Test
+    fun `given a single-target KSP module when formatted then it explains the missing commonMain route and the fix`() {
+        val output =
+            format(
+                selectionIds = listOf("androidTarget"),
+                supportedIds = listOf("androidTarget"),
+                registeredIds = listOf("androidTarget"),
+                singleTargetKsp = true,
+            )
+        assertContains(output, "[!] single-target KSP")
+        assertContains(output, "kspCommonMainKotlinMetadata")
+        assertContains(output, "register a second target")
+    }
+
+    @Test
     fun `given a healthy fully registered module when formatted then it reports a clean bill and no warnings`() {
         val output = format(registeredIds = listOf("iosArm64", "jvm"))
         assertContains(output, "clean bill of health")
@@ -197,6 +211,7 @@ class KmpTargetsDoctorFormatTest {
         hostImpossibleIds: List<String> = emptyList(),
         hostLabel: String = "",
         registeredDeprecatedIds: List<String> = emptyList(),
+        singleTargetKsp: Boolean = false,
         jvmRegisteredAs: String? = null,
         closureDepCount: Int = 0,
         closureGaps: List<ClosureGap> = emptyList(),
@@ -214,6 +229,7 @@ class KmpTargetsDoctorFormatTest {
             hostImpossibleIds = hostImpossibleIds,
             hostLabel = hostLabel,
             registeredDeprecatedIds = registeredDeprecatedIds,
+            singleTargetKsp = singleTargetKsp,
             jvmRegisteredAs = jvmRegisteredAs,
             closureDepCount = closureDepCount,
             closureGaps = closureGaps,

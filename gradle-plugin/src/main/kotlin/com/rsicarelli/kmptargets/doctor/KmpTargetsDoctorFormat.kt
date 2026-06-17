@@ -13,8 +13,10 @@ package com.rsicarelli.kmptargets.doctor
  * [com.rsicarelli.kmptargets.shouldWarnAndroidWithoutAgp], the host/deprecation predicates), so the
  * report can never re-detect or drift from what actually happened. The findings are emitted in the
  * same order [com.rsicarelli.kmptargets.KmpTargetsPlugin] emits the advisories — causes
- * (empty-overlap, android-without-AGP) before consequences (inert, JVM-less) — so cause reads above
- * effect.
+ * (empty-overlap, android-without-AGP) before consequences (inert, JVM-less, single-target KSP) —
+ * so cause reads above effect. The one finding with no advisory counterpart is `single-target KSP`
+ * ([com.rsicarelli.kmptargets.shouldWarnSingleTargetKsp], #73): doctor-only, since whether the
+ * module generates into commonMain is unobservable.
  *
  * The project-edge closure section (#80) is best-effort, project-edges only, and prints its two
  * permanent limits inline: it sees no external (non-`project(...)`) dependencies, and its
@@ -33,6 +35,7 @@ internal fun formatKmpTargetsDoctor(
     hostImpossibleIds: List<String>,
     hostLabel: String,
     registeredDeprecatedIds: List<String>,
+    singleTargetKsp: Boolean,
     jvmRegisteredAs: String?,
     closureDepCount: Int,
     closureGaps: List<ClosureGap>,
@@ -120,6 +123,20 @@ internal fun formatKmpTargetsDoctor(
                         "reject JVM-flavored constructs (e.g. @JvmInline)",
                     "fix:    gate on registered(jvmFamily).isEmpty() in build-logic, disabling " +
                         "only the *KotlinMetadata* compilations",
+                )
+            )
+        }
+        if (singleTargetKsp) {
+            add(
+                finding(
+                    "single-target KSP",
+                    "why:    a KSP plugin is applied but only one target is registered, so there " +
+                        "is no shared commonMain metadata route (kspCommonMainKotlinMetadata " +
+                        "needs two or more targets)",
+                    "effect: a processor that generates into commonMain is skipped — commonMain " +
+                        "references to generated symbols won't resolve",
+                    "fix:    keep codegen-consuming code in the target source set, or register a " +
+                        "second target",
                 )
             )
         }

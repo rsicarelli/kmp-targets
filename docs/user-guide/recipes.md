@@ -12,23 +12,32 @@ if (kmpTargets.registered().isEmpty()) {
 }
 ```
 
-When only a native-wired codegen processor is at risk, gate on the narrower `kmpTargets.registered(KmpTargetSet.native).isEmpty()` — next recipe.
+When a `commonMain` codegen processor is at risk under narrowing, see the next recipe.
 
-## commonMain KSP needs a native target
+## commonMain KSP needs two targets
 
-A processor that generates into `commonMain` runs on the commonMain metadata compilation (`kspCommonMainKotlinMetadata`). KSP only creates that task when a native target registers, so a native-less lane (`jvm`, `android,jvm`) skips generation — the failure ranges from unresolved references to a green build missing codegen. There is no per-platform workaround: K2 forbids `commonMain` from referencing platform-generated symbols. Gate right after `supports { }`:
+A processor that generates into `commonMain` runs on the commonMain metadata compilation (`kspCommonMainKotlinMetadata`). That task exists only when **≥2 platform targets share `commonMain`** — exactly the rule for KGP's `compileCommonMainKotlinMetadata`. So a **single-target** lane (one leaf — `android`, `jvm`, or even `iosArm64` alone) has no `kspCommonMainKotlinMetadata`: the processor only emits into the per-target KSP dir, which the commonMain metadata compilation can't see. The failure ranges from unresolved references to a green build missing codegen.
+
+Native presence is **not** the trigger — target count is: `jvm,js` (no native) gets the route, while `iosArm64` alone (native) does not.
+
+Two fixes:
+
+- **Single target on purpose** (e.g. an Android-only lane): keep the codegen-consuming code in the target's own source set (`androidMain`), not `commonMain`. The per-target generated dir is already on that compilation's path. K2 forbids `commonMain` from referencing platform-generated symbols, so moving the code out of `commonMain` is the only correct option here — not a workaround inside it.
+- **Want it common**: register a second target so the shared commonMain metadata compilation exists.
+
+To warn when a lane silently drops the route, gate right after `supports { }` on a single registered target:
 
 ```kotlin
-if (kmpTargets.registered(KmpTargetSet.native).isEmpty()) {
+if (kmpTargets.registered().size < 2) {
     logger.warn(
-        "ksp: ':${project.name}' generates commonMain code but no native target is " +
-        "registered — symbol processing is skipped for this selection."
+        "ksp: ':${project.name}' generates commonMain code but only one target is " +
+        "registered — the commonMain metadata route is absent for this selection. " +
+        "Move the code to the target source set, or register a second target."
     )
-    tasks.withType(KotlinCompilationTask::class.java).configureEach { enabled = false }
 }
 ```
 
-The gate is `native`, not the metadata compilation itself: `compileCommonMainKotlinMetadata` tracks a shared commonMain (≥2 platform targets), while KSP's commonMain route needs native presence specifically. [`kmpTargetsInfo`](diagnostics.md#kmptargetsinfo) shows what registered per lane.
+[`kmpTargetsInfo`](diagnostics.md#kmptargetsinfo) shows what registered per lane, and [doctor](diagnostics.md#findings) flags the single-target + KSP case directly.
 
 ## Per-target configuration wiring
 

@@ -329,6 +329,7 @@ public class KmpTargetsPlugin : Plugin<Project> {
             task.hostImpossibleIds.set(hostImpossibleIdsProvider(target, ext))
             task.hostLabel.set(hostLabelProvider(target))
             task.registeredDeprecatedIds.set(registeredDeprecatedIdsProvider(target, ext))
+            task.singleTargetKsp.set(singleTargetKspProvider(target, ext))
             task.jvmRegisteredAs.set(jvmRegisteredAsProvider(target, ext))
             task.dependencyData.from(dependencyDataFiles)
         }
@@ -470,8 +471,20 @@ public class KmpTargetsPlugin : Plugin<Project> {
             ids(ext.registered() intersect deprecatedSet)
         }
 
+    private fun singleTargetKspProvider(target: Project, ext: KmpTargetsExtension) =
+        target.provider {
+            hasKgp(target) &&
+                shouldWarnSingleTargetKsp(target.pluginManager.hasPlugin(KSP_ID), ext.registered())
+        }
+
     internal companion object {
         const val KGP_ID: String = "org.jetbrains.kotlin.multiplatform"
+
+        /**
+         * The KSP Gradle plugin id — its presence + a single registered target drives #73's
+         * finding.
+         */
+        const val KSP_ID: String = "com.google.devtools.ksp"
 
         /**
          * The ABI-validation lifecycle task names the narrowing advisory (#81) hooks — the umbrella
@@ -1066,6 +1079,24 @@ internal fun nativeOnlyMetadataWarning(path: String): String =
         "constructs (e.g. @JvmInline): klibs build, metadata fails. Gate it in build-logic when " +
         "kmpTargets.registered(jvmFamily).isEmpty(), disabling only the *KotlinMetadata* " +
         "compilations."
+
+/**
+ * Whether the `single-target KSP` **doctor finding** fires: a KSP plugin is applied yet exactly one
+ * target registered. The shared commonMain metadata route (`kspCommonMainKotlinMetadata`) exists
+ * only when ≥2 platform targets share commonMain — the same target-count rule as
+ * `compileCommonMainKotlinMetadata` (pinned by `CommonMainMetadataCompilationInvariantTest`), and
+ * confirmed for KSP itself by the ktorfit sample; native presence is irrelevant. So a single
+ * registered target has no commonMain KSP route, and a processor that generates into commonMain is
+ * skipped.
+ *
+ * Unlike the other `shouldWarn*` predicates this drives **only** the doctor finding — there is
+ * deliberately no advisory or strict-mode escalation, because the second conjunct of the real trap
+ * ("does this module actually generate into commonMain?") is unobservable (the #73 doctrine). The
+ * plugin observes only the two facts it can — KSP applied, one target — and flags the risk. Pure
+ * over its inputs, so it is unit-testable without Gradle.
+ */
+internal fun shouldWarnSingleTargetKsp(kspApplied: Boolean, registered: KmpTargetSet): Boolean =
+    kspApplied && registered.size == 1
 
 /**
  * The ABI × selection narrowing advisory (#81). Fired from an ABI task's `doFirst` — so it names
