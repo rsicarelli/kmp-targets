@@ -17,5 +17,8 @@ kmpTargets {
     // registered Apple leaf via the existing onRegistered replay — no target loop, no ad-hoc
     // property picker. The configure block is the *real* KGP `Framework`, so `isStatic` and any
     // future framework option come straight from KGP with nothing mirrored in this plugin.
-    appleFramework("KotlinShared") { isStatic = false }
+    // `xcframework = true` (opt-in) also assembles the registered slices into one `.xcframework`
+    // (`assembleKotlinSharedXCFramework`); the config is created lazily, so a jvm-only lane wires
+    // nothing. Assembly runs on a macOS host (xcodebuild); registration is host-blind.
+    appleFramework("KotlinShared", xcframework = true) { isStatic = false }
 }

@@ -35,7 +35,24 @@ class AppleFrameworkFunctionalTest {
         assertTrue("Configuration cache entry reused" in second.output, second.output)
     }
 
-    private fun writeFixture(dir: Path) {
+    @Test
+    fun `given xcframework true when the build configures then the assemble XCFramework task exists and the config cache is reused`(
+        @TempDir dir: Path
+    ) {
+        writeFixture(dir, xcframework = true)
+
+        val first = runner(dir).withArguments("assertFramework", "--configuration-cache").build()
+        assertTrue("XCFRAMEWORK_TASK_PRESENT=true" in first.output, first.output)
+        assertTrue("Configuration cache entry stored" in first.output, first.output)
+
+        // The lazily-created XCFrameworkConfig registers KGP-owned, config-cache-compatible tasks
+        // and captures no Project of ours, so the entry is reused. (Never executed — xcodebuild is
+        // macOS-only; we only assert the task exists.)
+        val second = runner(dir).withArguments("assertFramework", "--configuration-cache").build()
+        assertTrue("Configuration cache entry reused" in second.output, second.output)
+    }
+
+    private fun writeFixture(dir: Path, xcframework: Boolean = false) {
         dir.resolve("gradle.properties")
             .writeText("kmptargets.targets=iosArm64,iosSimulatorArm64\n")
         dir.resolve("settings.gradle.kts").writeText("rootProject.name = \"fixture\"\n")
@@ -52,7 +69,7 @@ class AppleFrameworkFunctionalTest {
 
                 kmpTargets {
                     supports { appleMobile }
-                    appleFramework("KotlinShared") { isStatic = false }
+                    appleFramework("KotlinShared", xcframework = $xcframework) { isStatic = false }
                 }
 
                 // Asserted at configuration time and printed here (a build-script `doLast` would
@@ -65,6 +82,7 @@ class AppleFrameworkFunctionalTest {
                     }
                 }
                 println("LINK_TASK_PRESENT=" + (tasks.findByName("linkDebugFrameworkIosSimulatorArm64") != null))
+                println("XCFRAMEWORK_TASK_PRESENT=" + (tasks.findByName("assembleKotlinSharedXCFramework") != null))
                 tasks.register("assertFramework")
                 """
                     .trimIndent()
