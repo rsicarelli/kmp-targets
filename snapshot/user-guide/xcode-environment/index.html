@@ -12,28 +12,28 @@
         <meta name="author" content="Rodrigo Sicarelli">
       
       
-        <link rel="canonical" href="https://rsicarelli.github.io/kmp-targets/snapshot/samples/">
+        <link rel="canonical" href="https://rsicarelli.github.io/kmp-targets/snapshot/user-guide/xcode-environment/">
       
       
-        <link rel="prev" href="../user-guide/ci-matrix/">
+        <link rel="prev" href="../apple-framework/">
       
       
-        <link rel="next" href="../compatibility/">
+        <link rel="next" href="../recipes/">
       
       
-      <link rel="icon" href="../assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.6.16">
     
     
       
-        <title>Samples - kmp-targets</title>
+        <title>Xcode Environment - kmp-targets</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.7e37652d.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.7e37652d.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
       
       
 
@@ -52,9 +52,9 @@
       
     
     
-      <link rel="stylesheet" href="../stylesheets/kmp-targets-brand.css">
+      <link rel="stylesheet" href="../../stylesheets/kmp-targets-brand.css">
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#samples" class="md-skip">
+        <a href="#xcode-environment" class="md-skip">
           Skip to content
         </a>
       
@@ -100,7 +100,7 @@
 
 <header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="kmp-targets" class="md-header__button md-logo" aria-label="kmp-targets" data-md-component="logo">
+    <a href="../.." title="kmp-targets" class="md-header__button md-logo" aria-label="kmp-targets" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -120,7 +120,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Samples
+              Xcode Environment
             
           </span>
         </div>
@@ -238,7 +238,7 @@
 
 <nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="kmp-targets" class="md-nav__button md-logo" aria-label="kmp-targets" data-md-component="logo">
+    <a href="../.." title="kmp-targets" class="md-nav__button md-logo" aria-label="kmp-targets" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
@@ -268,7 +268,7 @@
   
   
     <li class="md-nav__item">
-      <a href=".." class="md-nav__link">
+      <a href="../.." class="md-nav__link">
         
   
   
@@ -328,7 +328,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../get-started/" class="md-nav__link">
+      <a href="../../get-started/" class="md-nav__link">
         
   
   
@@ -351,7 +351,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../get-started/quick-start/" class="md-nav__link">
+      <a href="../../get-started/quick-start/" class="md-nav__link">
         
   
   
@@ -378,18 +378,20 @@
       
   
   
+    
   
   
+  
     
     
     
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
         
           
           <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
@@ -405,7 +407,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             User Guide
@@ -419,7 +421,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../user-guide/selection-dsl/" class="md-nav__link">
+      <a href="../selection-dsl/" class="md-nav__link">
         
   
   
@@ -442,7 +444,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../user-guide/selection-layers/" class="md-nav__link">
+      <a href="../selection-layers/" class="md-nav__link">
         
   
   
@@ -465,7 +467,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../user-guide/targets-reference/" class="md-nav__link">
+      <a href="../targets-reference/" class="md-nav__link">
         
   
   
@@ -488,7 +490,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../user-guide/hierarchy-template/" class="md-nav__link">
+      <a href="../hierarchy-template/" class="md-nav__link">
         
   
   
@@ -511,7 +513,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../user-guide/build-logic/" class="md-nav__link">
+      <a href="../build-logic/" class="md-nav__link">
         
   
   
@@ -534,7 +536,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../user-guide/apple-framework/" class="md-nav__link">
+      <a href="../apple-framework/" class="md-nav__link">
         
   
   
@@ -554,10 +556,32 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../user-guide/xcode-environment/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    Xcode Environment
+    
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   
@@ -568,6 +592,62 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-it-maps" class="md-nav__link">
+    <span class="md-ellipsis">
+      What it maps
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#precedence" class="md-nav__link">
+    <span class="md-ellipsis">
+      Precedence
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-payoff" class="md-nav__link">
+    <span class="md-ellipsis">
+      The payoff
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#out-of-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      Out of scope
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -580,7 +660,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../user-guide/recipes/" class="md-nav__link">
+      <a href="../recipes/" class="md-nav__link">
         
   
   
@@ -603,7 +683,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../user-guide/advisories/" class="md-nav__link">
+      <a href="../advisories/" class="md-nav__link">
         
   
   
@@ -626,7 +706,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../user-guide/diagnostics/" class="md-nav__link">
+      <a href="../diagnostics/" class="md-nav__link">
         
   
   
@@ -649,7 +729,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../user-guide/abi-validation/" class="md-nav__link">
+      <a href="../abi-validation/" class="md-nav__link">
         
   
   
@@ -672,7 +752,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../user-guide/ci-matrix/" class="md-nav__link">
+      <a href="../ci-matrix/" class="md-nav__link">
         
   
   
@@ -699,32 +779,10 @@
       
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  
-  <span class="md-ellipsis">
-    Samples
-    
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../samples/" class="md-nav__link">
         
   
   
@@ -735,71 +793,6 @@
   
 
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#hello-world-the-multi-module-showcase" class="md-nav__link">
-    <span class="md-ellipsis">
-      hello-world — the multi-module showcase
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#isolated-projects-the-compatibility-gate" class="md-nav__link">
-    <span class="md-ellipsis">
-      isolated-projects — the compatibility gate
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#abi-bcv-abi-builtin-the-abi-coverage-gap" class="md-nav__link">
-    <span class="md-ellipsis">
-      abi-bcv &amp; abi-builtin — the ABI coverage gap
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#xcode-env-xcode-drives-selection" class="md-nav__link">
-    <span class="md-ellipsis">
-      xcode-env — Xcode drives selection
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#ci-runs-them" class="md-nav__link">
-    <span class="md-ellipsis">
-      CI runs them
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -811,7 +804,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../compatibility/" class="md-nav__link">
+      <a href="../../compatibility/" class="md-nav__link">
         
   
   
@@ -833,7 +826,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../why-kmp-targets/" class="md-nav__link">
+      <a href="../../why-kmp-targets/" class="md-nav__link">
         
   
   
@@ -893,7 +886,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../help/faq/" class="md-nav__link">
+      <a href="../../help/faq/" class="md-nav__link">
         
   
   
@@ -916,7 +909,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../help/troubleshooting/" class="md-nav__link">
+      <a href="../../help/troubleshooting/" class="md-nav__link">
         
   
   
@@ -966,45 +959,36 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#hello-world-the-multi-module-showcase" class="md-nav__link">
+  <a href="#what-it-maps" class="md-nav__link">
     <span class="md-ellipsis">
-      hello-world — the multi-module showcase
+      What it maps
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#isolated-projects-the-compatibility-gate" class="md-nav__link">
+  <a href="#precedence" class="md-nav__link">
     <span class="md-ellipsis">
-      isolated-projects — the compatibility gate
+      Precedence
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#abi-bcv-abi-builtin-the-abi-coverage-gap" class="md-nav__link">
+  <a href="#the-payoff" class="md-nav__link">
     <span class="md-ellipsis">
-      abi-bcv &amp; abi-builtin — the ABI coverage gap
+      The payoff
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#xcode-env-xcode-drives-selection" class="md-nav__link">
+  <a href="#out-of-scope" class="md-nav__link">
     <span class="md-ellipsis">
-      xcode-env — Xcode drives selection
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#ci-runs-them" class="md-nav__link">
-    <span class="md-ellipsis">
-      CI runs them
+      Out of scope
     </span>
   </a>
   
@@ -1029,95 +1013,91 @@
   
 
 
-<h1 id="samples">Samples<a class="headerlink" href="#samples" title="Permanent link">&para;</a></h1>
-<p>Five standalone sample builds consume the plugin as an external project would: shared root version catalog, plugin resolved by version (mavenLocal in the dev loop, Maven Central for consumers).</p>
-<h2 id="hello-world-the-multi-module-showcase">hello-world — the multi-module showcase<a class="headerlink" href="#hello-world-the-multi-module-showcase" title="Permanent link">&para;</a></h2>
-<p><a href="https://github.com/rsicarelli/kmp-targets/tree/main/samples/hello-world"><code>samples/hello-world</code></a> is a heterogeneous multi-module project — each module demonstrates one shape:</p>
+<h1 id="xcode-environment">Xcode Environment<a class="headerlink" href="#xcode-environment" title="Permanent link">&para;</a></h1>
+<p>When Xcode invokes Gradle for <code>embedAndSign…AppleFrameworkForXcode</code>, it exports <code>SDK_NAME</code>, <code>ARCHS</code>, and <code>CONFIGURATION</code> — KGP already reads them to drive the embed task. Yet the consumer's Xcode build phase still has to pass <code>-Pkmptargets.targets=…</code> so the right leaf registers. The env vars already carry the answer.</p>
+<p>The opt-in <strong><code>kmptargets.xcodeEnv</code></strong> flag closes that gap: with it on, Xcode's environment becomes a <em>declared</em> selection layer, so the Xcode build phase needs <strong>no <code>-P</code></strong>.</p>
+<div class="language-properties highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># kmp-targets.properties — committed, team-shared</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="na">kmptargets.xcodeEnv</span><span class="o">=</span><span class="s">true</span>
+</span></code></pre></div>
+<p>This is explicit by design. The committed flag is the act you review; the env is then a declared input, not ambient magic. With the flag off, the Xcode variables are <strong>never read</strong> (no configuration-cache inputs added).</p>
+<h2 id="what-it-maps">What it maps<a class="headerlink" href="#what-it-maps" title="Permanent link">&para;</a></h2>
+<p><code>SDK_NAME</code> (matched by prefix; it carries a version suffix like <code>iphonesimulator18.0</code>) plus a single <code>ARCHS</code> value resolve to one leaf:</p>
 <table>
 <thead>
 <tr>
-<th>Module</th>
-<th>Declares</th>
-<th>Demonstrates</th>
+<th><code>SDK_NAME</code></th>
+<th><code>arm64</code></th>
+<th><code>x86_64</code></th>
+<th>other arch</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td><a href="https://github.com/rsicarelli/kmp-targets/tree/main/samples/hello-world/shared-core"><code>shared-core</code></a></td>
-<td><code>supports { all }</code></td>
-<td>the opt-in "build whatever is selected" module</td>
-</tr>
-<tr>
-<td><a href="https://github.com/rsicarelli/kmp-targets/tree/main/samples/hello-world/feature-mobile"><code>feature-mobile</code></a></td>
-<td><code>supports { mobile }</code></td>
-<td>a mobile-only feature; selections outside <code>mobile</code> leave it empty (no AGP in the sample, so iOS leaves are its registrable shape)</td>
-</tr>
-<tr>
-<td><a href="https://github.com/rsicarelli/kmp-targets/tree/main/samples/hello-world/jvm-tools"><code>jvm-tools</code></a></td>
-<td><code>supports { jvm }</code></td>
-<td>a JVM-only tooling module</td>
-</tr>
-<tr>
-<td><a href="https://github.com/rsicarelli/kmp-targets/tree/main/samples/hello-world/core-and-apple"><code>core-and-apple</code></a></td>
-<td><code>supports { apple + jvm }</code></td>
-<td>preset + leaf composition</td>
-</tr>
-<tr>
-<td><a href="https://github.com/rsicarelli/kmp-targets/tree/main/samples/hello-world/escape-hatch-dsl"><code>escape-hatch-dsl</code></a></td>
-<td><code>supports { jvm + linuxX64 }</code></td>
-<td>mixing the DSL with raw <code>kotlin { }</code> target configuration</td>
-</tr>
-<tr>
-<td><a href="https://github.com/rsicarelli/kmp-targets/tree/main/samples/hello-world/desktop-named"><code>desktop-named</code></a></td>
-<td><code>targetName(jvm, "desktop")</code> + <code>supports { jvm + iosArm64 }</code></td>
-<td>the <a href="../user-guide/selection-dsl/#renaming-the-jvm-target">JVM rename</a>: <code>src/desktopMain</code>, <code>compileKotlinDesktop</code></td>
-</tr>
-<tr>
-<td><a href="https://github.com/rsicarelli/kmp-targets/tree/main/samples/hello-world/pinned-intermediates"><code>pinned-intermediates</code></a></td>
-<td><code>supports { appleMobile }</code>, collapse off</td>
-<td><a href="../user-guide/hierarchy-template/#keeping-intermediates">no-collapse</a>: <code>iosMain</code> survives a single-leaf selection</td>
-</tr>
-<tr>
-<td><a href="https://github.com/rsicarelli/kmp-targets/tree/main/samples/hello-world/eager-conventions"><code>eager-conventions</code></a></td>
-<td>applies <code>kmptargets.module</code></td>
-<td>the <a href="../user-guide/build-logic/">convention-plugin pattern</a> with an <code>onRegistered</code> regression gate (<code>verifyEagerTargets</code>)</td>
-</tr>
-<tr>
-<td><a href="https://github.com/rsicarelli/kmp-targets/tree/main/samples/hello-world/legacy-default"><code>legacy-default</code></a></td>
-<td><code>supports { all }</code>, template off</td>
-<td>opting out of the <a href="../user-guide/hierarchy-template/">minimal hierarchy</a> — KGP's default tree, side by side</td>
-</tr>
-<tr>
-<td><a href="https://github.com/rsicarelli/kmp-targets/tree/main/samples/hello-world/plain-kmp"><code>plain-kmp</code></a></td>
-<td><em>no kmp-targets</em></td>
-<td>the non-interference proof: a module without the plugin is untouched</td>
-</tr>
-<tr>
-<td><a href="https://github.com/rsicarelli/kmp-targets/tree/main/samples/hello-world/build-logic"><code>build-logic</code></a></td>
+<td><code>iphoneos</code></td>
+<td><code>iosArm64</code></td>
 <td>—</td>
-<td>the sample's own convention build: <code>kmptargets.module</code> plugin, <a href="https://github.com/rsicarelli/kmp-targets/blob/main/samples/hello-world/build-logic/src/main/kotlin/KmpModule.kt"><code>KmpModule.kt</code></a> is the canonical <code>onRegistered</code> consumer</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>iphonesimulator</code></td>
+<td><code>iosSimulatorArm64</code></td>
+<td><code>iosX64</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>appletvos</code></td>
+<td><code>tvosArm64</code></td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>appletvsimulator</code></td>
+<td><code>tvosSimulatorArm64</code></td>
+<td><code>tvosX64</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>watchos</code></td>
+<td><code>watchosDeviceArm64</code></td>
+<td>—</td>
+<td><code>arm64_32</code> → <code>watchosArm64</code>, <code>armv7k</code> → <code>watchosArm32</code></td>
+</tr>
+<tr>
+<td><code>watchsimulator</code></td>
+<td><code>watchosSimulatorArm64</code></td>
+<td><code>watchosX64</code></td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>macosx</code></td>
+<td><code>macosArm64</code></td>
+<td><code>macosX64</code></td>
+<td>—</td>
 </tr>
 </tbody>
 </table>
-<p>Drive it like CI does:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>./gradlew<span class="w"> </span>-p<span class="w"> </span>samples/hello-world<span class="w"> </span>build<span class="w"> </span><span class="s2">&quot;-Pkmptargets.targets=jvm,iosArm64&quot;</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>./gradlew<span class="w"> </span>-p<span class="w"> </span>samples/hello-world<span class="w"> </span>:shared-core:kmpTargetsInfo<span class="w"> </span>-q
+<p><code>CONFIGURATION</code> feeds <a href="../apple-framework/#build-types-per-lane"><code>kmptargets.framework.buildTypes</code></a>: <code>Debug</code>/<code>Release</code> map case-insensitively. A <strong>custom</strong> configuration (<code>Staging</code>, <code>QA</code>, …) is not a build type, so — mirroring KGP — the <code>KOTLIN_FRAMEWORK_BUILD_TYPE</code> env var is consulted as the fallback.</p>
+<p>An <strong>unknown</strong> SDK, an unrecognized or <strong>multi-architecture</strong> <code>ARCHS</code> (a fat build like <code>arm64 x86_64</code>), or a custom configuration with no fallback all resolve to nothing and <strong>fall through to the next layer</strong> — they never fail the build. <code>IS_MACCATALYST</code> is not consulted.</p>
+<h2 id="precedence">Precedence<a class="headerlink" href="#precedence" title="Permanent link">&para;</a></h2>
+<p>The Xcode-environment source slots <strong>below</strong> the per-invocation overrides and <strong>above</strong> the dedicated files, so a CI lane or a manual run can still override it, while inside an Xcode build the active SDK/arch wins over any committed default:</p>
+<ol>
+<li><code>-Pkmptargets.targets=…</code> / <code>-Pkmptargets.framework.buildTypes=…</code> (CLI)</li>
+<li><code>ORG_GRADLE_PROJECT_…</code> environment</li>
+<li><strong>Xcode environment</strong> (<code>SDK_NAME</code>/<code>ARCHS</code> → selection, <code>CONFIGURATION</code> → build types) — when <code>kmptargets.xcodeEnv=true</code></li>
+<li><code>kmp-targets.local.properties</code> → <code>kmp-targets.properties</code> → <code>gradle.properties</code> → <code>local.properties</code></li>
+</ol>
+<p><a href="../diagnostics/#kmptargetsinfo"><code>kmpTargetsInfo</code></a> names the winning origin — <code>Xcode environment (SDK_NAME/ARCHS)</code> for the selection, <code>Xcode environment (CONFIGURATION)</code> for the build types — so a build driven by Xcode is never opaque.</p>
+<h2 id="the-payoff">The payoff<a class="headerlink" href="#the-payoff" title="Permanent link">&para;</a></h2>
+<p>The consumer's Xcode "Run Script" build phase drops the <code>-P</code> entirely:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Before — the run-script had to re-derive and pass the selection:</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>./gradlew<span class="w"> </span>:shared:embedAndSignAppleFrameworkForXcode<span class="w"> </span>-Pkmptargets.targets<span class="o">=</span>iosSimulatorArm64
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># After (kmptargets.xcodeEnv=true) — Xcode&#39;s own SDK_NAME/ARCHS/CONFIGURATION drive it:</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>./gradlew<span class="w"> </span>:shared:embedAndSignAppleFrameworkForXcode
 </span></code></pre></div>
-<h2 id="isolated-projects-the-compatibility-gate">isolated-projects — the compatibility gate<a class="headerlink" href="#isolated-projects-the-compatibility-gate" title="Permanent link">&para;</a></h2>
-<p><a href="https://github.com/rsicarelli/kmp-targets/tree/main/samples/isolated-projects"><code>samples/isolated-projects</code></a> is a two-module build (<a href="https://github.com/rsicarelli/kmp-targets/tree/main/samples/isolated-projects/lib"><code>lib</code></a> supports <code>all</code>, <a href="https://github.com/rsicarelli/kmp-targets/tree/main/samples/isolated-projects/app"><code>app</code></a> supports <code>jvm</code> and depends on <code>lib</code>) running with Gradle Isolated Projects enabled. <code>lib</code> carries a <code>verifyIsolatedConfiguration</code> regression gate.</p>
-<h2 id="abi-bcv-abi-builtin-the-abi-coverage-gap">abi-bcv &amp; abi-builtin — the ABI coverage gap<a class="headerlink" href="#abi-bcv-abi-builtin-the-abi-coverage-gap" title="Permanent link">&para;</a></h2>
-<p>Two single-module libraries that support <code>jvm + linuxX64 + js</code> and commit ABI dumps under <code>api/</code>, one per tool: <a href="https://github.com/rsicarelli/kmp-targets/tree/main/samples/abi-bcv"><code>samples/abi-bcv</code></a> uses <a href="https://github.com/Kotlin/binary-compatibility-validator">kotlinx binary-compatibility-validator</a>; <a href="https://github.com/rsicarelli/kmp-targets/tree/main/samples/abi-builtin"><code>samples/abi-builtin</code></a> uses Kotlin's built-in <code>abiValidation</code>. Both show the <a href="../user-guide/abi-validation/">coverage gap</a>: an ABI tool only sees the registered targets, so a narrowed lane under-covers — the built-in tool passes without validating the missing targets, BCV fails and suggests a destructive dump. See the per-sample READMEs.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>./gradlew<span class="w"> </span>-p<span class="w"> </span>samples/abi-builtin<span class="w"> </span>checkKotlinAbi<span class="w"> </span><span class="s2">&quot;-Pkmptargets.targets=jvm&quot;</span><span class="w">  </span><span class="c1"># green, but warns: js, linuxX64 not validated</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>./gradlew<span class="w"> </span>-p<span class="w"> </span>samples/abi-bcv<span class="w">     </span>apiCheck<span class="w">                                   </span><span class="c1"># full selection (recommended lane) → clean</span>
-</span></code></pre></div>
-<h2 id="xcode-env-xcode-drives-selection">xcode-env — Xcode drives selection<a class="headerlink" href="#xcode-env-xcode-drives-selection" title="Permanent link">&para;</a></h2>
-<p><a href="https://github.com/rsicarelli/kmp-targets/tree/main/samples/xcode-env"><code>samples/xcode-env</code></a> is a single-module library shipping an iOS/macOS framework with <code>kmptargets.xcodeEnv=true</code> committed. With no Xcode env it builds the committed fallback; when Xcode's <code>SDK_NAME</code>/<code>ARCHS</code>/<code>CONFIGURATION</code> are present they narrow selection to the one leaf being built — no <code>-P</code>. Its <code>verifyXcodeEnvNarrowed</code> task pins the narrowing; the <a href="../user-guide/xcode-environment/">Xcode Environment</a> guide explains the mapping.</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>./gradlew<span class="w"> </span>-p<span class="w"> </span>samples/xcode-env<span class="w"> </span>kmpTargetsInfo<span class="w">                                   </span><span class="c1"># committed fallback</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nv">SDK_NAME</span><span class="o">=</span>iphonesimulator<span class="w"> </span><span class="nv">ARCHS</span><span class="o">=</span>arm64<span class="w"> </span><span class="nv">CONFIGURATION</span><span class="o">=</span>Debug<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span>./gradlew<span class="w"> </span>-p<span class="w"> </span>samples/xcode-env<span class="w"> </span>verifyXcodeEnvNarrowed<span class="w">                         </span><span class="c1"># narrows to iosSimulatorArm64</span>
-</span></code></pre></div>
-<h2 id="ci-runs-them">CI runs them<a class="headerlink" href="#ci-runs-them" title="Permanent link">&para;</a></h2>
-<p><a href="https://github.com/rsicarelli/kmp-targets/blob/main/.github/workflows/ci.yml"><code>ci.yml</code></a> builds the samples on every push; <a href="https://github.com/rsicarelli/kmp-targets/blob/main/.github/workflows/sample-matrix.yml"><code>sample-matrix.yml</code></a> builds hello-world per host with host-appropriate selections — the <a href="../user-guide/ci-matrix/">CI matrix</a> pattern — and on macOS links the <code>xcode-env</code> framework from the real Xcode environment.</p>
+<p><code>embedAndSign…</code> stays KGP's task and contract — the plugin only maps the env Xcode already sets onto the selection. Outside Xcode (no env), selection falls through to the committed <code>kmp-targets.properties</code>, so a plain <code>./gradlew</code> build is unchanged and fully reproducible. See the runnable <a href="https://github.com/rsicarelli/kmp-targets/tree/main/samples/xcode-env"><code>samples/xcode-env</code></a> build.</p>
+<h2 id="out-of-scope">Out of scope<a class="headerlink" href="#out-of-scope" title="Permanent link">&para;</a></h2>
+<p>Owning <code>embedAndSign</code> (KGP's task), generating the Xcode run-script phase, multi-architecture fat-simulator handling, and <code>IS_MACCATALYST</code> are deliberately not covered.</p>
 
 
 
@@ -1172,10 +1152,10 @@
     
     
       
-      <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy", "content.code.select", "search.suggest", "search.highlight", "content.tabs.link"], "search": "../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
+      <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.copy", "content.code.select", "search.suggest", "search.highlight", "content.tabs.link"], "search": "../../assets/javascripts/workers/search.d50fe291.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": {"provider": "mike"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.50899def.min.js"></script>
+      <script src="../../assets/javascripts/bundle.50899def.min.js"></script>
       
     
   </body>

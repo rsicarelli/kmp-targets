@@ -637,6 +637,29 @@
   
   
     <li class="md-nav__item">
+      <a href="../xcode-environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Xcode Environment
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../recipes/" class="md-nav__link">
         
   
@@ -1030,6 +1053,7 @@
 </ol>
 <p>When no source provides a value, two <strong>fallbacks</strong> (not overrides — anything above beats them) apply: a project-wide <code>defaultSelection</code> set from build-logic, then the plugin default — every target the plugin knows about.</p>
 <p>The rarer <code>-Dorg.gradle.project.kmptargets.targets</code> and <code>~/.gradle/gradle.properties</code> forms resolve at the <code>gradle.properties</code> layer, below the dedicated files. Why the dedicated files outrank <code>gradle.properties</code>: <a href="../../why-kmp-targets/#selection-model">Design</a>.</p>
+<p>With the opt-in <a href="../xcode-environment/"><code>kmptargets.xcodeEnv</code></a> flag on, an extra layer sits between <strong>2</strong> and <strong>3</strong> — Xcode's own <code>SDK_NAME</code>/<code>ARCHS</code> when it invokes Gradle — so an Xcode build needs no <code>-P</code>. The flag off, it does not exist.</p>
 <h2 id="the-config-files">The config files<a class="headerlink" href="#the-config-files" title="Permanent link">&para;</a></h2>
 <div class="language-properties highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># kmp-targets.properties — committed, team-shared</span>
 </span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="na">kmptargets.targets</span><span class="o">=</span><span class="s">jvm,iosArm64</span>

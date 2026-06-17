@@ -18,7 +18,7 @@
         <link rel="prev" href="../build-logic/">
       
       
-        <link rel="next" href="../recipes/">
+        <link rel="next" href="../xcode-environment/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -655,6 +655,29 @@
   
   
     <li class="md-nav__item">
+      <a href="../xcode-environment/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Xcode Environment
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../recipes/" class="md-nav__link">
         
   
@@ -1103,7 +1126,8 @@
 </span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="p">}</span>
 </span></code></pre></div>
 <h2 id="out-of-scope">Out of scope<a class="headerlink" href="#out-of-scope" title="Permanent link">&para;</a></h2>
-<p>Per-module build-type property variants, mapping Xcode's <code>CONFIGURATION</code> env var, and custom (non-DEBUG/RELEASE) build types are out of scope (KGP's enum is closed). Multiple frameworks per module (and aggregating several into one XCFramework), and non-Apple binaries (<code>sharedLib</code>/<code>staticLib</code>/<code>executable</code>) are deliberate follow-ups.</p>
+<p>Per-module build-type property variants and custom (non-DEBUG/RELEASE) build types are out of scope (KGP's enum is closed). Multiple frameworks per module (and aggregating several into one XCFramework), and non-Apple binaries (<code>sharedLib</code>/<code>staticLib</code>/<code>executable</code>) are deliberate follow-ups.</p>
+<p>Letting Xcode's own <code>SDK_NAME</code>/<code>ARCHS</code>/<code>CONFIGURATION</code> drive selection — so the Xcode build phase needs no <code>-P</code> — is the opt-in <a href="../xcode-environment/">Xcode Environment</a> source.</p>
 
 
 
