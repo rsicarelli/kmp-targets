@@ -31,7 +31,7 @@ class KmpTargetsDoctorFunctionalTest {
                 .withArguments("kmpTargetsDoctor", "--configuration-cache")
         val first = runner.build()
         assertTrue("Configuration cache entry stored." in first.output, first.output)
-        assertTrue("clean bill of health — registered: jvm" in first.output, first.output)
+        assertTrue("clean bill of health - registered: jvm" in first.output, first.output)
         assertTrue("[!]" !in first.output, first.output)
         val second = runner.build()
         assertTrue("Reusing configuration cache." in second.output, second.output)

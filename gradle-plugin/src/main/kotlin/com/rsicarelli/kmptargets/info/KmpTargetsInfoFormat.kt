@@ -33,7 +33,7 @@ internal fun formatKmpTargetsInfo(
     frameworkBuildTypesOrigin: String = "",
     frameworkXcframework: Boolean = false,
 ): String = buildString {
-    appendLine("kmp-targets — $projectPath")
+    appendLine("kmp-targets - $projectPath")
     appendLine()
     appendLine("Selection (what to build now)")
     appendLine("  targets:  ${idsOrNone(selectionIds, "the selection narrows to nothing")}")

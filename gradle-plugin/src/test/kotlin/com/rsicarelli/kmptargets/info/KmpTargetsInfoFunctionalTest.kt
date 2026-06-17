@@ -30,7 +30,7 @@ class KmpTargetsInfoFunctionalTest {
         assertTrue("Configuration cache entry stored." in first.output, first.output)
         val second = runner(dir).build()
         assertTrue("Reusing configuration cache." in second.output, second.output)
-        assertTrue("kmp-targets — :" in second.output, second.output)
+        assertTrue("kmp-targets - :" in second.output, second.output)
     }
 
     @Test
