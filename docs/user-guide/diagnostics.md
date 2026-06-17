@@ -22,6 +22,12 @@ Supported (what this module can build)
 Registered (selection ∩ supported)
   targets:  iosArm64, iosSimulatorArm64, jvm
 
+Apple framework
+  name:        KotlinShared
+  attached:    iosArm64, iosSimulatorArm64
+  buildTypes:  DEBUG, RELEASE
+  xcframework: off
+
 Vocabulary
   presets:  all, native, appleMobile, appleDesktop, appleWatch, appleTv, apple, linux, mingw, windows, androidNative, web, jvmFamily, mobile
   leaves:   androidNativeArm32, ..., macosX64 (deprecated), ..., watchosX64 (deprecated) (25)
@@ -32,6 +38,7 @@ Vocabulary
 - **`Selection`** — the resolved global selection and its winning [layer](selection-layers.md) by name: `command line (-Pkmptargets.targets)`, `kmp-targets.local.properties`, `local.properties`, or the `defaultSelection` / built-in fallbacks. Values from `-Dorg.gradle.project.kmptargets.targets` and `~/.gradle/gradle.properties` report as the fused `gradle.properties (...)` layer.
 - **`Supported`** — whether the module declared [`supports { }`](selection-dsl.md) and what it expanded to.
 - **`Registered`** — the intersection that registered. Every empty case states its reason: no `supports { }` call, a selection narrowed to nothing, or a disjoint `selection ∩ supported`.
+- **`Apple framework`** — present when the module declares [`appleFramework`](apple-framework.md): the declared name, the Apple leaves it attached to (`registered ∩ on`), its buildTypes, and whether XCFramework assembly is on. An empty `attached` is the [framework-without-an-Apple-target](advisories.md#framework-without-an-apple-target) state — the framework never builds.
 - **`Vocabulary`** — the parser's full preset and leaf list; a copy-paste surface for valid tokens.
 
 ### Per-leaf annotations
@@ -81,6 +88,7 @@ kmp-targets doctor — :jvm-tools
 | `selection matches nothing supported` | [empty overlap](advisories.md#empty-overlap) |
 | `inert module` | [inert modules](advisories.md#inert-modules) |
 | `JVM-less commonMain` | [native-only metadata](advisories.md#native-only-metadata) |
+| `framework declared but unattached` | [framework without an Apple target](advisories.md#framework-without-an-apple-target) |
 | `androidTarget skipped` | [android without AGP](advisories.md#android-target-without-agp) |
 | `not compilable on this host` | [host compatibility](advisories.md#host-compatibility) |
 | `deprecated targets registered` | [deprecated targets](advisories.md#deprecated-targets) |
@@ -88,6 +96,8 @@ kmp-targets doctor — :jvm-tools
 | `note: jvm (registered as: …)` | a [renamed target](selection-dsl.md#renaming-the-jvm-target) — context, not a problem |
 
 `single-target KSP` is doctor-only: it fires when a KSP plugin is applied and exactly one target is registered, so the commonMain metadata route (`kspCommonMainKotlinMetadata`, which needs [≥2 targets](recipes.md#commonmain-ksp-needs-two-targets)) is absent. Whether the module *actually* generates into `commonMain` is unobservable, so the finding flags the risk rather than a certainty — and there is no build-time advisory or strict-mode escalation for it.
+
+Doctor also renders the same **Apple framework** facts block as [`kmpTargetsInfo`](#kmptargetsinfo) (declared name, attached leaves, buildTypes, XCFramework on/off), from the same providers so the two surfaces can't drift. It renders even for a module that declared a framework but never called `supports { }` — so a declared-but-unattached framework is always visible, even where there is no advisory.
 
 ### Project-edge closure
 

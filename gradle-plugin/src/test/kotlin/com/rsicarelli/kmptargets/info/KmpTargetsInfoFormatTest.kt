@@ -236,6 +236,45 @@ class KmpTargetsInfoFormatTest {
         assertFalse("iosX64 (deprecated)" in output, output)
     }
 
+    @Test
+    fun `given a declared framework when formatted then the Apple framework section renders all four facts`() {
+        val output =
+            format(
+                registeredIds = listOf("iosArm64"),
+                frameworkDeclared = true,
+                frameworkBaseName = "KotlinShared",
+                frameworkAttachedIds = listOf("iosArm64"),
+                frameworkBuildTypes = listOf("DEBUG", "RELEASE"),
+                frameworkXcframework = true,
+            )
+        assertContains(output, "Apple framework")
+        assertContains(output, "name:        KotlinShared")
+        assertContains(output, "attached:    iosArm64")
+        assertContains(output, "buildTypes:  DEBUG, RELEASE")
+        assertContains(output, "xcframework: on")
+    }
+
+    @Test
+    fun `given a declared framework with no attached leaves when formatted then the attached line names the empty scope`() {
+        val output =
+            format(
+                registeredIds = listOf("jvm"),
+                frameworkDeclared = true,
+                frameworkBaseName = "KotlinShared",
+                frameworkAttachedIds = emptyList(),
+                frameworkBuildTypes = listOf("DEBUG", "RELEASE"),
+                frameworkXcframework = false,
+            )
+        assertContains(output, "attached:    (none — no Apple target in its scope registered)")
+        assertContains(output, "xcframework: off")
+    }
+
+    @Test
+    fun `given no declared framework when formatted then no Apple framework section appears`() {
+        val output = format(registeredIds = listOf("jvm"))
+        assertFalse("Apple framework" in output, output)
+    }
+
     private fun format(
         selectionIds: List<String> = listOf("jvm"),
         supportedIds: List<String> = listOf("jvm"),
@@ -249,6 +288,11 @@ class KmpTargetsInfoFormatTest {
         androidWithoutAgp: Boolean = false,
         inertModule: Boolean = false,
         nativeOnlyMetadata: Boolean = false,
+        frameworkDeclared: Boolean = false,
+        frameworkBaseName: String = "",
+        frameworkAttachedIds: List<String> = emptyList(),
+        frameworkBuildTypes: List<String> = emptyList(),
+        frameworkXcframework: Boolean = false,
     ): String =
         formatKmpTargetsInfo(
             projectPath = ":shared-core",
@@ -266,5 +310,10 @@ class KmpTargetsInfoFormatTest {
             androidWithoutAgp = androidWithoutAgp,
             inertModule = inertModule,
             nativeOnlyMetadata = nativeOnlyMetadata,
+            frameworkDeclared = frameworkDeclared,
+            frameworkBaseName = frameworkBaseName,
+            frameworkAttachedIds = frameworkAttachedIds,
+            frameworkBuildTypes = frameworkBuildTypes,
+            frameworkXcframework = frameworkXcframework,
         )
 }

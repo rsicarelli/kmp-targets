@@ -98,6 +98,17 @@ public class KmpTargetsPlugin : Plugin<Project> {
             }
         }
 
+        // The framework-unattached advisory (#107) also fires on the appleFramework() replay path:
+        // a
+        // framework declared AFTER a (e.g. jvm-only) supports { } attaches nothing and no longer
+        // re-runs register(), so this hook re-evaluates it under the same KGP guard and the same
+        // apply-time strict primitive — never capturing a Project into a task.
+        ext.onAppleFrameworkDeclared = {
+            target.pluginManager.withPlugin(KGP_ID) {
+                maybeWarnFrameworkUnattached(target, ext, strict)
+            }
+        }
+
         registerInfoTask(target, ext, configOrigin)
         registerDoctorTask(target, ext)
 
@@ -238,6 +249,11 @@ public class KmpTargetsPlugin : Plugin<Project> {
             task.androidWithoutAgp.set(androidWithoutAgpProvider(target, ext))
             task.inertModule.set(inertModuleProvider(target, ext))
             task.nativeOnlyMetadata.set(nativeOnlyMetadataProvider(target, ext))
+            task.frameworkDeclared.set(frameworkDeclaredProvider(target, ext))
+            task.frameworkBaseName.set(frameworkBaseNameProvider(target, ext))
+            task.frameworkAttachedIds.set(frameworkAttachedIdsProvider(target, ext))
+            task.frameworkBuildTypes.set(frameworkBuildTypesProvider(target, ext))
+            task.frameworkXcframework.set(frameworkXcframeworkProvider(target, ext))
             // The config-layer origin is fixed at apply time, but the fallback labels must read
             // `defaultSelection` lazily — the body may override it after apply.
             task.originLabel.set(
@@ -331,6 +347,12 @@ public class KmpTargetsPlugin : Plugin<Project> {
             task.registeredDeprecatedIds.set(registeredDeprecatedIdsProvider(target, ext))
             task.singleTargetKsp.set(singleTargetKspProvider(target, ext))
             task.jvmRegisteredAs.set(jvmRegisteredAsProvider(target, ext))
+            task.frameworkDeclared.set(frameworkDeclaredProvider(target, ext))
+            task.frameworkBaseName.set(frameworkBaseNameProvider(target, ext))
+            task.frameworkAttachedIds.set(frameworkAttachedIdsProvider(target, ext))
+            task.frameworkBuildTypes.set(frameworkBuildTypesProvider(target, ext))
+            task.frameworkXcframework.set(frameworkXcframeworkProvider(target, ext))
+            task.frameworkUnattached.set(frameworkUnattachedProvider(target, ext))
             task.dependencyData.from(dependencyDataFiles)
         }
     }
@@ -390,6 +412,42 @@ public class KmpTargetsPlugin : Plugin<Project> {
                     )
                 }
             }
+        }
+    }
+
+    /**
+     * Fires the framework-unattached advisory (#107) at most once per module: when a framework is
+     * declared, this module declared `supports { }`, and zero Apple leaves in the framework's `on`
+     * scope attached. Shared by the end of every [register] pass and the [appleFramework] replay
+     * hook, so it fires regardless of whether the framework was declared before or after `supports
+     * { }`. The dedup flag is set AFTER [warnOrFail] (mirroring the sibling advisories) so a strict
+     * failure leaves no bookkeeping behind. Keyed off the `on`-scoped attached-leaf set, so a
+     * framework scoped to leaves the selection never registered is flagged even when other Apple
+     * leaves did register.
+     */
+    private fun maybeWarnFrameworkUnattached(
+        project: Project,
+        ext: KmpTargetsExtension,
+        strict: Boolean,
+    ) {
+        if (
+            !ext.frameworkUnattachedWarned &&
+                shouldWarnFrameworkUnattached(
+                    ext.appleFrameworkDeclared,
+                    ext.supportsProperty.isPresent,
+                    ext.frameworkAttachedLeaves(),
+                )
+        ) {
+            warnOrFail(
+                strict,
+                frameworkUnattachedWarning(
+                    project.path,
+                    ext.appleFrameworkFacts?.baseName.orEmpty(),
+                ),
+            ) {
+                project.logger.warn(it)
+            }
+            ext.frameworkUnattachedWarned = true
         }
     }
 
@@ -475,6 +533,47 @@ public class KmpTargetsPlugin : Plugin<Project> {
         target.provider {
             hasKgp(target) &&
                 shouldWarnSingleTargetKsp(target.pluginManager.hasPlugin(KSP_ID), ext.registered())
+        }
+
+    // Framework facts (#107), rendered identically by kmpTargetsInfo and kmpTargetsDoctor. The
+    // declaration facts (declared / name / buildTypes / xcframework) are KGP-independent — a
+    // framework is declared whether or not KGP applied — while the attached-leaf and unattached
+    // providers reflect what actually registered (naturally empty/false without KGP).
+    // frameworkUnattached calls the SAME predicate the advisory uses, so doctor's finding can never
+    // drift from the warning.
+    private fun frameworkDeclaredProvider(target: Project, ext: KmpTargetsExtension) =
+        target.provider {
+            ext.appleFrameworkDeclared
+        }
+
+    private fun frameworkBaseNameProvider(target: Project, ext: KmpTargetsExtension) =
+        target.provider {
+            ext.appleFrameworkFacts?.baseName.orEmpty()
+        }
+
+    private fun frameworkAttachedIdsProvider(target: Project, ext: KmpTargetsExtension) =
+        target.provider {
+            ids(ext.frameworkAttachedLeaves())
+        }
+
+    private fun frameworkBuildTypesProvider(target: Project, ext: KmpTargetsExtension) =
+        target.provider {
+            ext.appleFrameworkFacts?.buildTypes?.map { it.name }?.sorted().orEmpty()
+        }
+
+    private fun frameworkXcframeworkProvider(target: Project, ext: KmpTargetsExtension) =
+        target.provider {
+            ext.appleFrameworkFacts?.xcframework ?: false
+        }
+
+    private fun frameworkUnattachedProvider(target: Project, ext: KmpTargetsExtension) =
+        target.provider {
+            hasKgp(target) &&
+                shouldWarnFrameworkUnattached(
+                    ext.appleFrameworkDeclared,
+                    ext.supportsProperty.isPresent,
+                    ext.frameworkAttachedLeaves(),
+                )
         }
 
     internal companion object {
@@ -837,6 +936,17 @@ public class KmpTargetsPlugin : Plugin<Project> {
             ext.nativeOnlyMetadataWarned = true
         }
 
+        // Framework-unattached advisory (#107): a framework is declared but this selection attached
+        // it to no Apple leaf in its `on` scope (jvm-only, or an `on` narrower than what
+        // registered),
+        // so it never materializes and an Xcode build consuming it fails downstream. LAST in the
+        // consequence channel: under strict the cause advisories and the more fundamental
+        // inert/JVM-less consequences above win the exception; this is the most specific
+        // consequence
+        // and reads last. The helper is shared with the appleFramework() replay hook so the firing
+        // is order-independent; it dedups and records bookkeeping AFTER warnOrFail.
+        maybeWarnFrameworkUnattached(project, ext, strict)
+
         // Deliberately receives the unfiltered active set even when android was skipped above:
         // android is ungrouped in the hierarchy taxonomy (it attaches straight to common and
         // never affects the native collapse), so filtering would change nothing.
@@ -1086,6 +1196,40 @@ internal fun nativeOnlyMetadataWarning(path: String): String =
         "constructs (e.g. @JvmInline): klibs build, metadata fails. Gate it in build-logic when " +
         "kmpTargets.registered(jvmFamily).isEmpty(), disabling only the *KotlinMetadata* " +
         "compilations."
+
+/**
+ * Whether to emit [frameworkUnattachedWarning] (#107): an `appleFramework` was declared, this
+ * module declared `supports { }`, yet [attachedLeaves] — the Apple leaves the framework actually
+ * attached to (`registered ∩ on ∩ apple`) — is empty. Keyed off the real attached set rather than
+ * the issue's literal `registered(apple)`, so a framework scoped via `on` to leaves the selection
+ * never registered is flagged even when other Apple leaves did register (e.g. `on = appleMobile`
+ * with only macOS registered). The `supportsDeclared` conjunct upholds the explicit-selection
+ * doctrine: a module that never declared `supports { }` registered nothing intentionally and is
+ * never flagged (the doctor still renders the declared-but-unattached facts). Pure over its inputs,
+ * so it is unit-testable without Gradle; the same decision drives the doctor finding.
+ */
+internal fun shouldWarnFrameworkUnattached(
+    frameworkDeclared: Boolean,
+    supportsDeclared: Boolean,
+    attachedLeaves: KmpTargetSet,
+): Boolean = frameworkDeclared && supportsDeclared && attachedLeaves.isEmpty()
+
+/**
+ * The framework-unattached advisory (#107). Mirrors its siblings in shape; serves as both the
+ * warning and the strict-mode failure text through [warnOrFail], so the two can never drift. Names
+ * the module, the framework ([baseName]), the gate (no Apple target in the framework's scope
+ * registered), the downstream consequence (an Xcode build consuming it fails with a missing
+ * framework), and the fix. Strict mode is the point: a release lane with `kmptargets.strict` and a
+ * misconfigured selection fails loudly at configuration instead of shipping a frameworkless
+ * artifact that breaks Xcode far downstream.
+ */
+internal fun frameworkUnattachedWarning(path: String, baseName: String): String =
+    "kmp-targets: '$path' declared appleFramework(\"$baseName\") but this selection registered no " +
+        "Apple target in its scope — the framework attaches to nothing and never builds, so an " +
+        "Xcode build consuming it fails downstream with a missing-framework error. Widen the " +
+        "selection (or this module's supports { }) to register an Apple target in the framework's " +
+        "`on` scope, or gate the appleFramework(…) declaration in build-logic when " +
+        "kmpTargets.registered(apple).isEmpty()."
 
 /**
  * Whether the `single-target KSP` **doctor finding** fires: a KSP plugin is applied yet exactly one

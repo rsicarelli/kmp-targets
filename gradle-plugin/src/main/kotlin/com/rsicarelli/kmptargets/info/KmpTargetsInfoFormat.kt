@@ -25,6 +25,11 @@ internal fun formatKmpTargetsInfo(
     androidWithoutAgp: Boolean = false,
     inertModule: Boolean = false,
     nativeOnlyMetadata: Boolean = false,
+    frameworkDeclared: Boolean = false,
+    frameworkBaseName: String = "",
+    frameworkAttachedIds: List<String> = emptyList(),
+    frameworkBuildTypes: List<String> = emptyList(),
+    frameworkXcframework: Boolean = false,
 ): String = buildString {
     appendLine("kmp-targets — $projectPath")
     appendLine()
@@ -84,6 +89,20 @@ internal fun formatKmpTargetsInfo(
             "  jvm-less: no JVM-family target registered — *KotlinMetadata* compilations reject " +
                 "@JvmInline etc. while the klibs compile; gate on registered(jvmFamily).isEmpty()"
         )
+    }
+    // The Apple framework section (#107) renders whenever a framework is declared — the same facts
+    // kmpTargetsDoctor shows, from the same providers. An empty `attached` is the unattached state:
+    // the framework will not build for this selection (the doctor explains the consequence + fix).
+    if (frameworkDeclared) {
+        appendLine()
+        appendLine("Apple framework")
+        appendLine("  name:        $frameworkBaseName")
+        appendLine(
+            "  attached:    " +
+                idsOrNone(frameworkAttachedIds, "no Apple target in its scope registered")
+        )
+        appendLine("  buildTypes:  ${frameworkBuildTypes.joinToString(", ")}")
+        appendLine("  xcframework: ${if (frameworkXcframework) "on" else "off"}")
     }
     appendLine()
     appendLine("Vocabulary")

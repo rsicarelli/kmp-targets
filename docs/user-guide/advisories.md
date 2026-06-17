@@ -1,6 +1,6 @@
 # Advisories & Strict Mode
 
-The plugin emits six configuration-time advisories. Five are signal-only; one (android-without-AGP) skips a leaf — the reasoning is on the [Design page](../why-kmp-targets.md#diagnostics-philosophy). [Strict mode](#strict-mode) promotes all six to build failures with identical message text. [`kmpTargetsDoctor`](diagnostics.md#kmptargetsdoctor) renders each advisory as a finding with the fix attached.
+The plugin emits seven configuration-time advisories. Six are signal-only; one (android-without-AGP) skips a leaf — the reasoning is on the [Design page](../why-kmp-targets.md#diagnostics-philosophy). [Strict mode](#strict-mode) promotes all seven to build failures with identical message text. [`kmpTargetsDoctor`](diagnostics.md#kmptargetsdoctor) renders each advisory as a finding with the fix attached.
 
 ## Host compatibility
 
@@ -88,9 +88,23 @@ if (kmpTargets.registered().isNotEmpty() && kmpTargets.registered(jvmFamily).isE
 }
 ```
 
+## Framework without an Apple target
+
+Fires when a module declares an [`appleFramework`](apple-framework.md) but the current selection registers no Apple target in the framework's `on` scope — so the framework attaches to nothing and never builds. A jvm-only lane (`kmptargets.targets=jvm`) is the common cause; so is an `on` scope narrower than what registered (a framework scoped to `appleMobile` while only `macosArm64` registered). The artifact silently never materializes, and an Xcode build consuming it fails far downstream with a missing-framework error that says nothing about target selection:
+
+```
+kmp-targets: ':shared' declared appleFramework("KotlinShared") but this selection registered no
+Apple target in its scope — the framework attaches to nothing and never builds, so an Xcode build
+consuming it fails downstream with a missing-framework error. Widen the selection (or this module's
+supports { }) to register an Apple target in the framework's `on` scope, or gate the appleFramework(…)
+declaration in build-logic when kmpTargets.registered(apple).isEmpty().
+```
+
+Keyed off the leaves the framework **actually attached to** (`registered ∩ on ∩ apple`), not `registered(apple)` — so it is correct for an `on`-scoped framework even when other Apple leaves registered. A module that never calls `supports { }` is not flagged (explicit-selection doctrine), though [`kmpTargetsDoctor`](diagnostics.md#kmptargetsdoctor) still renders the declared-but-unattached state. Registration is one-way: a later `supports { }` union that attaches an Apple leaf resolves it permanently. Strict mode is the point here — a release lane with a misconfigured selection fails loudly at configuration instead of shipping a frameworkless artifact that breaks Xcode downstream.
+
 ## Strict mode
 
-`kmptargets.strict=true` promotes all six advisories to configuration-time build failures (`GradleException`) with identical message text. Severity changes; policy does not — it never changes which configurations are flagged or what registers (the AGP skip happens with or without strict). Default off. Recommended: strict in CI only:
+`kmptargets.strict=true` promotes all seven advisories to configuration-time build failures (`GradleException`) with identical message text. Severity changes; policy does not — it never changes which configurations are flagged or what registers (the AGP skip happens with or without strict). Default off. Recommended: strict in CI only:
 
 ```yaml
 # CI only — e.g. a GitHub Actions env block
