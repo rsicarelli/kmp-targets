@@ -16,12 +16,11 @@ plugins {
 ktfmt { kotlinLangStyle() }
 
 kmpTargets {
-    // Supported = every Apple leaf ∪ jvm. The active selection (committed fallback, or the Xcode
-    // env
-    // when present) is intersected with this, so an Xcode simulator build registers
-    // iosSimulatorArm64
-    // alone while a plain build registers the committed jvm + iOS set.
-    supports { apple + jvm }
+    // An iOS/macOS framework module supports the Apple platforms. The active selection (committed
+    // fallback, or the Xcode env when present) is intersected with this, so an Xcode simulator
+    // build
+    // registers iosSimulatorArm64 alone while a plain build registers the committed iOS set.
+    supports { apple }
 
     // Declare the framework once; the plugin attaches it to every registered Apple leaf. The
     // configure block is the real KGP `Framework`. With no `buildTypes` arg it defaults to

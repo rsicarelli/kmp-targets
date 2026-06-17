@@ -19,9 +19,9 @@ Precedence (highest first): CLI `-P` → `ORG_GRADLE_PROJECT_` env → **Xcode e
 
 | Invocation | Active selection | Why |
 |---|---|---|
-| `./gradlew build` (no Xcode env) | `jvm, iosArm64, iosSimulatorArm64` | committed fallback in `kmp-targets.properties` |
+| `./gradlew build` (no Xcode env) | `iosArm64, iosSimulatorArm64` | committed fallback in `kmp-targets.properties` |
 | Xcode build, `SDK_NAME=iphonesimulator ARCHS=arm64` | `iosSimulatorArm64` | Xcode env overrides the file with the one leaf Xcode is building |
-| anything with `-Pkmptargets.targets=jvm` | `jvm` | explicit `-P` still wins over the Xcode env |
+| anything with `-Pkmptargets.targets=iosArm64` | `iosArm64` | explicit `-P` still wins over the Xcode env |
 
 `CONFIGURATION=Debug|Release` narrows the framework's build types through the same `#108` intersection;
 a custom configuration honors `KOTLIN_FRAMEWORK_BUILD_TYPE`. An unknown SDK falls through to the
