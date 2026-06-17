@@ -57,7 +57,7 @@ Full story: [Compatibility](https://rsicarelli.github.io/kmp-targets/compatibili
 
 ## Documentation
 
-**Status:** alpha. Roadmap: user-defined hierarchy groups, XCFramework helpers.
+**Status:** alpha. Roadmap: user-defined hierarchy groups, XCFramework assembly (the [Apple framework](https://rsicarelli.github.io/kmp-targets/user-guide/apple-framework/) helper is the foundation).
 
 Everything lives at **[rsicarelli.github.io/kmp-targets](https://rsicarelli.github.io/kmp-targets/)**:
 
@@ -67,6 +67,7 @@ Everything lives at **[rsicarelli.github.io/kmp-targets](https://rsicarelli.gith
 - [Targets Reference](https://rsicarelli.github.io/kmp-targets/user-guide/targets-reference/) — every preset and leaf
 - [Hierarchy](https://rsicarelli.github.io/kmp-targets/user-guide/hierarchy-template/) — minimal template, no-collapse
 - [Build Logic](https://rsicarelli.github.io/kmp-targets/user-guide/build-logic/) — conventions, `onRegistered`, helpers
+- [Apple Framework](https://rsicarelli.github.io/kmp-targets/user-guide/apple-framework/) — `appleFramework`, `onAppleTarget`, route-to-real-KGP
 - [Recipes](https://rsicarelli.github.io/kmp-targets/user-guide/recipes/) — KSP gates, AGP gating, dependency-graph rules
 - [Advisories & Strict Mode](https://rsicarelli.github.io/kmp-targets/user-guide/advisories/) — the six advisories and CI strictness
 - [Diagnostics](https://rsicarelli.github.io/kmp-targets/user-guide/diagnostics/) — `kmpTargetsInfo` and `kmpTargetsDoctor`

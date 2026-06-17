@@ -9,6 +9,10 @@ import org.gradle.api.Task
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.TaskProvider
+import org.jetbrains.kotlin.gradle.plugin.KotlinTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.Framework
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
 
 /**
  * Public DSL surface exposed by the plugin as the `kmpTargets` extension.
@@ -207,6 +211,24 @@ public abstract class KmpTargetsExtension @Inject constructor(objects: ObjectFac
     internal val onRegisteredActions: MutableList<(RegisteredTarget) -> Unit> = mutableListOf()
 
     /**
+     * Resolves a registered target's `gradleName` to the **live KGP [KotlinTarget]**, so
+     * [onAppleTarget] / [appleFramework] can route to the real type instead of re-deriving it. The
+     * plugin installs it once inside `withPlugin(KGP_ID)` (where the `KotlinMultiplatformExtension`
+     * exists); it stays null until then, so the apple hooks are inert when KGP is absent — which is
+     * also when nothing registers and [onRegistered] never fires. A configuration-time-only
+     * carrier: invoked solely from `onRegistered` actions, never held by a task action, so no
+     * `Project` (or the KMP extension it closes over) is serialized into the configuration cache.
+     */
+    internal var kotlinTargetByName: ((String) -> KotlinTarget?)? = null
+
+    /**
+     * True once [appleFramework] has been called, so a second call fails loudly. One framework per
+     * module in v1: KGP's binary names collide on the empty `namePrefix`, and multi-framework needs
+     * a deliberate `namePrefix` strategy (a follow-up). The duplicate-fail keeps that door open.
+     */
+    internal var appleFrameworkDeclared: Boolean = false
+
+    /**
      * The per-module `kmpCompileAll` umbrella task (#77), registered unconditionally at apply time.
      * The eager registration loop appends one compile-task dependency per registered leaf, so the
      * umbrella ends up depending on exactly the registered intersection — selection-agnostic and
@@ -287,5 +309,104 @@ public abstract class KmpTargetsExtension @Inject constructor(objects: ObjectFac
     public fun onRegistered(action: (RegisteredTarget) -> Unit) {
         registeredLog.toList().forEach(action)
         onRegisteredActions += action
+    }
+
+    /**
+     * Runs [action] against the **live KGP [KotlinNativeTarget]** of every registered Apple leaf —
+     * the no-mirror foundation for per-target Apple wiring. It is [onRegistered] routed one rung
+     * closer to the metal: same replay-then-subscribe, ordering-immune guarantees (a `framework`
+     * declared before or after `supports {}` behaves identically), but the receiver is the real
+     * target, so frameworks, cinterops, linker options, and binary options are plain KGP you
+     * already know — nothing this plugin has to re-declare and review on each Kotlin release:
+     * ```kotlin
+     * kmpTargets {
+     *     supports { appleMobile }
+     *     onAppleTarget {                       // this: KotlinNativeTarget
+     *         binaries.framework("KotlinShared") { isStatic = false }
+     *     }
+     * }
+     * ```
+     *
+     * Apple-ness comes from the model leaf ([KmpTarget.Native.Apple]), so no konan `Family`
+     * introspection leaks in. Fires only when KGP is applied (otherwise nothing registers); runs at
+     * configuration time only — mirror the [onRegistered] discipline and never hold the target (or
+     * the extension) from a task action.
+     */
+    public fun onAppleTarget(action: KotlinNativeTarget.() -> Unit): Unit =
+        onAppleNativeTarget(KmpTargetSet.apple, action)
+
+    /**
+     * Declares a Kotlin **Apple framework** once and attaches it to every registered Apple leaf in
+     * [on] — replacing the hand-rolled "pick native targets, loop, `binaries.framework { … }`"
+     * block (issue #105). Thin sugar over [onAppleTarget]: this plugin owns only the [baseName],
+     * the creation-time [buildTypes], and the [on] filter (its own target algebra); the [configure]
+     * body is the **real KGP [Framework]**, so `isStatic`, `export(…)`, `binaryOption(…)`, and
+     * every future framework option come straight from KGP with no mirrored vocabulary:
+     * ```kotlin
+     * kmpTargets {
+     *     supports { appleMobile }
+     *     appleFramework("KotlinShared") {       // this: Framework
+     *         isStatic = false
+     *         export(libs.shared.core)           // KGP export(Any): catalog Provider / project / "g:a:v"
+     *     }
+     * }
+     * ```
+     *
+     * [baseName] becomes the framework's `baseName`; KGP's `namePrefix` stays `""` so link-task
+     * names (`linkDebugFrameworkIosArm64`) and the `embedAndSign…` contract match plain-KGP
+     * conventions byte-for-byte. [buildTypes] defaults to KGP's own `DEFAULT_BUILD_TYPES` (DEBUG +
+     * RELEASE) — the plugin never silently narrows a KGP default. Exports are realized lazily by
+     * KGP at attach time (a version-catalog `Provider` is not `.get()`-ed at declaration). The
+     * [configure] block runs after the `baseName` is set, so it always wins.
+     *
+     * Build-logic friendly: [on] is a raw [KmpTargetSet] (mirroring `supports(value)`), so
+     * convention plugins declare frameworks without the type-safe DSL receiver. One framework per
+     * module in v1 — a second call, a blank [baseName], or an [on] not ⊆ apple fails fast with the
+     * offending ids.
+     */
+    public fun appleFramework(
+        baseName: String,
+        on: KmpTargetSet = KmpTargetSet.apple,
+        buildTypes: Collection<NativeBuildType> = NativeBuildType.DEFAULT_BUILD_TYPES,
+        configure: Framework.() -> Unit = {},
+    ) {
+        if (baseName.isBlank()) {
+            throw GradleException("kmp-targets: appleFramework baseName must not be blank.")
+        }
+        val nonApple = (on - KmpTargetSet.apple).members
+        if (nonApple.isNotEmpty()) {
+            throw GradleException(
+                "kmp-targets: appleFramework `on` must be a subset of apple targets. " +
+                    "Offending: ${nonApple.map { it.id }.sorted()}."
+            )
+        }
+        if (appleFrameworkDeclared) {
+            throw GradleException(
+                "kmp-targets: appleFramework can be declared at most once per module (v1) — KGP " +
+                    "binary names collide on the empty namePrefix. Multiple frameworks need a " +
+                    "namePrefix strategy (a follow-up)."
+            )
+        }
+        appleFrameworkDeclared = true
+        onAppleNativeTarget(on) {
+            binaries.framework(buildTypes = buildTypes) {
+                this.baseName = baseName
+                configure()
+            }
+        }
+    }
+
+    /**
+     * Shared resolve path for [onAppleTarget] and [appleFramework]: replays + subscribes via
+     * [onRegistered], keeps only Apple leaves inside [within], and resolves each to its live KGP
+     * [KotlinNativeTarget] through [kotlinTargetByName] before invoking [block]. The null-safe
+     * chain means it is inert until the plugin installs the resolver under `withPlugin(KGP_ID)`.
+     */
+    private fun onAppleNativeTarget(within: KmpTargetSet, block: KotlinNativeTarget.() -> Unit) {
+        onRegistered { registered ->
+            if (registered.leaf is KmpTarget.Native.Apple && registered.leaf in within) {
+                (kotlinTargetByName?.invoke(registered.gradleName) as? KotlinNativeTarget)?.block()
+            }
+        }
     }
 }

@@ -11,7 +11,15 @@ plugins {
 // configuration wiring needs. With kmptargets.targets=jvm,iosArm64,iosSimulatorArm64 intersected
 // against supports { jvm + iosArm64 }, the convention sees exactly [iosArm64, jvm] — at
 // configuration time, in the same pass. (Pre-#52 this read `kotlin.targets.names` by hand.)
-kmpModule(supported = { jvm + iosArm64 }) { target ->
+// FRAMEWORK PROOF (.kt / build-logic). `appleFramework = "EagerShared"` declares the framework from
+// the convention via the raw `on: KmpTargetSet` overload (no type-safe receiver needed in
+// build-logic), and `framework { … }` configures the real KGP `Framework`. It attaches only to the
+// registered Apple leaf (iosArm64), never to jvm.
+kmpModule(
+    supported = { jvm + iosArm64 },
+    appleFramework = "EagerShared",
+    framework = { isStatic = false },
+) { target ->
     tasks.register("describe${target.gradleNameCapitalized}") {
         val gradleName = target.gradleName
         doLast { logger.lifecycle("eager-wired target: $gradleName") }

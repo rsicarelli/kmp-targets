@@ -10,4 +10,12 @@ plugins {
     alias(libs.plugins.kmpTargets)
 }
 
-kmpTargets { supports { apple + jvm } }
+kmpTargets {
+    supports { apple + jvm }
+
+    // FRAMEWORK PROOF (.kts). Declare the iOS/macOS framework once; the plugin attaches it to every
+    // registered Apple leaf via the existing onRegistered replay — no target loop, no ad-hoc
+    // property picker. The configure block is the *real* KGP `Framework`, so `isStatic` and any
+    // future framework option come straight from KGP with nothing mirrored in this plugin.
+    appleFramework("KotlinShared") { isStatic = false }
+}

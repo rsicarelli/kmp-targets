@@ -699,6 +699,13 @@ public class KmpTargetsPlugin : Plugin<Project> {
         strict: Boolean,
     ) {
         val kotlin = project.extensions.getByType(KotlinMultiplatformExtension::class.java)
+        // Install the gradleName → live KotlinTarget resolver that backs onAppleTarget /
+        // appleFramework (#105). Set before the registration loop below, so it is in place by the
+        // time recordRegistration fires the onRegistered subscriptions those hooks ride. Idempotent
+        // across supports{} passes; closes over the config-time KMP extension only, never a
+        // Project,
+        // and is invoked solely from configuration-time onRegistered actions — config-cache safe.
+        ext.kotlinTargetByName = { name -> kotlin.targets.findByName(name) }
         val selection = ext.resolvedSelection()
         val supported = ext.resolvedSupported()
         val active = selection intersect supported
