@@ -6,16 +6,16 @@
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.2%2B-blue)](https://kotlinlang.org)
 [![Docs](https://img.shields.io/badge/docs-rsicarelli.github.io%2Fkmp--targets-blue)](https://rsicarelli.github.io/kmp-targets/)
 
-Speed up KMP development by **building only the targets you need.**. One Gradle property decides which Kotlin Multiplatform targets compile. The ones you skip never register, so their tasks never exist.
+Speed up KMP development by **building only the targets you need.** One Gradle property decides which Kotlin Multiplatform targets compile. The ones you skip never register, so their tasks never exist.
 
 ```kotlin
 // build.gradle.kts: declare what this module can build
 kmpTargets {
-    supports { mobile } // androidTarget + all iOS     
+    supports { mobile } // androidTarget + all iOS
 }
 ```
 ```bash
-# Build only what you select. 
+# Build only what you select.
 ./gradlew build -Pkmptargets.targets=iosArm64
 ```
 
@@ -31,7 +31,7 @@ Kotlin Multiplatform makes you declare every target up front, then builds them a
 // Before: regular KMP. List every target, apply the default hierarchy template.
 kotlin {
     applyDefaultHierarchyTemplate()
-    
+
     jvm()
     iosArm64()
     iosSimulatorArm64()
@@ -39,7 +39,7 @@ kotlin {
 }
 ```
 ```kotlin
-// After: kmp-targets. 
+// After: kmp-targets.
 // Hierarchy Template is automatic/dynamic.
 kmpTargets {
     supports { appleMobile + jvm - iosX64 }   // drop the Intel-Mac simulator
@@ -63,7 +63,6 @@ Measured on `samples/hello-world` by counting the `:shared-core:build` task grap
 | `jvm,iosArm64` | 38 | -40% |
 | `jvm` | 26 | -59% |
 | `iosArm64` | 19 | **-70%** |
-
 
 ## ✨ Key Features
 
@@ -121,7 +120,7 @@ Inspect what the plugin decided at any time with `./gradlew :module:kmpTargetsIn
 
 ## 🧩 Automatic hierarchy
 
-[Kotlin's Default Hierarchy template has a hidden cost for your IDE sync](https://rsicarelli.com/en/blog/the-hidden-cost-of-default-hierarchy-templates-in-kotlin-multiplatform/): it always create unecessary `nativeMain` and `appleMain` intermediates even when not needed.
+[Kotlin's Default Hierarchy template has a hidden cost for your IDE sync](https://rsicarelli.com/en/blog/the-hidden-cost-of-default-hierarchy-templates-in-kotlin-multiplatform/): it always creates unnecessary `nativeMain` and `appleMain` intermediates even when not needed.
 
 `kmp-targets` rebuilds the source-set hierarchy to fit exactly the targets you registered. No manual `sourceSets { }` wiring, no redundant intermediates: it keeps only the groups that actually merge two or more children.
 
