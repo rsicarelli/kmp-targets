@@ -19,7 +19,7 @@ class KmpTargetsInfoFormatTest {
                 registeredIds = listOf("androidTarget", "iosArm64"),
                 originLabel = "command line (-Pkmptargets.targets)",
             )
-        assertContains(output, "kmp-targets — :shared-core")
+        assertContains(output, "kmp-targets - :shared-core")
         assertContains(output, "Selection (what to build now)")
         assertContains(output, "source:   command line (-Pkmptargets.targets)")
         assertContains(output, "Supported (what this module can build)")

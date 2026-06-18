@@ -48,7 +48,7 @@ internal fun formatKmpTargetsDoctor(
     frameworkUnattached: Boolean = false,
     frameworkBuildTypesDisjoint: Boolean = false,
 ): String = buildString {
-    appendLine("kmp-targets doctor — $projectPath")
+    appendLine("kmp-targets doctor - $projectPath")
     appendLine()
 
     // The Apple framework facts (#107) render BEFORE the supports early-exit, so a module that
@@ -254,7 +254,7 @@ private fun cleanBill(registeredIds: List<String>): String =
     if (registeredIds.isEmpty()) {
         "✓ no kmp-targets issues — no targets registered for this module"
     } else {
-        "✓ clean bill of health — registered: ${registeredIds.joinToString(", ")}"
+        "✓ clean bill of health - registered: ${registeredIds.joinToString(", ")}"
     }
 
 private fun render(ids: List<String>): String =

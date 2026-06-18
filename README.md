@@ -1,94 +1,172 @@
 # kmp-targets
 
-> Dynamically select which Kotlin Multiplatform targets to build.
-
 [![Build](https://img.shields.io/github/actions/workflow/status/rsicarelli/kmp-targets/ci.yml)](https://github.com/rsicarelli/kmp-targets/actions/workflows/ci.yml)
 [![Maven Central](https://img.shields.io/maven-central/v/com.rsicarelli/kmp-targets-gradle-plugin)](https://central.sonatype.com/artifact/com.rsicarelli/kmp-targets-gradle-plugin)
-[![Docs](https://img.shields.io/badge/docs-rsicarelli.github.io%2Fkmp--targets-blue)](https://rsicarelli.github.io/kmp-targets/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Kotlin](https://img.shields.io/badge/Kotlin-2.2%2B-blue)](https://kotlinlang.org)
+[![Docs](https://img.shields.io/badge/docs-rsicarelli.github.io%2Fkmp--targets-blue)](https://rsicarelli.github.io/kmp-targets/)
 
-`kmp-targets` is a Gradle plugin that lets each developer (and each CI runner) choose which KMP targets to build, via a single Gradle property:
+Speed up KMP development by **building only the targets you need.** One Gradle property decides which Kotlin Multiplatform targets compile. The ones you skip never register, so their tasks never exist.
 
-```properties
-# kmp-targets.properties (committed), kmp-targets.local.properties (personal), or -P
-kmptargets.targets=jvm,iosArm64
+```kotlin
+// build.gradle.kts: declare what this module can build
+kmpTargets {
+    supports { mobile } // androidTarget + all iOS
+}
+```
+```bash
+# Build only what you select.
+./gradlew build -Pkmptargets.targets=iosArm64
 ```
 
-Targets you don't select are never registered with KGP, so their compile/link/KSP/publish tasks never exist — cutting sync and build times when you only need a subset.
+## 🤔 Why kmp-targets?
 
-## Example
+Kotlin Multiplatform makes you declare every target up front, then builds them all on every sync. Kotlin's own docs tell you not to: *"[build only for necessary targets](https://kotlinlang.org/docs/native-improving-compilation-time.html#build-only-for-necessary-targets)."* The catch is that the only built-in way to do it is hand-editing `kotlin { }`.
 
+`kmp-targets` splits what you *support* from what you *want to build*, and turns the choice into one property. Pick the set you want and the targets you skip never register, so their tasks never exist.
+
+## ⚖️ Before / After
+
+```kotlin
+// Plain KMP: every target you list builds on every sync.
+kotlin {
+    jvm()
+    iosArm64()
+    iosSimulatorArm64()
+    iosX64()
+}
+```
+```kotlin
+// kmp-targets: declare what the module supports...
+kmpTargets {
+    supports { appleMobile + jvm - iosX64 }   // drop the Intel-Mac simulator
+}
+```
+```bash
+# ...then select what to build now. The rest never register.
+./gradlew build -Pkmptargets.targets=iosArm64
+```
+
+## 📊 Impact
+
+`kmp-targets` registers only `selection ∩ supported` targets. Unselected targets are never handed to the Kotlin Gradle Plugin, so **none** of their tasks (compile, klib, metadata, link, test, framework, resources) are ever created. Fewer targets, fewer tasks.
+
+Measured on `samples/hello-world` by counting the `:shared-core:build` task graph via `gradlew --dry-run`:
+
+| Selection | Gradle tasks | vs. all 4 |
+| :--- | :---: | :---: |
+| `jvm,iosArm64,iosSimulatorArm64,iosX64` | 63 | baseline |
+| `jvm,iosArm64,iosSimulatorArm64` | 54 | -14% |
+| `jvm,iosArm64` | 38 | -40% |
+| `jvm` | 26 | -59% |
+| `iosArm64` | 19 | **-70%** |
+
+## ✨ Key Features
+
+- **Targets are set algebra.** Compose presets and leaves with `+`/`-`: `supports { apple + jvm - iosX64 }`.
+- **Unselected means non-existent.** Skipped targets never reach KGP, so their tasks never exist.
+- **Minimal hierarchy, automatically.** Only the source sets you need, with [no IDE-sync drag](https://rsicarelli.com/en/blog/the-hidden-cost-of-default-hierarchy-templates-in-kotlin-multiplatform/).
+- **Opt-in and non-invasive.** Other modules build exactly as before.
+- **Layered selection.** A flag, env var, or config file picks the targets.
+- **Apple frameworks and XCFrameworks.** `appleFramework("Shared")` attaches to every Apple target.
+- **Build-type selection.** `kmptargets.framework.buildTypes=debug` skips the slow Release link.
+- **Built-in diagnostics.** `kmpTargetsInfo` and `kmpTargetsDoctor` explain what registered and why.
+
+## ⚡ Quick Start
+
+Requires Gradle 8.11+, JDK 17, and the Kotlin Gradle Plugin 2.2+. You apply KGP yourself; the plugin never applies it for you.
+
+**1. Add the plugin.** It's published to Maven Central (not the Gradle Plugin Portal), so make sure `mavenCentral()` is in your plugin repositories:
+
+```kotlin
+// settings.gradle.kts
+pluginManagement {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+```
 ```kotlin
 // build.gradle.kts
 plugins {
     kotlin("multiplatform")
     id("com.rsicarelli.kmptargets") version "0.1.0"
 }
-
-kmpTargets {
-    supports { mobile + web - iosX64 }   // presets and leaves compose as set algebra
-}
 ```
 
-`supports { }` declares what the module *can* build; the global `kmptargets.targets` selection decides what you *want* built now. The plugin registers `selection ∩ supported` per module. Inspect any module's resolved state with `./gradlew :module:kmpTargetsInfo`.
-
-## Installation
-
-Published to Maven Central — group `com.rsicarelli`, artifact `kmp-targets-gradle-plugin`, plugin id `com.rsicarelli.kmptargets` (no Gradle Plugin Portal). With `mavenCentral()` in `pluginManagement.repositories`:
+**2. Declare what the module can build:**
 
 ```kotlin
-plugins {
-    kotlin("multiplatform")
-    id("com.rsicarelli.kmptargets") version "0.1.0"
+kmpTargets {
+    supports { mobile }   // presets (mobile, apple, web, ...) and leaves (jvm, iosArm64, ...) compose with + and -
 }
 ```
 
-Version catalogs, snapshots, and build-logic dependencies: [Get Started](https://rsicarelli.github.io/kmp-targets/get-started/).
+**3. Select what to build now.** Use a flag for one run, or a config file to make it durable:
 
-## Requirements
+```bash
+./gradlew build -Pkmptargets.targets=iosArm64   # the rest never register
+```
+```properties
+# kmp-targets.properties (committed) or kmp-targets.local.properties (personal, git-ignored)
+kmptargets.targets=jvm,iosArm64
+```
 
-| Consumer surface | Floor |
-|---|---|
-| Gradle (`kotlin-dsl` build-logic) | **8.11+** |
-| Daemon JVM | **JDK 17** |
-| Kotlin Gradle Plugin | **2.2+** |
+Inspect what the plugin decided at any time with `./gradlew :module:kmpTargetsInfo` (see [🔎 Diagnostics](#-diagnostics)).
 
-Full story: [Compatibility](https://rsicarelli.github.io/kmp-targets/compatibility/).
+> **Ordering:** `supports` registers eagerly, so apply every plugin that influences registration *before* the `kmpTargets { }` block. That matters most for the Android Gradle plugin when you support `androidTarget`.
 
-## Documentation
+## 🔎 Diagnostics
 
-**Status:** alpha. Roadmap: user-defined hierarchy groups. The [Apple framework](https://rsicarelli.github.io/kmp-targets/user-guide/apple-framework/) helper covers framework declaration and XCFramework assembly, and the opt-in [Xcode environment](https://rsicarelli.github.io/kmp-targets/user-guide/xcode-environment/) source lets Xcode's `SDK_NAME`/`ARCHS`/`CONFIGURATION` drive selection with no `-P`.
+Two read-only tasks (group `help`) on every module the plugin is applied to.
+
+`kmpTargetsInfo` shows what resolved, what registered, and why:
+
+```bash
+./gradlew :feature-mobile:kmpTargetsInfo -q
+```
+```console
+kmp-targets - :feature-mobile
+
+Selection (what to build now)
+  targets:  iosArm64
+  source:   command line (-Pkmptargets.targets)
+
+Supported (what this module can build)
+  declared: yes
+  targets:  androidTarget, iosArm64, iosSimulatorArm64, iosX64
+
+Registered (selection ∩ supported)
+  targets:  iosArm64
+```
+
+`kmpTargetsDoctor` runs triage (cause, effect, fix) for empty selections, inert modules, host-incompatible targets, disjoint framework build types, and more, or prints a clean bill of health:
+
+```console
+kmp-targets doctor - :jvm-tools
+
+✓ clean bill of health - registered: jvm
+```
+
+## 📚 Documentation
 
 Everything lives at **[rsicarelli.github.io/kmp-targets](https://rsicarelli.github.io/kmp-targets/)**:
 
-- [Quick Start](https://rsicarelli.github.io/kmp-targets/get-started/quick-start/) — apply, declare, select, inspect
-- [Selection DSL](https://rsicarelli.github.io/kmp-targets/user-guide/selection-dsl/) — `supports { }`, set algebra, the JVM rename
-- [Selection Layers](https://rsicarelli.github.io/kmp-targets/user-guide/selection-layers/) — config files, precedence, grammar
-- [Targets Reference](https://rsicarelli.github.io/kmp-targets/user-guide/targets-reference/) — every preset and leaf
-- [Hierarchy](https://rsicarelli.github.io/kmp-targets/user-guide/hierarchy-template/) — minimal template, no-collapse
-- [Build Logic](https://rsicarelli.github.io/kmp-targets/user-guide/build-logic/) — conventions, `onRegistered`, helpers
-- [Apple Framework](https://rsicarelli.github.io/kmp-targets/user-guide/apple-framework/) — `appleFramework`, `onAppleTarget`, route-to-real-KGP
-- [Xcode Environment](https://rsicarelli.github.io/kmp-targets/user-guide/xcode-environment/) — opt-in `SDK_NAME`/`ARCHS`/`CONFIGURATION` selection, zero-`-P` Xcode builds
-- [Recipes](https://rsicarelli.github.io/kmp-targets/user-guide/recipes/) — KSP gates, AGP gating, dependency-graph rules
-- [Advisories & Strict Mode](https://rsicarelli.github.io/kmp-targets/user-guide/advisories/) — the eight advisories and CI strictness
-- [Diagnostics](https://rsicarelli.github.io/kmp-targets/user-guide/diagnostics/) — `kmpTargetsInfo` and `kmpTargetsDoctor`
-- [CI](https://rsicarelli.github.io/kmp-targets/user-guide/ci-matrix/) — per-host matrix, umbrella tasks
-- [Design](https://rsicarelli.github.io/kmp-targets/why-kmp-targets/) — rationale and trade-offs
-- [Troubleshooting](https://rsicarelli.github.io/kmp-targets/help/troubleshooting/) — symptom → cause → fix
+- [Quick Start](https://rsicarelli.github.io/kmp-targets/get-started/quick-start/): apply, declare, select, inspect
+- [Selection DSL](https://rsicarelli.github.io/kmp-targets/user-guide/selection-dsl/): `supports { }`, set algebra, the JVM rename
+- [Selection Layers](https://rsicarelli.github.io/kmp-targets/user-guide/selection-layers/): config files, precedence, grammar
+- [Targets Reference](https://rsicarelli.github.io/kmp-targets/user-guide/targets-reference/): every preset and leaf
+- [Apple Framework](https://rsicarelli.github.io/kmp-targets/user-guide/apple-framework/): `appleFramework`, XCFrameworks, `onAppleTarget`
+- [Diagnostics](https://rsicarelli.github.io/kmp-targets/user-guide/diagnostics/): `kmpTargetsInfo` and `kmpTargetsDoctor`
+- [Advisories & Strict Mode](https://rsicarelli.github.io/kmp-targets/user-guide/advisories/): the eight advisories and CI strictness
 
-## Development
+## 🤝 Contributing
 
-Requirements: [mise](https://mise.jdx.dev) (pins JDK 23) and [Task](https://taskfile.dev).
-
-```bash
-mise install        # provisions Temurin 23.0.2+7
-task ci             # build + test + sample
-task dod            # Definition of Done — fmt + build + test (run before committing)
-task hooks:install  # enable the version-controlled .githooks/ pre-commit gate
-```
-
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full development guide.
+- **Report a bug or request a feature:** [open an issue](https://github.com/rsicarelli/kmp-targets/issues/new/choose)
+- **Develop:** `mise install`, then `task ci` (build + test + sample). Run `task dod` before committing.
+- **Guide:** see [CONTRIBUTING.md](./CONTRIBUTING.md)
 
 ## License
 
-Apache-2.0. See [LICENSE](./LICENSE).
+Apache-2.0 © 2026 Rodrigo Sicarelli. See [LICENSE](./LICENSE).
