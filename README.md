@@ -68,9 +68,11 @@ Measured on `samples/hello-world` by counting the `:shared-core:build` task grap
 
 - **Targets are set algebra.** `supports { apple + jvm - iosX64 }` composes presets and leaves with `+` and `-`.
 - **Unselected means non-existent.** Skipped targets never reach KGP, so their compile, link, test, and KSP tasks are never created, not just skipped.
+- **Automatic minimal hierarchy.** Just the source sets your registered targets need, with no manual `sourceSets { }` wiring and none of KGP's [redundant intermediates that slow IDE sync](https://rsicarelli.com/en/blog/the-hidden-cost-of-default-hierarchy-templates-in-kotlin-multiplatform/).
 - **Opt-in and non-invasive.** It only touches modules that apply it. Plain KMP modules build exactly as before, and you can mix the two freely.
 - **Layered selection.** Set targets from a `-P` flag, an env var, a per-developer file, a committed team file, or `gradle.properties`. Typos get a "did you mean?".
 - **Apple frameworks and XCFrameworks.** Declare `appleFramework("Shared")` once and it attaches to every registered Apple target. XCFramework assembly is opt-in.
+- **Build-type selection.** Narrow framework build types per lane with `kmptargets.framework.buildTypes=debug`, so the slow Release link never runs while you iterate.
 - **Built-in diagnostics.** `kmpTargetsInfo` and `kmpTargetsDoctor` show what's selected, supported, and registered, plus why a target went inert.
 
 ## ⚡ Quick Start
@@ -117,45 +119,6 @@ kmptargets.targets=jvm,iosArm64
 Inspect what the plugin decided at any time with `./gradlew :module:kmpTargetsInfo` (see [🔎 Diagnostics](#-diagnostics)).
 
 > **Ordering:** `supports` registers eagerly, so apply every plugin that influences registration *before* the `kmpTargets { }` block. That matters most for the Android Gradle plugin when you support `androidTarget`.
-
-## 🧩 Automatic hierarchy
-
-[Kotlin's Default Hierarchy template has a hidden cost for your IDE sync](https://rsicarelli.com/en/blog/the-hidden-cost-of-default-hierarchy-templates-in-kotlin-multiplatform/): it always creates unnecessary `nativeMain` and `appleMain` intermediates even when not needed.
-
-`kmp-targets` rebuilds the source-set hierarchy to fit exactly the targets you registered. No manual `sourceSets { }` wiring, no redundant intermediates: it keeps only the groups that actually merge two or more children.
-
-```text
-KGP default: 3 redundant intermediates for 2 iOS leaves
-commonMain
-└── nativeMain
-    └── appleMain
-        └── iosMain
-            ├── iosArm64Main
-            └── iosSimulatorArm64Main
-
-kmp-targets: only the intermediate that matters
-commonMain
-└── iosMain
-    ├── iosArm64Main
-    └── iosSimulatorArm64Main
-```
-
-A single iOS leaf collapses all the way to `commonMain` (zero intermediates). Tune per module via the `hierarchyTemplate` and `collapseHierarchy` flags.
-
-## 🛠️ Build-type selection
-
-Kotlin's docs also warn that *"[compilation of release binaries takes an order of magnitude more time](https://kotlinlang.org/docs/native-improving-compilation-time.html#don-t-build-unnecessary-release-binaries)"* than debug, so don't link them while you iterate. `kmp-targets` makes the framework build type a lane knob, exactly like target selection:
-
-```properties
-# kmp-targets.properties: team default, fast local links
-kmptargets.framework.buildTypes=debug
-```
-```bash
-# a release lane overrides it, exactly like the targets key
-./gradlew assembleKotlinSharedXCFramework -Pkmptargets.framework.buildTypes=release
-```
-
-`=debug` leaves only the `linkDebugFramework*` and `assemble*DebugXCFramework` tasks; the slow Release link never runs. The effective set is `property ∩ appleFramework(buildTypes = ...)`, so a lane only ever *narrows* what the module declared.
 
 ## 🔎 Diagnostics
 
