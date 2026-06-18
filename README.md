@@ -63,14 +63,14 @@ Measured on `samples/hello-world` by counting the `:shared-core:build` task grap
 
 ## ✨ Key Features
 
-- **Targets are set algebra.** `supports { apple + jvm - iosX64 }` composes presets and leaves with `+` and `-`.
-- **Unselected means non-existent.** Skipped targets never reach KGP, so their compile, link, test, and KSP tasks are never created, not just skipped.
-- **Automatic minimal hierarchy.** Just the source sets your registered targets need, with no manual `sourceSets { }` wiring and none of KGP's [redundant intermediates that slow IDE sync](https://rsicarelli.com/en/blog/the-hidden-cost-of-default-hierarchy-templates-in-kotlin-multiplatform/).
-- **Opt-in and non-invasive.** It only touches modules that apply it. Plain KMP modules build exactly as before, and you can mix the two freely.
-- **Layered selection.** Set targets from a `-P` flag, an env var, a per-developer file, a committed team file, or `gradle.properties`. Typos get a "did you mean?".
-- **Apple frameworks and XCFrameworks.** Declare `appleFramework("Shared")` once and it attaches to every registered Apple target. XCFramework assembly is opt-in.
-- **Build-type selection.** Narrow framework build types per lane with `kmptargets.framework.buildTypes=debug`, so the slow Release link never runs while you iterate.
-- **Built-in diagnostics.** `kmpTargetsInfo` and `kmpTargetsDoctor` show what's selected, supported, and registered, plus why a target went inert.
+- **Targets are set algebra.** Compose presets and leaves with `+`/`-`: `supports { apple + jvm - iosX64 }`.
+- **Unselected means non-existent.** Skipped targets never reach KGP, so their tasks never exist.
+- **Minimal hierarchy, automatically.** Only the source sets you need, with [no IDE-sync drag](https://rsicarelli.com/en/blog/the-hidden-cost-of-default-hierarchy-templates-in-kotlin-multiplatform/).
+- **Opt-in and non-invasive.** Other modules build exactly as before.
+- **Layered selection.** A flag, env var, or config file picks the targets.
+- **Apple frameworks and XCFrameworks.** `appleFramework("Shared")` attaches to every Apple target.
+- **Build-type selection.** `kmptargets.framework.buildTypes=debug` skips the slow Release link.
+- **Built-in diagnostics.** `kmpTargetsInfo` and `kmpTargetsDoctor` explain what registered and why.
 
 ## ⚡ Quick Start
 
