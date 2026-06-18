@@ -6,16 +6,16 @@
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.2%2B-blue)](https://kotlinlang.org)
 [![Docs](https://img.shields.io/badge/docs-rsicarelli.github.io%2Fkmp--targets-blue)](https://rsicarelli.github.io/kmp-targets/)
 
-**Build only for necessary targets.** One Gradle property decides which Kotlin Multiplatform targets compile. The ones you skip never register, so their tasks never exist.
+Speed up KMP development by **building only the targets you need.**. One Gradle property decides which Kotlin Multiplatform targets compile. The ones you skip never register, so their tasks never exist.
 
 ```kotlin
 // build.gradle.kts: declare what this module can build
 kmpTargets {
-    supports { mobile }   // androidTarget + all iOS
+    supports { mobile } // androidTarget + all iOS     
 }
 ```
 ```bash
-# Build only what you select. Unselected targets never register.
+# Build only what you select. 
 ./gradlew build -Pkmptargets.targets=iosArm64
 ```
 
@@ -30,15 +30,17 @@ Kotlin Multiplatform makes you declare every target up front, then builds them a
 ```kotlin
 // Before: regular KMP. List every target, apply the default hierarchy template.
 kotlin {
+    applyDefaultHierarchyTemplate()
+    
     jvm()
     iosArm64()
     iosSimulatorArm64()
     iosX64()
-    applyDefaultHierarchyTemplate()
 }
 ```
 ```kotlin
-// After: kmp-targets. Set algebra in, boilerplate out; the minimal hierarchy is automatic.
+// After: kmp-targets. 
+// Hierarchy Template is automatic/dynamic.
 kmpTargets {
     supports { appleMobile + jvm - iosX64 }   // drop the Intel-Mac simulator
 }
@@ -48,29 +50,24 @@ kmpTargets {
 ./gradlew build -Pkmptargets.targets=iosArm64
 ```
 
-Set algebra instead of a target list, a minimal hierarchy instead of `applyDefaultHierarchyTemplate`'s redundant intermediates (see [🧩 Automatic hierarchy](#-automatic-hierarchy)), and the targets you skip never register (see [📊 Impact](#-impact)).
-
 ## 📊 Impact
 
 `kmp-targets` registers only `selection ∩ supported` targets. Unselected targets are never handed to the Kotlin Gradle Plugin, so **none** of their tasks (compile, klib, metadata, link, test, framework, resources) are ever created. Fewer targets, fewer tasks.
 
-Measured on `samples/hello-world`'s `shared-core` module (`supports { all }`) by counting the `:shared-core:build` task graph via `gradlew --dry-run`:
+Measured on `samples/hello-world` by counting the `:shared-core:build` task graph via `gradlew --dry-run`:
 
-| Targets registered | Selection | Gradle tasks | vs. all 4 |
-| :---: | :--- | :---: | :---: |
-| 4 | `jvm,iosArm64,iosSimulatorArm64,iosX64` | 63 | baseline |
-| 3 | `jvm,iosArm64,iosSimulatorArm64` | 54 | -14% |
-| 2 | `jvm,iosArm64` | 38 | -40% |
-| 1 | `jvm` | 26 | -59% |
-| 1 | `iosArm64` | 19 | **-70%** |
+| Selection | Gradle tasks | vs. all 4 |
+| :--- | :---: | :---: |
+| `jvm,iosArm64,iosSimulatorArm64,iosX64` | 63 | baseline |
+| `jvm,iosArm64,iosSimulatorArm64` | 54 | -14% |
+| `jvm,iosArm64` | 38 | -40% |
+| `jvm` | 26 | -59% |
+| `iosArm64` | 19 | **-70%** |
 
-A module with an `appleFramework` collapses even harder, because every dropped Apple leaf also takes its `linkDebugFramework*` / `linkReleaseFramework*` tasks with it. On `core-and-apple` (`supports { apple + jvm }` plus `appleFramework`), 5 targets cost 86 tasks while `iosArm64` alone costs 21 (**-76%**).
-
-<sub>Measured with Gradle 9.5.1 and Kotlin 2.3.21 via `--dry-run`. Counts are the per-module `build` task graph and include the sample's ktfmt tasks; the reduction holds without them too (shared-core drops from 49 to 13 KGP-only tasks, -73%).</sub>
 
 ## ✨ Key Features
 
-- **Targets are set algebra.** `supports { apple + jvm - iosX64 }` composes presets and leaves with `+` and `-`. Type-safe, no magic strings.
+- **Targets are set algebra.** `supports { apple + jvm - iosX64 }` composes presets and leaves with `+` and `-`.
 - **Unselected means non-existent.** Skipped targets never reach KGP, so their compile, link, test, and KSP tasks are never created, not just skipped.
 - **Opt-in and non-invasive.** It only touches modules that apply it. Plain KMP modules build exactly as before, and you can mix the two freely.
 - **Layered selection.** Set targets from a `-P` flag, an env var, a per-developer file, a committed team file, or `gradle.properties`. Typos get a "did you mean?".
@@ -123,6 +120,8 @@ Inspect what the plugin decided at any time with `./gradlew :module:kmpTargetsIn
 > **Ordering:** `supports` registers eagerly, so apply every plugin that influences registration *before* the `kmpTargets { }` block. That matters most for the Android Gradle plugin when you support `androidTarget`.
 
 ## 🧩 Automatic hierarchy
+
+[Kotlin's Default Hierarchy template has a hidden cost for your IDE sync](https://rsicarelli.com/en/blog/the-hidden-cost-of-default-hierarchy-templates-in-kotlin-multiplatform/): it always create unecessary `nativeMain` and `appleMain` intermediates even when not needed.
 
 `kmp-targets` rebuilds the source-set hierarchy to fit exactly the targets you registered. No manual `sourceSets { }` wiring, no redundant intermediates: it keeps only the groups that actually merge two or more children.
 
