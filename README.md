@@ -28,10 +28,8 @@ Kotlin Multiplatform makes you declare every target up front, then builds them a
 ## ⚖️ Before / After
 
 ```kotlin
-// Before: regular KMP. List every target, apply the default hierarchy template.
+// Plain KMP: every target you list builds on every sync.
 kotlin {
-    applyDefaultHierarchyTemplate()
-
     jvm()
     iosArm64()
     iosSimulatorArm64()
@@ -39,14 +37,13 @@ kotlin {
 }
 ```
 ```kotlin
-// After: kmp-targets.
-// Hierarchy Template is automatic/dynamic.
+// kmp-targets: declare what the module supports...
 kmpTargets {
     supports { appleMobile + jvm - iosX64 }   // drop the Intel-Mac simulator
 }
 ```
 ```bash
-# Build only what you're working on. The rest never register.
+# ...then select what to build now. The rest never register.
 ./gradlew build -Pkmptargets.targets=iosArm64
 ```
 
