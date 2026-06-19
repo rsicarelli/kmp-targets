@@ -6,10 +6,10 @@
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.2%2B-blue)](https://kotlinlang.org)
 [![Docs](https://img.shields.io/badge/docs-rsicarelli.github.io%2Fkmp--targets-blue)](https://rsicarelli.github.io/kmp-targets/)
 
-Speed up KMP development by **building only the targets you need.** One Gradle property decides which Kotlin Multiplatform targets compile. The ones you skip never register, so their tasks never exist.
+KMP makes you declare every target up front, then builds them all on every sync, even the ones you're not touching. kmp-targets hands that choice back to you. Pick what to build, and the targets you skip never register, so their tasks never exist.
 
 ```kotlin
-// build.gradle.kts: declare what this module can build
+// declare what this module can build
 kmpTargets {
     supports { mobile } // androidTarget + all iOS
 }
