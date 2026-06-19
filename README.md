@@ -49,7 +49,7 @@ Measured on `samples/hello-world` by counting the `:shared-core:build` task grap
 
 - **Unselected means non-existent.** Skipped targets never reach KGP, so their tasks never exist.
 - **Layered selection.** A flag, env var, or config file picks the targets.
-- **Targets are set algebra.** Compose presets and leaves with `+`/`-`: `supports { apple + jvm - iosX64 }`.
+- **Targets are set algebra.** Add and drop presets and leaves: `apple + jvm - iosX64`.
 - **Opt-in and non-invasive.** Other modules build exactly as before.
 - **Minimal hierarchy, automatically.** Only the source sets you need, with [no IDE-sync drag](https://rsicarelli.com/en/blog/the-hidden-cost-of-default-hierarchy-templates-in-kotlin-multiplatform/).
 - **Built-in diagnostics.** `kmpTargetsInfo` and `kmpTargetsDoctor` explain what registered and why.
@@ -108,19 +108,19 @@ Every module the plugin applies to gets two read-only tasks (group `help`):
 - **`kmpTargetsInfo`** shows what resolved, what registered, and why.
 - **`kmpTargetsDoctor`** runs triage with cause, effect, and fix for the usual snags: empty selections, inert modules, host-incompatible targets, disjoint framework build types, and more.
 
-The [Diagnostics docs](https://rsicarelli.github.io/kmp-targets/user-guide/diagnostics/) walk through both, with recipes for the trickier setups. The first migration can be heavy lifting depending on what your project does, but it pays off once it clicks. Stuck? [Open an issue](https://github.com/rsicarelli/kmp-targets/issues/new/choose) and we'll help you wire it up.
+The [Diagnostics docs](https://rsicarelli.github.io/kmp-targets/latest/user-guide/diagnostics/) walk through both, with recipes for the trickier setups. The first migration can be heavy lifting depending on what your project does, but it pays off once it clicks. Stuck? [Open an issue](https://github.com/rsicarelli/kmp-targets/issues/new/choose) and we'll help you wire it up.
 
 ## 📚 Documentation
 
 Everything lives at **[rsicarelli.github.io/kmp-targets](https://rsicarelli.github.io/kmp-targets/)**:
 
-- [Quick Start](https://rsicarelli.github.io/kmp-targets/get-started/quick-start/): apply, declare, select, inspect
-- [Selection DSL](https://rsicarelli.github.io/kmp-targets/user-guide/selection-dsl/): `supports { }`, set algebra, the JVM rename
-- [Selection Layers](https://rsicarelli.github.io/kmp-targets/user-guide/selection-layers/): config files, precedence, grammar
-- [Targets Reference](https://rsicarelli.github.io/kmp-targets/user-guide/targets-reference/): every preset and leaf
-- [Apple Framework](https://rsicarelli.github.io/kmp-targets/user-guide/apple-framework/): `appleFramework`, XCFrameworks, `onAppleTarget`
-- [Diagnostics](https://rsicarelli.github.io/kmp-targets/user-guide/diagnostics/): `kmpTargetsInfo` and `kmpTargetsDoctor`
-- [Advisories & Strict Mode](https://rsicarelli.github.io/kmp-targets/user-guide/advisories/): the eight advisories and CI strictness
+- [Quick Start](https://rsicarelli.github.io/kmp-targets/latest/get-started/quick-start/): apply, declare, select, inspect
+- [Selection DSL](https://rsicarelli.github.io/kmp-targets/latest/user-guide/selection-dsl/): `supports { }`, set algebra, the JVM rename
+- [Selection Layers](https://rsicarelli.github.io/kmp-targets/latest/user-guide/selection-layers/): config files, precedence, grammar
+- [Targets Reference](https://rsicarelli.github.io/kmp-targets/latest/user-guide/targets-reference/): every preset and leaf
+- [Apple Framework](https://rsicarelli.github.io/kmp-targets/latest/user-guide/apple-framework/): `appleFramework`, XCFrameworks, `onAppleTarget`
+- [Diagnostics](https://rsicarelli.github.io/kmp-targets/latest/user-guide/diagnostics/): `kmpTargetsInfo` and `kmpTargetsDoctor`
+- [Advisories & Strict Mode](https://rsicarelli.github.io/kmp-targets/latest/user-guide/advisories/): the eight advisories and CI strictness
 
 ## 🤝 Contributing
 
