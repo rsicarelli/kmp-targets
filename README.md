@@ -6,7 +6,7 @@
 [![Kotlin](https://img.shields.io/badge/Kotlin-2.2%2B-blue)](https://kotlinlang.org)
 [![Docs](https://img.shields.io/badge/docs-rsicarelli.github.io%2Fkmp--targets-blue)](https://rsicarelli.github.io/kmp-targets/)
 
-KMP makes you declare every target up front, then builds them all on every sync, even the ones you're not touching. kmp-targets hands that choice back to you. Pick what to build, and the targets you skip never register, so their tasks never exist.
+KMP makes you declare every target up front, then builds them all on every sync, even the ones you're not touching. **`kmp-targets`** hands that choice back to you. Pick what to build, and the targets you skip never register, so their tasks never exist.
 
 ```kotlin
 // declare what this module can build
@@ -33,7 +33,7 @@ Kotlin Multiplatform declares every target up front and compiles the whole set o
 
 ## 📊 Impact
 
-`kmp-targets` registers only `selection ∩ supported` targets. Unselected targets are never handed to the Kotlin Gradle Plugin, so **none** of their tasks (compile, klib, metadata, link, test, framework, resources) are ever created. Fewer targets, fewer tasks.
+`kmp-targets` registers only `selection ∩ supported` targets. Unselected targets are never handed to the Kotlin Gradle Plugin, so **none** of their tasks (compile, klib, metadata, link, test, framework, resources) are ever created. **Fewer targets, fewer tasks.**
 
 Measured on `samples/hello-world` by counting the `:shared-core:build` task graph via `gradlew --dry-run`, for selections from all four supported targets (`jvm`, `iosArm64`, `iosSimulatorArm64`, `iosX64`) down to one:
 
@@ -112,7 +112,7 @@ The [Diagnostics docs](https://rsicarelli.github.io/kmp-targets/latest/user-guid
 
 ## 📚 Documentation
 
-Everything lives at **[rsicarelli.github.io/kmp-targets](https://rsicarelli.github.io/kmp-targets/)**:
+Everything lives at [rsicarelli.github.io/kmp-targets](https://rsicarelli.github.io/kmp-targets/):
 
 - [Quick Start](https://rsicarelli.github.io/kmp-targets/latest/get-started/quick-start/): apply, declare, select, inspect
 - [Selection DSL](https://rsicarelli.github.io/kmp-targets/latest/user-guide/selection-dsl/): `supports { }`, set algebra, the JVM rename
