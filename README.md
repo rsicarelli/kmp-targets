@@ -47,14 +47,14 @@ Measured on `samples/hello-world` by counting the `:shared-core:build` task grap
 
 ## ✨ Key Features
 
-- **Targets are set algebra.** Compose presets and leaves with `+`/`-`: `supports { apple + jvm - iosX64 }`.
 - **Unselected means non-existent.** Skipped targets never reach KGP, so their tasks never exist.
-- **Minimal hierarchy, automatically.** Only the source sets you need, with [no IDE-sync drag](https://rsicarelli.com/en/blog/the-hidden-cost-of-default-hierarchy-templates-in-kotlin-multiplatform/).
-- **Opt-in and non-invasive.** Other modules build exactly as before.
 - **Layered selection.** A flag, env var, or config file picks the targets.
+- **Targets are set algebra.** Compose presets and leaves with `+`/`-`: `supports { apple + jvm - iosX64 }`.
+- **Opt-in and non-invasive.** Other modules build exactly as before.
+- **Minimal hierarchy, automatically.** Only the source sets you need, with [no IDE-sync drag](https://rsicarelli.com/en/blog/the-hidden-cost-of-default-hierarchy-templates-in-kotlin-multiplatform/).
+- **Built-in diagnostics.** `kmpTargetsInfo` and `kmpTargetsDoctor` explain what registered and why.
 - **Apple frameworks and XCFrameworks.** `appleFramework("Shared")` attaches to every Apple target.
 - **Build-type selection.** `kmptargets.framework.buildTypes=debug` skips the slow Release link.
-- **Built-in diagnostics.** `kmpTargetsInfo` and `kmpTargetsDoctor` explain what registered and why.
 
 ## ⚡ Quick Start
 
