@@ -25,9 +25,13 @@ kmptargets.targets=iosArm64
 
 ## 🤔 Why kmp-targets?
 
-Kotlin Multiplatform makes you declare every target up front, then builds them all on every sync. Kotlin's own docs tell you not to: *"[build only for necessary targets](https://kotlinlang.org/docs/native-improving-compilation-time.html#build-only-for-necessary-targets)."* The catch is that the only built-in way to do it is hand-editing `kotlin { }`.
+Kotlin Multiplatform makes you declare every target up front, then builds them all on every sync. With two or three targets that's fine. But codebases grow, and every target you add brings its own tasks to compile, link, test, and publish, and more for the IDE to sync. Kotlin's own docs tell you to avoid it: *"[build only for necessary targets](https://kotlinlang.org/docs/native-improving-compilation-time.html#build-only-for-necessary-targets)."* The only built-in way is hand-editing `kotlin { }`.
 
-`kmp-targets` splits what you *support* from what you *want to build*, and turns the choice into one property. Pick the set you want and the targets you skip never register, so their tasks never exist.
+In practice, you don't work on Android, iOS, web, and desktop at the same time. You pick a platform, iterate, then switch and verify somewhere else. On the iOS simulator today? You don't need the physical-device tasks in your graph. Heading to a real device next? Switch back and they're there. Most of the day a subset is all you need, yet plain KMP builds the whole matrix anyway.
+
+`kmp-targets` splits what a module *supports* from what you *build right now*. Skip a target and it never registers, so none of its tasks get created, and the saving cascades: fewer targets, fewer tasks for Gradle to configure and watch, fewer downloads, a lighter IDE sync. CI works the same way. You still prove every target compiles, but one job rarely needs both device and simulator, so you pick one per check and CI gets shorter too.
+
+It comes out of three years on a 300+ module KMP codebase, where keeping the build set small is what kept iteration fast.
 
 ## ⚖️ Before / After
 
