@@ -60,7 +60,7 @@ Measured on `samples/hello-world` by counting the `:shared-core:build` task grap
 
 See the [compatibility matrix](https://rsicarelli.github.io/kmp-targets/latest/compatibility/) for supported Gradle, JDK, and Kotlin versions.
 
-**1. Add the plugin.** It's published to Maven Central (not the Gradle Plugin Portal), so make sure `mavenCentral()` is in your plugin repositories:
+**1. Add the plugin:**
 
 ```kotlin
 // settings.gradle.kts
