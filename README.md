@@ -99,39 +99,16 @@ kmptargets.targets=jvm,iosArm64
 
 Inspect what the plugin decided at any time with `./gradlew :module:kmpTargetsInfo` (see [🔎 Diagnostics](#-diagnostics)).
 
-> **Ordering:** `supports` registers eagerly, so apply every plugin that influences registration *before* the `kmpTargets { }` block. That matters most for the Android Gradle plugin when you support `androidTarget`.
-
 ## 🔎 Diagnostics
 
-Two read-only tasks (group `help`) on every module the plugin is applied to.
+Dropping `kmp-targets` into an existing module isn't always a one-liner. Real projects carry KSP processors, custom or legacy source-set hierarchies, and `expect`/`actual` spread across targets, and predicting how a smaller target set lands on all of that is hard. So the plugin gives you tooling to see what it decided, instead of guessing.
 
-`kmpTargetsInfo` shows what resolved, what registered, and why:
+Every module the plugin applies to gets two read-only tasks (group `help`):
 
-```bash
-./gradlew :feature-mobile:kmpTargetsInfo -q
-```
-```console
-kmp-targets - :feature-mobile
+- **`kmpTargetsInfo`** shows what resolved, what registered, and why.
+- **`kmpTargetsDoctor`** runs triage with cause, effect, and fix for the usual snags: empty selections, inert modules, host-incompatible targets, disjoint framework build types, and more.
 
-Selection (what to build now)
-  targets:  iosArm64
-  source:   command line (-Pkmptargets.targets)
-
-Supported (what this module can build)
-  declared: yes
-  targets:  androidTarget, iosArm64, iosSimulatorArm64, iosX64
-
-Registered (selection ∩ supported)
-  targets:  iosArm64
-```
-
-`kmpTargetsDoctor` runs triage (cause, effect, fix) for empty selections, inert modules, host-incompatible targets, disjoint framework build types, and more, or prints a clean bill of health:
-
-```console
-kmp-targets doctor - :jvm-tools
-
-✓ clean bill of health - registered: jvm
-```
+The [Diagnostics docs](https://rsicarelli.github.io/kmp-targets/user-guide/diagnostics/) walk through both, with recipes for the trickier setups. The first migration can be heavy lifting depending on what your project does, but it pays off once it clicks. Stuck? [Open an issue](https://github.com/rsicarelli/kmp-targets/issues/new/choose) and we'll help you wire it up.
 
 ## 📚 Documentation
 
