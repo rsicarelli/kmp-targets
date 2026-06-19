@@ -31,28 +31,6 @@ Kotlin Multiplatform declares every target up front and compiles the whole set o
 
 `kmp-targets` separates what a module *supports* from what you *build now*. Skip a target and it never registers, so its tasks never exist. Less to build, download, and sync, including on CI, where you prove every target compiles but build one per check.
 
-## ⚖️ Before / After
-
-```kotlin
-// Plain KMP: every target you list builds on every sync.
-kotlin {
-    jvm()
-    iosArm64()
-    iosSimulatorArm64()
-    iosX64()
-}
-```
-```kotlin
-// kmp-targets: declare what the module supports...
-kmpTargets {
-    supports { appleMobile + jvm - iosX64 }   // drop the Intel-Mac simulator
-}
-```
-```bash
-# ...then select what to build now. The rest never register.
-./gradlew build -Pkmptargets.targets=iosArm64
-```
-
 ## 📊 Impact
 
 `kmp-targets` registers only `selection ∩ supported` targets. Unselected targets are never handed to the Kotlin Gradle Plugin, so **none** of their tasks (compile, klib, metadata, link, test, framework, resources) are ever created. Fewer targets, fewer tasks.
