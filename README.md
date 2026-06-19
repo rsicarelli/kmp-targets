@@ -12,15 +12,22 @@ KMP makes you declare every target up front, then builds them all on every sync,
 // declare what this module can build
 kmpTargets {
     supports { mobile } // androidTarget + all iOS
+    appleFramework("Shared", xcframework = true) // assemble Shared.xcframework
 }
 ```
 ```bash
 # Build only what you select.
 ./gradlew build -Pkmptargets.targets=iosArm64
+
+# Assemble a debug-only XCFramework (skip the slow Release link).
+./gradlew assembleSharedXCFramework \
+    -Pkmptargets.targets=iosArm64 \
+    -Pkmptargets.framework.buildTypes=debug
 ```
 ```properties
 # ...or set it once as a local preference (kmp-targets.local.properties)
 kmptargets.targets=iosArm64
+kmptargets.framework.buildTypes=debug
 ```
 
 ## 🤔 Why kmp-targets?
