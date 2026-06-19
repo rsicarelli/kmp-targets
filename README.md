@@ -18,6 +18,10 @@ kmpTargets {
 # Build only what you select.
 ./gradlew build -Pkmptargets.targets=iosArm64
 ```
+```properties
+# ...or set it once as a local preference (kmp-targets.local.properties)
+kmptargets.targets=iosArm64
+```
 
 ## 🤔 Why kmp-targets?
 
