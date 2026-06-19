@@ -35,15 +35,15 @@ Kotlin Multiplatform declares every target up front and compiles the whole set o
 
 `kmp-targets` registers only `selection ∩ supported` targets. Unselected targets are never handed to the Kotlin Gradle Plugin, so **none** of their tasks (compile, klib, metadata, link, test, framework, resources) are ever created. Fewer targets, fewer tasks.
 
-Measured on `samples/hello-world` by counting the `:shared-core:build` task graph via `gradlew --dry-run`:
+Measured on `samples/hello-world` by counting the `:shared-core:build` task graph via `gradlew --dry-run`, for selections from all four supported targets (`jvm`, `iosArm64`, `iosSimulatorArm64`, `iosX64`) down to one:
 
-| Selection | Gradle tasks | vs. all 4 |
+| # targets | savings | total tasks |
 | :--- | :---: | :---: |
-| `jvm,iosArm64,iosSimulatorArm64,iosX64` | 63 | baseline |
-| `jvm,iosArm64,iosSimulatorArm64` | 54 | -14% |
-| `jvm,iosArm64` | 38 | -40% |
-| `jvm` | 26 | -59% |
-| `iosArm64` | 19 | **-70%** |
+| 4 | baseline | 63 |
+| 3 | 14% | 54 |
+| 2 | 40% | 38 |
+| 1 (`jvm`) | 59% | 26 |
+| 1 (`iosArm64`) | **70%** | 19 |
 
 ## ✨ Key Features
 
