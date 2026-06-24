@@ -12,13 +12,13 @@
         <meta name="author" content="Rodrigo Sicarelli">
       
       
-        <link rel="canonical" href="https://rsicarelli.github.io/kmp-targets/snapshot/user-guide/selection-layers/">
+        <link rel="canonical" href="https://rsicarelli.github.io/kmp-targets/snapshot/user-guide/ide-workflow/">
       
       
-        <link rel="prev" href="../selection-dsl/">
+        <link rel="prev" href="../selection-layers/">
       
       
-        <link rel="next" href="../ide-workflow/">
+        <link rel="next" href="../targets-reference/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -26,7 +26,7 @@
     
     
       
-        <title>Selection Layers - kmp-targets</title>
+        <title>IDE Workflow - kmp-targets</title>
       
     
     
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#selection-layers" class="md-skip">
+        <a href="#ide-workflow" class="md-skip">
           Skip to content
         </a>
       
@@ -120,7 +120,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Selection Layers
+              IDE Workflow
             
           </span>
         </div>
@@ -441,6 +441,29 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../selection-layers/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    Selection Layers
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -458,7 +481,7 @@
   
   
   <span class="md-ellipsis">
-    Selection Layers
+    IDE Workflow
     
   </span>
   
@@ -471,7 +494,7 @@
   
   
   <span class="md-ellipsis">
-    Selection Layers
+    IDE Workflow
     
   </span>
   
@@ -494,36 +517,36 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#exact-precedence-highest-first" class="md-nav__link">
+  <a href="#the-recipe" class="md-nav__link">
     <span class="md-ellipsis">
-      Exact precedence (highest first)
+      The recipe
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#the-config-files" class="md-nav__link">
+  <a href="#why-no-daemon-kill" class="md-nav__link">
     <span class="md-ellipsis">
-      The config files
+      Why no daemon kill
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#selection-grammar" class="md-nav__link">
+  <a href="#confirm-what-indexed" class="md-nav__link">
     <span class="md-ellipsis">
-      Selection grammar
+      Confirm what indexed
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#diagnosing-a-surprising-selection" class="md-nav__link">
+  <a href="#terminal-ci-use-the-same-key" class="md-nav__link">
     <span class="md-ellipsis">
-      Diagnosing a surprising selection
+      Terminal &amp; CI use the same key
     </span>
   </a>
   
@@ -533,29 +556,6 @@
   
 </nav>
       
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../ide-workflow/" class="md-nav__link">
-        
-  
-  
-  <span class="md-ellipsis">
-    IDE Workflow
-    
-  </span>
-  
-
-      </a>
     </li>
   
 
@@ -1004,36 +1004,36 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#exact-precedence-highest-first" class="md-nav__link">
+  <a href="#the-recipe" class="md-nav__link">
     <span class="md-ellipsis">
-      Exact precedence (highest first)
+      The recipe
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#the-config-files" class="md-nav__link">
+  <a href="#why-no-daemon-kill" class="md-nav__link">
     <span class="md-ellipsis">
-      The config files
+      Why no daemon kill
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#selection-grammar" class="md-nav__link">
+  <a href="#confirm-what-indexed" class="md-nav__link">
     <span class="md-ellipsis">
-      Selection grammar
+      Confirm what indexed
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#diagnosing-a-surprising-selection" class="md-nav__link">
+  <a href="#terminal-ci-use-the-same-key" class="md-nav__link">
     <span class="md-ellipsis">
-      Diagnosing a surprising selection
+      Terminal &amp; CI use the same key
     </span>
   </a>
   
@@ -1058,68 +1058,41 @@
   
 
 
-<h1 id="selection-layers">Selection Layers<a class="headerlink" href="#selection-layers" title="Permanent link">&para;</a></h1>
-<p>The selection is global — one switch narrows the whole build. Its sources form three layers in increasing priority:</p>
-<table>
-<thead>
-<tr>
-<th>Layer</th>
-<th>Sources</th>
-<th>Who sets it</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><strong>Committed default</strong></td>
-<td><code>kmp-targets.properties</code> (and legacy root <code>gradle.properties</code>)</td>
-<td>the team, in git</td>
-</tr>
-<tr>
-<td><strong>Personal override</strong></td>
-<td><code>kmp-targets.local.properties</code> (and legacy <code>local.properties</code>) — git-ignored</td>
-<td>each developer, per machine</td>
-</tr>
-<tr>
-<td><strong>Per-invocation</strong></td>
-<td><code>-Pkmptargets.targets=…</code> CLI flag, <code>ORG_GRADLE_PROJECT_kmptargets.targets</code> env</td>
-<td>this one build — a terminal run, a CI job</td>
-</tr>
-</tbody>
-</table>
-<p><code>kmptargets.targets</code> is the <strong>single canonical key</strong> across every layer — the string you commit, the string you override locally, and the string a <a href="../ci-matrix/">CI matrix</a> passes per job are the same vocabulary.</p>
-<h2 id="exact-precedence-highest-first">Exact precedence (highest first)<a class="headerlink" href="#exact-precedence-highest-first" title="Permanent link">&para;</a></h2>
-<ol>
-<li><code>-Pkmptargets.targets=...</code> on the CLI</li>
-<li><code>ORG_GRADLE_PROJECT_kmptargets.targets</code> environment variable</li>
-<li><code>kmp-targets.local.properties</code> (per-developer, git-ignored)</li>
-<li><code>kmp-targets.properties</code> (committed, team-shared)</li>
-<li>the <strong>root</strong> <code>gradle.properties</code> (a <em>subproject's</em> <code>gradle.properties</code> is <strong>not</strong> a source — Gradle only reads root-level project properties)</li>
-<li><code>local.properties</code> (per-developer, git-ignored)</li>
-</ol>
-<p>When no source provides a value, two <strong>fallbacks</strong> (not overrides — anything above beats them) apply: a project-wide <code>defaultSelection</code> set from build-logic, then the plugin default — every target the plugin knows about.</p>
-<p>The rarer <code>-Dorg.gradle.project.kmptargets.targets</code> and <code>~/.gradle/gradle.properties</code> forms resolve at the <code>gradle.properties</code> layer, below the dedicated files. Why the dedicated files outrank <code>gradle.properties</code>: <a href="../../why-kmp-targets/#selection-model">Design</a>.</p>
-<p>With the opt-in <a href="../xcode-environment/"><code>kmptargets.xcodeEnv</code></a> flag on, an extra layer sits between <strong>2</strong> and <strong>3</strong> — Xcode's own <code>SDK_NAME</code>/<code>ARCHS</code> when it invokes Gradle — so an Xcode build needs no <code>-P</code>. The flag off, it does not exist.</p>
-<h2 id="the-config-files">The config files<a class="headerlink" href="#the-config-files" title="Permanent link">&para;</a></h2>
-<div class="language-properties highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># kmp-targets.properties — committed, team-shared</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="na">kmptargets.targets</span><span class="o">=</span><span class="s">jvm,iosArm64</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="na">kmptargets.hierarchyTemplate</span><span class="o">=</span><span class="s">true</span>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># kmptargets.hierarchyCollapse=false   # see &quot;Hierarchy&quot;</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="c1"># kmptargets.strict=true               # see &quot;Advisories &amp; Strict Mode&quot;</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># kmptargets.umbrellaTasks=true        # see &quot;CI&quot;</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="c1"># kmptargets.framework.buildTypes=debug  # see &quot;Apple Framework&quot;</span>
+<h1 id="ide-workflow">IDE Workflow<a class="headerlink" href="#ide-workflow" title="Permanent link">&para;</a></h1>
+<p>Big KMP build, slow Sync? You only work one platform at a time, so let the IDE index only that one.</p>
+<p>This is the everyday loop: pick the platform you're touching, Sync, get fast indexing and correct IntelliSense for it. Switch platforms by editing one line and re-syncing — <strong>no <code>gradlew stop</code>, no daemon kill.</strong></p>
+<h2 id="the-recipe">The recipe<a class="headerlink" href="#the-recipe" title="Permanent link">&para;</a></h2>
+<p><strong>1. Pin your platform</strong> in <code>kmp-targets.local.properties</code> (git-ignored, per-developer — it's <em>your</em> machine's preference, not the team's):</p>
+<div class="language-properties highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># kmp-targets.local.properties</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="na">kmptargets.targets</span><span class="o">=</span><span class="s">iosArm64</span>
 </span></code></pre></div>
-<p><code>kmp-targets.local.properties</code> (git-ignored) is optional: absent it's ignored; present, its keys override the committed file's. Both files accept only known <code>kmptargets.*</code> keys — an unknown key fails the build with a "did you mean …?" suggestion. Both are tracked configuration-cache inputs: editing one invalidates the cache, leaving them untouched keeps cache hits — so switching your local platform is just an edit and a Sync, <a href="../ide-workflow/">no daemon kill</a>.</p>
-<h2 id="selection-grammar">Selection grammar<a class="headerlink" href="#selection-grammar" title="Permanent link">&para;</a></h2>
-<div class="language-properties highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="na">kmptargets.targets</span><span class="o">=</span><span class="s">android,iosArm64        # explicit list</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="na">kmptargets.targets</span><span class="o">=</span><span class="s">appleMobile             # preset (iosArm64 + iosSimulatorArm64 + iosX64)</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="na">kmptargets.targets</span><span class="o">=</span><span class="s">appleMobile,-iosArm64   # preset minus a leaf</span>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="na">kmptargets.targets</span><span class="o">=</span><span class="s">apple,+android          # preset plus an addition</span>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="na">kmptargets.targets</span><span class="o">=</span><span class="s">ANDROID, ios-arm64      # aliases + case-insensitive</span>
+<p><strong>2. Sync</strong> (the Gradle elephant / "Reload All Gradle Projects"). Only <code>iosArm64</code> registers, so only its source sets index and only its tasks exist.</p>
+<p><strong>3. Switch platforms</strong> when you move to another. Edit the same line:</p>
+<div class="language-properties highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="na">kmptargets.targets</span><span class="o">=</span><span class="s">jvm</span>
 </span></code></pre></div>
-<p>Unknown tokens fail the build at configuration time with a "did you mean …?" suggestion (<a href="../../why-kmp-targets/#selection-model">why the parser is strict</a>). Bare Apple sub-family names (<code>ios</code>, <code>macos</code>, <code>watchos</code>, <code>tvos</code>) are rejected with a hint pointing at the relevant leaf or <code>appleX</code> preset.</p>
-<p>The full preset and leaf vocabulary lives in the <a href="../targets-reference/">Targets Reference</a>.</p>
-<h2 id="diagnosing-a-surprising-selection">Diagnosing a surprising selection<a class="headerlink" href="#diagnosing-a-surprising-selection" title="Permanent link">&para;</a></h2>
-<p><a href="../diagnostics/#kmptargetsinfo"><code>kmpTargetsInfo</code></a> prints the resolved selection and the winning source by name — <code>command line (-Pkmptargets.targets)</code>, <code>kmp-targets.local.properties</code>, etc. Values from <code>-Dorg.gradle.project.kmptargets.targets</code> and <code>~/.gradle/gradle.properties</code> are indistinguishable from root <code>gradle.properties</code>; all three report as the fused <code>gradle.properties (...)</code> layer.</p>
+<p>…and Sync again. That's the whole loop.</p>
+<div class="admonition tip">
+<p class="admonition-title">Working on Android?</p>
+<p>Use <code>kmptargets.targets=android,jvm</code> — co-selecting <code>jvm</code> keeps Android consumers resolving against the jvm-fallback variant. See <a href="../recipes/#the-asymmetric-case-android-and-the-jvm-fallback">the asymmetric case</a>.</p>
+</div>
+<h2 id="why-no-daemon-kill">Why no daemon kill<a class="headerlink" href="#why-no-daemon-kill" title="Permanent link">&para;</a></h2>
+<p><code>kmp-targets.local.properties</code> (and <code>kmp-targets.properties</code>) are <strong>tracked configuration-cache inputs</strong>. Editing one invalidates the cache, so the next Sync re-configures with the new target set — automatically. Leaving them untouched keeps the cache hit.</p>
+<p>If you've used homegrown target-switching before and got used to running <code>gradlew stop</code> after every flip, you don't need it here. That ritual is the symptom of an <em>untracked</em> property read; this plugin tracks the file, so the edit alone is enough.</p>
+<div class="admonition note">
+<p class="admonition-title">What you can't avoid</p>
+<p>Switching the registered target set is a real re-configuration + re-import — inherently slower than a no-op Sync. The win is the <strong>result</strong>: a smaller model (fewer targets) indexes faster. You skip the <em>extra</em> daemon-restart tax, not the Sync itself. And because <a href="../../why-kmp-targets/#the-configuration-cache-trade-off">each value is its own cache entry</a>, flipping <em>back</em> to a platform you've already used is a cache hit.</p>
+</div>
+<h2 id="confirm-what-indexed">Confirm what indexed<a class="headerlink" href="#confirm-what-indexed" title="Permanent link">&para;</a></h2>
+<p>Not sure which targets the IDE actually got? Ask the plugin:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>./gradlew<span class="w"> </span>:app:kmpTargetsInfo
+</span></code></pre></div>
+<p>It prints the resolved selection, the winning source (so a stale <code>kmp-targets.local.properties</code> is obvious), and the registered intersection. Full tour: <a href="../diagnostics/">Diagnostics</a>.</p>
+<h2 id="terminal-ci-use-the-same-key">Terminal &amp; CI use the same key<a class="headerlink" href="#terminal-ci-use-the-same-key" title="Permanent link">&para;</a></h2>
+<p>The IDE preference and a one-off terminal run share one vocabulary — <code>kmptargets.targets</code>:</p>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># one build, no file edit, beats the file:</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>./gradlew<span class="w"> </span>:app:assemble<span class="w"> </span>-Pkmptargets.targets<span class="o">=</span>iosArm64
+</span></code></pre></div>
+<p>A Makefile/Taskfile target, a CI matrix job, and your IDE all speak the same string. Precedence (CLI beats env beats your local file beats the committed file): <a href="../selection-layers/">Selection Layers</a>.</p>
 
 
 

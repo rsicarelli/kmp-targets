@@ -463,6 +463,29 @@
   
   
     <li class="md-nav__item">
+      <a href="../../user-guide/ide-workflow/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    IDE Workflow
+    
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../user-guide/targets-reference/" class="md-nav__link">
         
   
@@ -1096,6 +1119,11 @@
 <td>Every sync re-configures after changing selection</td>
 <td>each distinct value is its own configuration-cache entry — only the first build of a value misses</td>
 <td>expected; alternating between known values hits the cache (<a href="../../why-kmp-targets/#the-configuration-cache-trade-off">the trade-off</a>)</td>
+</tr>
+<tr>
+<td>Changed selection but the IDE still shows the old targets</td>
+<td>reaching for <code>gradlew stop</code>? not needed</td>
+<td>the config files are tracked cache inputs — edit <code>kmp-targets.local.properties</code> and Sync; the edit alone refreshes (<a href="../../user-guide/ide-workflow/">IDE Workflow</a>)</td>
 </tr>
 </tbody>
 </table>
