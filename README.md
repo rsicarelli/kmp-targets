@@ -124,6 +124,7 @@ Everything lives at [rsicarelli.github.io/kmp-targets](https://rsicarelli.github
 - [Quick Start](https://rsicarelli.github.io/kmp-targets/latest/get-started/quick-start/): apply, declare, select, inspect
 - [Selection DSL](https://rsicarelli.github.io/kmp-targets/latest/user-guide/selection-dsl/): `supports { }`, set algebra, the JVM rename
 - [Selection Layers](https://rsicarelli.github.io/kmp-targets/latest/user-guide/selection-layers/): config files, precedence, grammar
+- [IDE Workflow](https://rsicarelli.github.io/kmp-targets/latest/user-guide/ide-workflow/): fast Sync on one platform, switch without killing Gradle
 - [Targets Reference](https://rsicarelli.github.io/kmp-targets/latest/user-guide/targets-reference/): every preset and leaf
 - [Apple Framework](https://rsicarelli.github.io/kmp-targets/latest/user-guide/apple-framework/): `appleFramework`, XCFrameworks, `onAppleTarget`
 - [Diagnostics](https://rsicarelli.github.io/kmp-targets/latest/user-guide/diagnostics/): `kmpTargetsInfo` and `kmpTargetsDoctor`
