@@ -100,6 +100,7 @@ nav:
   - 'User Guide':
       - 'Selection DSL': user-guide/selection-dsl.md
       - 'Selection Layers': user-guide/selection-layers.md
+      - 'IDE Workflow': user-guide/ide-workflow.md
       - 'Targets Reference': user-guide/targets-reference.md
       - 'Hierarchy': user-guide/hierarchy-template.md
       - 'Build Logic': user-guide/build-logic.md
