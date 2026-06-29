@@ -37,7 +37,7 @@ kmptargets.hierarchyTemplate=true
 # kmptargets.framework.buildTypes=debug  # see "Apple Framework"
 ```
 
-`kmp-targets.local.properties` (git-ignored) is optional: absent it's ignored; present, its keys override the committed file's. Both files accept only known `kmptargets.*` keys — an unknown key fails the build with a "did you mean …?" suggestion. Both are tracked configuration-cache inputs: editing one invalidates the cache, leaving them untouched keeps cache hits.
+`kmp-targets.local.properties` (git-ignored) is optional: absent it's ignored; present, its keys override the committed file's. Both files accept only known `kmptargets.*` keys — an unknown key fails the build with a "did you mean …?" suggestion. Both are tracked configuration-cache inputs: editing one invalidates the cache, leaving them untouched keeps cache hits — so switching your local platform is just an edit and a Sync, [no daemon kill](ide-workflow.md).
 
 ## Selection grammar
 

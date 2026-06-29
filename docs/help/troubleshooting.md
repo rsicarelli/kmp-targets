@@ -19,6 +19,7 @@ Start with [`kmpTargetsInfo`](../user-guide/diagnostics.md#kmptargetsinfo): it p
 | Selection ignored / surprising value wins | a higher-precedence source is set — often a stale `kmp-targets.local.properties` or an env var | `kmpTargetsInfo` names the winning source; check the [precedence chain](../user-guide/selection-layers.md) |
 | A module builds nothing | empty overlap: selection ∩ supported = ∅ | widen the selection or the module's `supports { }`; the [empty-overlap advisory](../user-guide/advisories.md#empty-overlap) names the module |
 | Every sync re-configures after changing selection | each distinct value is its own configuration-cache entry — only the first build of a value misses | expected; alternating between known values hits the cache ([the trade-off](../why-kmp-targets.md#the-configuration-cache-trade-off)) |
+| Changed selection but the IDE still shows the old targets | reaching for `gradlew stop`? not needed | the config files are tracked cache inputs — edit `kmp-targets.local.properties` and Sync; the edit alone refreshes ([IDE Workflow](../user-guide/ide-workflow.md)) |
 
 ## Registration
 
