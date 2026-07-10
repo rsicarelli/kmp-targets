@@ -14,26 +14,18 @@ Kotlin Multiplatform makes you declare every target a module builds. After that,
 ./gradlew build -Pkmptargets.targets=iosArm64
 ```
 
-On the sample's `shared-core` module, that flag cuts the `build` task graph from 63 tasks to 19, measured with `--dry-run`. Numbers and method in [What was measured](#what-was-measured).
+On the sample's `shared-core` module, that flag cuts the `build` task graph from 63 tasks to 19, measured with `--dry-run`. Numbers and method in [📊 What was measured](#-what-was-measured).
 
-## Why not do it by hand
+## 🤔 Why not do it by hand
 
-You can get part of this with `if (project.hasProperty("buildIos"))` in a convention plugin. That approach breaks down at scale:
+An `if (hasProperty("ios"))` guard in a convention plugin does work. The plugin is that guard, plus the parts you'd write next:
 
-- **Every module re-implements the check.** Parsing, defaults, and edge cases drift between convention plugins.
-- **Typos fail silently.** `-PbuildIso=true` matches nothing, the guard is false, and the target disappears without a trace.
-- **No supported vs selected split.** "This module can't build wasm at all" and "skip wasm on this run" are different statements. A boolean flag can't express both, so per-module special cases pile up.
-- **No way to inspect the result.** When a target is missing, you read convention-plugin source to find out which condition dropped it.
+- **Validation.** A typo'd target name fails the build with a did-you-mean. A hand-rolled check silently selects nothing.
+- **Supported vs selected.** Modules declare what they can build, one global selection picks what registers now. Two concepts, not one flag per module.
+- **Set algebra.** `apple,jvm,-iosX64` replaces string parsing you maintain yourself.
+- **Diagnostics.** `kmpTargetsInfo` and `kmpTargetsDoctor` show what registered and why, no digging through convention plugins.
 
-What the plugin does instead:
-
-- An unknown target name fails the build with a did-you-mean suggestion.
-- Presets and set algebra replace hand-rolled string parsing: `apple,jvm,-iosX64`.
-- Each module declares what it supports. The registered set is that intersected with the global selection. A selection that matches nothing raises a warning, or fails the build in strict mode.
-- Selection resolves through layers with fixed precedence: CLI flag, environment, personal file, committed file.
-- Two read-only tasks, `kmpTargetsInfo` and `kmpTargetsDoctor`, print what registered and why.
-
-## Quick Start
+## ⚡ Quick Start
 
 See the [compatibility matrix](https://rsicarelli.github.io/kmp-targets/latest/compatibility/) for supported Gradle, JDK, and Kotlin versions.
 
@@ -85,7 +77,7 @@ With no selection set anywhere, every supported target registers, same as stock 
 
 The plugin is opt-in per module. Modules that don't apply it build exactly as before.
 
-## What was measured
+## 📊 What was measured
 
 Task count of `:shared-core:build` in [`samples/hello-world`](./samples/hello-world), collected with `./gradlew --dry-run`, shrinking the selection from four targets (`jvm`, `iosArm64`, `iosSimulatorArm64`, `iosX64`) down to one:
 
@@ -103,7 +95,7 @@ To be precise about what this number means: 70% fewer tasks in the graph is not 
 
 The plugin also applies a minimal source-set hierarchy for the registered targets instead of KGP's full default template, which cuts the source-set count the IDE has to resolve ([background](https://rsicarelli.com/en/blog/the-hidden-cost-of-default-hierarchy-templates-in-kotlin-multiplatform/)). Opt out with `kmptargets.hierarchyTemplate=false`.
 
-## Presets and set algebra
+## ✨ Presets and set algebra
 
 Explicit leaf names like `iosArm64` and `jvm` work everywhere. For modules that support a dozen targets, the plugin ships preset names as built-in shorthands. They are fixed, not user-defined:
 
@@ -131,7 +123,7 @@ kmptargets.targets=apple,jvm,-iosX64
 
 An unknown name fails the build and suggests the closest match. Family names get a specific hint, for example that `ios` is a family and you want a leaf like `iosArm64` or the `appleMobile` preset.
 
-## Selection layers
+## 🧭 Selection layers
 
 The selection resolves through layers. The first one that sets a value wins:
 
@@ -144,7 +136,7 @@ The selection resolves through layers. The first one that sets a value wins:
 
 There is also an opt-in Xcode layer (`kmptargets.xcodeEnv=true`) that derives the selection from Xcode's `SDK_NAME` and `ARCHS` during Xcode builds. It sits between 2 and 3. Grammar and precedence details: [Selection Layers](https://rsicarelli.github.io/kmp-targets/latest/user-guide/selection-layers/).
 
-## Apple frameworks
+## 🍎 Apple frameworks
 
 ```kotlin
 kmpTargets {
@@ -165,7 +157,7 @@ Build types resolve through the same layers as targets:
 
 That links the Debug framework only. The Release link tasks never enter the graph. The property narrows the build types declared in the DSL and never adds ones you didn't declare. Full API, including `onAppleTarget` and framework configuration: [Apple Framework](https://rsicarelli.github.io/kmp-targets/latest/user-guide/apple-framework/).
 
-## Diagnostics
+## 🔎 Diagnostics
 
 Dropping the plugin into an existing module isn't always a one-liner. KSP processors, custom source-set hierarchies, and `expect`/`actual` spread across targets all react to a smaller target set. So the plugin ships tooling that shows what it decided instead of leaving you to guess.
 
@@ -176,7 +168,7 @@ Every module the plugin applies to gets two read-only tasks (group `help`):
 
 The [Diagnostics docs](https://rsicarelli.github.io/kmp-targets/latest/user-guide/diagnostics/) walk through both, with recipes for the trickier setups. If you get stuck, [open an issue](https://github.com/rsicarelli/kmp-targets/issues/new/choose) and we'll help you wire it up.
 
-## Documentation
+## 📚 Documentation
 
 Everything lives at [rsicarelli.github.io/kmp-targets](https://rsicarelli.github.io/kmp-targets/):
 
@@ -189,7 +181,7 @@ Everything lives at [rsicarelli.github.io/kmp-targets](https://rsicarelli.github
 - [Diagnostics](https://rsicarelli.github.io/kmp-targets/latest/user-guide/diagnostics/): `kmpTargetsInfo` and `kmpTargetsDoctor`
 - [Advisories & Strict Mode](https://rsicarelli.github.io/kmp-targets/latest/user-guide/advisories/): the eight advisories and CI strictness
 
-## Contributing
+## 🤝 Contributing
 
 - **Report a bug or request a feature:** [open an issue](https://github.com/rsicarelli/kmp-targets/issues/new/choose)
 - **Develop:** `mise install`, then `task ci` (build + test + sample). Run `task dod` before committing.
