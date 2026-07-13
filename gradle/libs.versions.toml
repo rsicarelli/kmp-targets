@@ -10,7 +10,7 @@ binaryCompatibilityValidator = "0.18.1"
 # Test-only: KSP gradle plugin, injected into the TestKit plugin classpath so a functional test can
 # apply a real KSP and pin that `kspCommonMainKotlinMetadata` tracks the ≥2-platform-targets rule
 # (#73). Matched to the Kotlin version above (KSP 2.3.x pairs with Kotlin 2.3.x).
-ksp = "2.3.9"
+ksp = "2.3.10"
 # The plugin's own published version — single declaration point for the standalone samples
 # (they import this catalog and consume the plugin via `alias(libs.plugins.kmpTargets)`).
 # Kept in lockstep with `version=` in gradle.properties by .github/scripts/bump-version.main.kts.
