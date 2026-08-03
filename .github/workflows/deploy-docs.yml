@@ -44,7 +44,7 @@ jobs:
           git fetch origin gh-pages:gh-pages || echo "First deployment - gh-pages branch doesn't exist yet"
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version: '3.13'
 
